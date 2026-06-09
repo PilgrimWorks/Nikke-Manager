@@ -1,0 +1,1100 @@
+{
+  "nikkes": [
+    {
+      "id": "n1780083809125183640",
+      "name": "Snow White: Heavy Arms",
+      "burst": "III",
+      "element": "Water",
+      "gear": {
+        "Helmet": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "20.75",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "9.70",
+              "locked": false
+            }
+          ]
+        },
+        "Chest": {
+          "lines": [
+            {
+              "stat": "ATK",
+              "val": "10.40",
+              "locked": false
+            },
+            {
+              "stat": "Critical Damage",
+              "val": "10.56",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "20.75",
+              "locked": false
+            }
+          ]
+        },
+        "Gloves": {
+          "lines": [
+            {
+              "stat": "Critical Damage",
+              "val": "18.40",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "20.75",
+              "locked": false
+            }
+          ]
+        },
+        "Boots": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "26.36",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "11.11",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        }
+      },
+      "priorities": [
+        {
+          "line": "ATK",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 11
+        },
+        {
+          "line": "Elemental Damage",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Max Ammo",
+          "tier": "Ideal",
+          "count": 2,
+          "targetTier": 11
+        },
+        {
+          "line": "Critical Rate",
+          "tier": "Passable",
+          "count": 2,
+          "targetTier": 9
+        },
+        {
+          "line": "Critical Damage",
+          "tier": "Passable",
+          "count": 2,
+          "targetTier": 9
+        }
+      ]
+    },
+    {
+      "id": "n1780085525935407874",
+      "name": "Privaty (Treasure)",
+      "burst": "III",
+      "element": "Water",
+      "gear": {
+        "Helmet": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "24.96",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "10.40",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Chest": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "16.55",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "Hit Rate",
+              "val": "6.18",
+              "locked": false
+            }
+          ]
+        },
+        "Gloves": {
+          "lines": [
+            {
+              "stat": "Critical Rate",
+              "val": "2.30",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "22.15",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Boots": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "17.95",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "11.81",
+              "locked": false
+            }
+          ]
+        }
+      },
+      "priorities": [
+        {
+          "line": "ATK",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Elemental Damage",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        }
+      ]
+    },
+    {
+      "id": "n1780104557375252244",
+      "name": "Helm (Treasure)",
+      "burst": "III",
+      "element": "Water",
+      "gear": {
+        "Helmet": {
+          "lines": [
+            {
+              "stat": "ATK",
+              "val": "9.00",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "19.35",
+              "locked": false
+            },
+            {
+              "stat": "Charge Damage",
+              "val": "6.18",
+              "locked": false
+            }
+          ]
+        },
+        "Chest": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "19.35",
+              "locked": false
+            },
+            {
+              "stat": "Charge Damage",
+              "val": "5.47",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "13.92",
+              "locked": false
+            }
+          ]
+        },
+        "Gloves": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "19.35",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Boots": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "23.56",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        }
+      },
+      "priorities": [
+        {
+          "line": "ATK",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Elemental Damage",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Critical Rate",
+          "tier": "Passable",
+          "count": 2,
+          "targetTier": 10
+        },
+        {
+          "line": "Critical Damage",
+          "tier": "Passable",
+          "count": 2,
+          "targetTier": 10
+        }
+      ]
+    },
+    {
+      "id": "n1780105531034940029",
+      "name": "Dorothy: Serendipity",
+      "burst": "III",
+      "element": "Water",
+      "gear": {
+        "Helmet": {
+          "lines": [
+            {
+              "stat": "ATK",
+              "val": "13.22",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "22.15",
+              "locked": false
+            },
+            {
+              "stat": "Critical Damage",
+              "val": "9.58",
+              "locked": false
+            }
+          ]
+        },
+        "Chest": {
+          "lines": [
+            {
+              "stat": "Charge Speed",
+              "val": "3.45",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "22.15",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "11.11",
+              "locked": false
+            }
+          ]
+        },
+        "Gloves": {
+          "lines": [
+            {
+              "stat": "Max Ammo",
+              "val": "68.93",
+              "locked": false
+            },
+            {
+              "stat": "Charge Damage",
+              "val": "11.81",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "23.56",
+              "locked": false
+            }
+          ]
+        },
+        "Boots": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "22.15",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "12.52",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        }
+      },
+      "priorities": [
+        {
+          "line": "ATK",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Elemental Damage",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Max Ammo",
+          "tier": "Essential",
+          "count": 2,
+          "targetTier": 10
+        }
+      ]
+    },
+    {
+      "id": "n1780105790446801431",
+      "name": "Elegg: Boom and Shock",
+      "burst": "III",
+      "element": "Water",
+      "gear": {
+        "Helmet": {
+          "lines": [
+            {
+              "stat": "Hit Rate",
+              "val": "6.18",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "19.35",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "6.88",
+              "locked": false
+            }
+          ]
+        },
+        "Chest": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "22.15",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Gloves": {
+          "lines": [
+            {
+              "stat": "Critical Rate",
+              "val": "4.35",
+              "locked": false
+            },
+            {
+              "stat": "Charge Damage",
+              "val": "13.93",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "20.75",
+              "locked": false
+            }
+          ]
+        },
+        "Boots": {
+          "lines": [
+            {
+              "stat": "Max Ammo",
+              "val": "44.28",
+              "locked": false
+            },
+            {
+              "stat": "Charge Damage",
+              "val": "9.00",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "9.00",
+              "locked": false
+            }
+          ]
+        }
+      },
+      "priorities": [
+        {
+          "line": "ATK",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Elemental Damage",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Max Ammo",
+          "tier": "Passable",
+          "count": 2,
+          "targetTier": 10
+        }
+      ]
+    },
+    {
+      "id": "n1780109780565716626",
+      "name": "Bready",
+      "burst": "III",
+      "element": "Water",
+      "gear": {
+        "Helmet": {
+          "lines": [
+            {
+              "stat": "Charge Speed",
+              "val": "2.58",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "13.75",
+              "locked": false
+            },
+            {
+              "stat": "Charge Damage",
+              "val": "11.11",
+              "locked": false
+            }
+          ]
+        },
+        "Chest": {
+          "lines": [
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Gloves": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "13.75",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Boots": {
+          "lines": [
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        }
+      },
+      "priorities": [
+        {
+          "line": "ATK",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Elemental Damage",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Max Ammo",
+          "tier": "Passable",
+          "count": 1,
+          "targetTier": 10
+        }
+      ]
+    },
+    {
+      "id": "n1780110145867695257",
+      "name": "Quency: Escape Queen",
+      "burst": "III",
+      "element": "Water",
+      "gear": {
+        "Helmet": {
+          "lines": [
+            {
+              "stat": "ATK",
+              "val": "6.88",
+              "locked": false
+            },
+            {
+              "stat": "Max Ammo",
+              "val": "68.93",
+              "locked": false
+            },
+            {
+              "stat": "Hit Rate",
+              "val": "11.81",
+              "locked": false
+            }
+          ]
+        },
+        "Chest": {
+          "lines": [
+            {
+              "stat": "Max Ammo",
+              "val": "36.06",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "8.29",
+              "locked": false
+            },
+            {
+              "stat": "DEF",
+              "val": "6.88",
+              "locked": false
+            }
+          ]
+        },
+        "Gloves": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "15.15",
+              "locked": false
+            },
+            {
+              "stat": "Charge Speed",
+              "val": "2.28",
+              "locked": false
+            },
+            {
+              "stat": "Critical Rate",
+              "val": "7.07",
+              "locked": false
+            }
+          ]
+        },
+        "Boots": {
+          "lines": [
+            {
+              "stat": "Charge Damage",
+              "val": "9.00",
+              "locked": false
+            },
+            {
+              "stat": "Critical Damage",
+              "val": "20.36",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "4.77",
+              "locked": false
+            }
+          ]
+        }
+      },
+      "priorities": [
+        {
+          "line": "ATK",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Elemental Damage",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Max Ammo",
+          "tier": "Passable",
+          "count": 2,
+          "targetTier": 10
+        },
+        {
+          "line": "Hit Rate",
+          "tier": "Passable",
+          "count": 1,
+          "targetTier": 10
+        }
+      ]
+    },
+    {
+      "id": "n1780260418412434240",
+      "name": "Neon: Vision Eye",
+      "burst": "III",
+      "element": "Electric",
+      "gear": {
+        "Helmet": {
+          "lines": [
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Chest": {
+          "lines": [
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Gloves": {
+          "lines": [
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Boots": {
+          "lines": [
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        }
+      },
+      "priorities": [
+        {
+          "line": "ATK",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 11
+        },
+        {
+          "line": "Elemental Damage",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 11
+        }
+      ]
+    },
+    {
+      "id": "n1780260422922124722",
+      "name": "Anis: Star",
+      "burst": "I",
+      "element": "Electric",
+      "gear": {
+        "Helmet": {
+          "lines": [
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Chest": {
+          "lines": [
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Gloves": {
+          "lines": [
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Boots": {
+          "lines": [
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        }
+      },
+      "priorities": [
+        {
+          "line": "ATK",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 11
+        },
+        {
+          "line": "Elemental Damage",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 11
+        }
+      ]
+    },
+    {
+      "id": "n1780260473339773851",
+      "name": "Ludmilla: Winter Owner",
+      "burst": "III",
+      "element": "Water",
+      "gear": {
+        "Helmet": {
+          "lines": [
+            {
+              "stat": "Max Ammo",
+              "val": "77.15",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "20.75",
+              "locked": false
+            }
+          ]
+        },
+        "Chest": {
+          "lines": [
+            {
+              "stat": "Critical Damage",
+              "val": "11.54",
+              "locked": false
+            },
+            {
+              "stat": "Max Ammo",
+              "val": "77.15",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "13.93",
+              "locked": false
+            }
+          ]
+        },
+        "Gloves": {
+          "lines": [
+            {
+              "stat": "Hit Rate",
+              "val": "6.18",
+              "locked": false
+            },
+            {
+              "stat": "Elemental Damage",
+              "val": "19.35",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        },
+        "Boots": {
+          "lines": [
+            {
+              "stat": "Elemental Damage",
+              "val": "20.75",
+              "locked": false
+            },
+            {
+              "stat": "ATK",
+              "val": "13.22",
+              "locked": false
+            },
+            {
+              "stat": "",
+              "val": "",
+              "locked": false
+            }
+          ]
+        }
+      },
+      "priorities": [
+        {
+          "line": "ATK",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Elemental Damage",
+          "tier": "Essential",
+          "count": 4,
+          "targetTier": 10
+        },
+        {
+          "line": "Max Ammo",
+          "tier": "Ideal",
+          "count": 2,
+          "targetTier": 11
+        }
+      ]
+    }
+  ],
+  "selGear": "n1780083809125183640",
+  "selPrio": "n1780083809125183640",
+  "elementalBoss": true,
+  "raids": [
+    {
+      "id": "r1780172389257",
+      "name": "Season 37 - Ultra - Water Weak",
+      "entries": [
+        {
+          "nikkeId": "n1780083809125183640",
+          "damage": 6119
+        },
+        {
+          "nikkeId": "n1780085525935407874",
+          "damage": 2538
+        },
+        {
+          "nikkeId": "n1780104557375252244",
+          "damage": 2326
+        },
+        {
+          "nikkeId": "n1780105531034940029",
+          "damage": 5301
+        },
+        {
+          "nikkeId": "n1780105790446801431",
+          "damage": 1648
+        },
+        {
+          "nikkeId": "n1780110145867695257",
+          "damage": 900
+        },
+        {
+          "nikkeId": "n1780260418412434240",
+          "damage": 2784
+        },
+        {
+          "nikkeId": "n1780260422922124722",
+          "damage": 1592
+        },
+        {
+          "nikkeId": "n1780260473339773851",
+          "damage": 1668
+        }
+      ]
+    }
+  ],
+  "selRaid": "r1780172389257",
+  "selRaidEdit": "r1780172389257",
+  "rankSort": "efficiency"
+}
