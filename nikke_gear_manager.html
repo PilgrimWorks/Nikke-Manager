@@ -1388,27 +1388,51 @@ function renderOverview() {
   }));
   const pct = total ? Math.round((done / total) * 100) : 0;
 
-  const rows = nk.length ? nk.map(n => {
-    const d = SLOTS.filter(s => dotStatus(n, s) === 'done').length;
-    const p = SLOTS.filter(s => dotStatus(n, s) === 'partial').length;
-    const fill = Math.round(((d + p * 0.5) / 4) * 100);
-    const totals = attrTotals(n);
-    const pills = n.priorities.filter(p => p.line && p.tier !== 'Passable').map(p => {
-      const tot = totals[p.line] || 0;
-      const min = minTotalVal(n, p.line);
-      const met = min === null || tot >= min;
-      const pcls = tot === 0 ? 'p-passable' : met ? 'p-essential' : 'p-unmet';
-      return `<span class="pill ${pcls}">${p.line}: ${tot > 0 ? tot.toFixed(2) + '%' : '—'}${min !== null ? ' / min ' + min.toFixed(2) + '%' : ''}</span>`;
-    }).join('');
-    return `<div class="ov-nikke">
-      <div class="prog-row">
-        <div style="font-size:13px;font-weight:600;color:#f1f5f9">${n.name} <span style="font-size:11px;color:#64748b;font-weight:400">${n.element || ''} · B${burstNum(n.burst)}</span></div>
-        <div class="prog-bg"><div class="prog-fill" style="width:${fill}%"></div></div>
-        <div class="prog-pct">${d}/4</div>
-      </div>
-      <div class="pills">${pills || '<span style="font-size:11px;color:#334155">Set line priorities to see totals</span>'}</div>
-    </div>`;
-  }).join('') : '<div class="empty-state">No Nikkes added yet — go to Roster to add your team</div>';
+  // Build actionable next-steps list
+  const actionRows = nk.length ? (() => {
+    const actions = [];
+    nk.forEach(n => {
+      SLOTS.forEach(slot => {
+        const v = getVerdict(n, slot);
+        if (!v) return; // no data entered yet
+        if (v.cls === 'v-keep') return; // done, no action needed
+        let action = '', rocks = 0, urgencyCls = '';
+        if (v.options) {
+          const rec = v.options.find(o => o.recommended) || v.options[0];
+          action = rec.title.replace(/^Option [A-Z] — /, '');
+          rocks = rec.rocks;
+        } else {
+          action = v.label.replace(/^\d+ good line[s]? — /, '').replace(/^No Essential\/Ideal lines — /, '');
+          rocks = v.rocks || 0;
+        }
+        urgencyCls = v.cls === 'v-reroll' ? 'p-unmet' : 'p-passable';
+        actions.push({ nikkeId: n.id, nikke: n.name, slot, action, rocks, urgencyCls, vcls: v.cls });
+      });
+    });
+    if (!actions.length) return '<div style="font-size:12px;color:#4ade80;padding:8px 0">All tracked slots are complete — nice work!</div>';
+    // Sort: reroll (no good lines) first, then ok (partial), by rocks ascending within each group
+    actions.sort((a, b) => {
+      if (a.vcls !== b.vcls) return a.vcls === 'v-reroll' ? -1 : 1;
+      return a.rocks - b.rocks;
+    });
+    // Show at most 8 items to keep it digestible
+    const shown = actions.slice(0, 8);
+    const remaining = actions.length - shown.length;
+    const rows = shown.map(a => `
+      <div class="ov-nikke" style="cursor:pointer;padding:8px 12px;margin-bottom:4px" onclick="goToGearSlot('${a.nikkeId}','${a.slot}')">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0">
+            <span class="pill ${a.urgencyCls}" style="flex-shrink:0">${a.slot}</span>
+            <span style="font-size:13px;font-weight:600;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.nikke}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+            <span style="font-size:12px;color:#e2e8f0">${a.action}</span>
+            <span class="rock-est" style="margin:0">~${a.rocks} 🪨</span>
+          </div>
+        </div>
+      </div>`).join('');
+    return rows + (remaining > 0 ? `<div style="font-size:11px;color:#475569;padding:4px 12px">+ ${remaining} more — see efficiency ranking below</div>` : '');
+  })() : '<div class="empty-state">No Nikkes added yet — go to Roster to add your team</div>';
 
   // Build efficiency ranking: gain% per rock for each incomplete slot
   // If a raid is selected, filter to only those nikkes and weight by damage
@@ -1499,8 +1523,8 @@ function renderOverview() {
       <div class="metric-card"><div class="metric-val" style="color:#f59e0b">${partial}</div><div class="metric-label">In progress</div></div>
       <div class="metric-card"><div class="metric-val">${pct}%</div><div class="metric-label">Completion</div></div>
     </div>
-    <div class="section-label">Team status</div>
-    ${rows}
+    <div class="section-label">Next actions <span style="font-size:10px;color:#475569;font-weight:400">(click to jump)</span></div>
+    ${actionRows}
     ${rankingHtml}`;
 }
 
