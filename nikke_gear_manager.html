@@ -1756,7 +1756,12 @@ function renderOverview() {
 function toggleElementalBoss(checked) {
   state.elementalBoss = checked;
   save();
-  render();
+  renderOverview();
+  // Only re-render gear main content if a nikke is selected, don't touch sidebar
+  if (state.selGear) {
+    const n = state.nikkes.find(x => x.id === state.selGear);
+    if (n) renderGearMain(n);
+  }
 }
 
 function setOverviewElementFilter(val) {
@@ -1860,6 +1865,8 @@ function addNikke() {
 //  RENDER: GEAR TRACKER
 // ============================================================
 
+let _gearSidebarCache = '';
+
 function renderGear() {
   const el = document.getElementById('gear');
   let filtered = state.nikkes;
@@ -1887,23 +1894,29 @@ function renderGear() {
     </select>
   </div>`;
 
-  // Add Nikke button and form
-  const addedNames = new Set(state.nikkes.map(n => n.name));
-  const addOptions = NIKKE_DATABASE
-    .filter(n => !addedNames.has(n.name))
-    .map(n => `<option value="${n.name}">${n.name} · ${n.element} · B${burstNum(n.burst)}</option>`)
-    .join('');
-  const addHtml = `<button class="add-line-btn" onclick="showGearAddForm()" style="margin-top:6px;width:100%">+ Add Nikke</button>
-    <div id="gear-add-form" class="form-panel" style="max-width:100%;margin-top:6px">
-      <div class="form-row"><input class="form-input" id="gear-nn-search" placeholder="Type to filter..." oninput="filterGearNikkeList()" style="font-size:11px;padding:4px 6px"/></div>
-      <div class="form-row"><select id="gear-nn-select" class="form-input" size="6" style="height:auto;overflow-y:auto;font-size:11px">${addOptions}</select></div>
-      <div class="btn-row"><button class="btn" onclick="hideGearAddForm()" style="font-size:11px;padding:3px 8px">Cancel</button><button class="btn btn-primary" onclick="addNikkeFromGear()" style="font-size:11px;padding:3px 8px">Add</button></div>
-    </div>`;
+  const sidebarKey = `${state.gearElementFilter}|${state.gearBurstFilter}|${filtered.map(n => n.id + dotStatus(n,'Helmet') + dotStatus(n,'Chest') + dotStatus(n,'Gloves') + dotStatus(n,'Boots')).join(',')}|${state.selGear}`;
 
-  el.innerHTML = `<div class="two-col">
-    <div class="nikke-list">${filterHtml}${list}${addHtml}</div>
-    <div id="gear-main">${state.selGear ? '' : '<div class="empty-state">← Select a Nikke</div>'}</div>
-  </div>`;
+  if (sidebarKey !== _gearSidebarCache || !el.innerHTML) {
+    _gearSidebarCache = sidebarKey;
+
+    // Add Nikke button and form
+    const addedNames = new Set(state.nikkes.map(n => n.name));
+    const addOptions = NIKKE_DATABASE
+      .filter(n => !addedNames.has(n.name))
+      .map(n => `<option value="${n.name}">${n.name} · ${n.element} · B${burstNum(n.burst)}</option>`)
+      .join('');
+    const addHtml = `<button class="add-line-btn" onclick="showGearAddForm()" style="margin-top:6px;width:100%">+ Add Nikke</button>
+      <div id="gear-add-form" class="form-panel" style="max-width:100%;margin-top:6px">
+        <div class="form-row"><input class="form-input" id="gear-nn-search" placeholder="Type to filter..." oninput="filterGearNikkeList()" style="font-size:11px;padding:4px 6px"/></div>
+        <div class="form-row"><select id="gear-nn-select" class="form-input" size="6" style="height:auto;overflow-y:auto;font-size:11px">${addOptions}</select></div>
+        <div class="btn-row"><button class="btn" onclick="hideGearAddForm()" style="font-size:11px;padding:3px 8px">Cancel</button><button class="btn btn-primary" onclick="addNikkeFromGear()" style="font-size:11px;padding:3px 8px">Add</button></div>
+      </div>`;
+
+    el.innerHTML = `<div class="two-col">
+      <div class="nikke-list">${filterHtml}${list}${addHtml}</div>
+      <div id="gear-main">${state.selGear ? '' : '<div class="empty-state">← Select a Nikke</div>'}</div>
+    </div>`;
+  }
 
   if (state.selGear) {
     const n = state.nikkes.find(x => x.id === state.selGear);
@@ -2215,7 +2228,7 @@ function updateStat(nid, slot, i, val) {
   const n = state.nikkes.find(x => x.id === nid);
   n.gear[slot].lines[i].stat = val;
   if (!val) { n.gear[slot].lines[i].val = ''; n.gear[slot].lines[i].locked = false; }
-  save(); renderGear(); renderOverview();
+  save(); renderGearMain(n); renderOverview();
   // Auto-focus the value input for this line after selecting a stat
   if (val) {
     setTimeout(() => {
