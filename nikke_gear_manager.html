@@ -375,6 +375,7 @@ details[open] > .verdict-title::before { transform: rotate(90deg); }
     <button class="tab" onclick="switchTab('gear',event)">Gear Tracker</button>
     <button class="tab" onclick="switchTab('priority',event)">Line Priorities</button>
     <button class="tab" onclick="switchTab('raids',event)">Solo Raids</button>
+    <button class="tab" onclick="switchTab('weights',event)">Weights</button>
   </div>
 
   <div id="overview" class="section active"></div>
@@ -382,6 +383,7 @@ details[open] > .verdict-title::before { transform: rotate(90deg); }
   <div id="gear"     class="section"></div>
   <div id="priority" class="section"></div>
   <div id="raids"    class="section"></div>
+  <div id="weights"  class="section"></div>
 </div>
 
 <script>
@@ -671,19 +673,20 @@ const NIKKE_WEAPON = {
 //   ATK = 1.0, Elemental = 1.0 (direct multipliers)
 //   Crit Rate = 0.5 (depends on existing CD, ~50% CD average → 0.5)
 //   Crit Damage = 0.35 (depends on existing CR, ~30-35% CR average → 0.35)
-//   Hit Rate = 0.2 (niche, helps some kits)
+//   Hit Rate = 0 (base; weapon-specific overrides below)
 //   DEF = 0 (always trash)
 // Weapon-specific adjustments:
 //   Max Ammo: SR/RL (low ammo, long reload) = 0.15, AR = 0.10, SMG/MG = 0.05, SG = 0.12
 //   Charge Speed: SR/RL = 0.6, others = 0 (no charge mechanic)
 //   Charge Damage: SR/RL = 0.5, others = 0
+//   Hit Rate: SG = 0.5 (tightens pellet spread), AR/SMG/MG = 0.2 (moderate), SR/RL = 0 (pinpoint accuracy)
 
 const STAT_DMG_WEIGHT_BASE = {
   'ATK': 1.0,
   'Elemental Damage': 1.0,
   'Critical Rate': 0.5,
   'Critical Damage': 0.35,
-  'Hit Rate': 0.2,
+  'Hit Rate': 0,
   'Max Ammo': 0.10,
   'Charge Speed': 0,
   'Charge Damage': 0,
@@ -691,16 +694,22 @@ const STAT_DMG_WEIGHT_BASE = {
 };
 
 const STAT_DMG_WEIGHT_WEAPON = {
-  'SR':  { 'Max Ammo': 0.15, 'Charge Speed': 0.6, 'Charge Damage': 0.5 },
-  'RL':  { 'Max Ammo': 0.15, 'Charge Speed': 0.6, 'Charge Damage': 0.5 },
-  'AR':  { 'Max Ammo': 0.10 },
-  'SMG': { 'Max Ammo': 0.05 },
-  'MG':  { 'Max Ammo': 0.05 },
-  'SG':  { 'Max Ammo': 0.12 },
+  'SR':  { 'Max Ammo': 0.15, 'Charge Speed': 0.6, 'Charge Damage': 0.5, 'Hit Rate': 0 },
+  'RL':  { 'Max Ammo': 0.15, 'Charge Speed': 0.6, 'Charge Damage': 0.5, 'Hit Rate': 0 },
+  'AR':  { 'Max Ammo': 0.10, 'Hit Rate': 0.2 },
+  'SMG': { 'Max Ammo': 0.05, 'Hit Rate': 0.2 },
+  'MG':  { 'Max Ammo': 0.05, 'Hit Rate': 0.2 },
+  'SG':  { 'Max Ammo': 0.12, 'Hit Rate': 0.5 },
 };
 
 function getStatDmgWeight(stat, nikkeName) {
   const weapon = NIKKE_WEAPON[nikkeName] || 'AR';
+  // Check custom weights first (user-editable)
+  if (state.customWeights) {
+    const cw = state.customWeights;
+    if (cw.weapon && cw.weapon[weapon] && cw.weapon[weapon][stat] !== undefined) return cw.weapon[weapon][stat];
+    if (cw.base && cw.base[stat] !== undefined) return cw.base[stat];
+  }
   const weaponOverrides = STAT_DMG_WEIGHT_WEAPON[weapon] || {};
   if (weaponOverrides[stat] !== undefined) return weaponOverrides[stat];
   return STAT_DMG_WEIGHT_BASE[stat] || 0;
@@ -2598,6 +2607,126 @@ function raidDmgKeydown(event, raidId, idx) {
 
 
 // ============================================================
+//  WEIGHTS SETTINGS UI
+// ============================================================
+
+function renderWeights() {
+  const el = document.getElementById('weights');
+  const ALL_STATS = Object.keys(STAT_DMG_WEIGHT_BASE);
+  const WEAPONS = ['SR','RL','AR','SMG','MG','SG'];
+
+  // Resolve current effective values
+  function getBase(stat) {
+    if (state.customWeights && state.customWeights.base && state.customWeights.base[stat] !== undefined)
+      return state.customWeights.base[stat];
+    return STAT_DMG_WEIGHT_BASE[stat];
+  }
+  function getWeapon(weapon, stat) {
+    if (state.customWeights && state.customWeights.weapon && state.customWeights.weapon[weapon] && state.customWeights.weapon[weapon][stat] !== undefined)
+      return state.customWeights.weapon[weapon][stat];
+    return (STAT_DMG_WEIGHT_WEAPON[weapon] && STAT_DMG_WEIGHT_WEAPON[weapon][stat] !== undefined) ? STAT_DMG_WEIGHT_WEAPON[weapon][stat] : '';
+  }
+
+  // Check if values differ from defaults
+  function isBaseCustom(stat) {
+    if (!state.customWeights || !state.customWeights.base) return false;
+    return state.customWeights.base[stat] !== undefined && state.customWeights.base[stat] !== STAT_DMG_WEIGHT_BASE[stat];
+  }
+  function isWeaponCustom(weapon, stat) {
+    if (!state.customWeights || !state.customWeights.weapon || !state.customWeights.weapon[weapon]) return false;
+    const defaultVal = (STAT_DMG_WEIGHT_WEAPON[weapon] && STAT_DMG_WEIGHT_WEAPON[weapon][stat] !== undefined) ? STAT_DMG_WEIGHT_WEAPON[weapon][stat] : undefined;
+    return state.customWeights.weapon[weapon][stat] !== undefined && state.customWeights.weapon[weapon][stat] !== defaultVal;
+  }
+
+  const baseRows = ALL_STATS.map(stat => {
+    const val = getBase(stat);
+    const custom = isBaseCustom(stat) ? ' style="color:#fbbf24"' : '';
+    return `<tr>
+      <td${custom}>${stat}</td>
+      <td><input type="number" step="0.01" min="0" max="5" class="value-input" style="width:70px"
+        value="${val}" onchange="updateBaseWeight('${stat}', this.value)"></td>
+      <td style="font-size:10px;color:#475569">${STAT_DMG_WEIGHT_BASE[stat]}</td>
+    </tr>`;
+  }).join('');
+
+  const weaponStats = ['Max Ammo','Charge Speed','Charge Damage','Hit Rate'];
+  const weaponRows = WEAPONS.map(w => {
+    const cells = weaponStats.map(stat => {
+      const val = getWeapon(w, stat);
+      const defaultVal = (STAT_DMG_WEIGHT_WEAPON[w] && STAT_DMG_WEIGHT_WEAPON[w][stat] !== undefined) ? STAT_DMG_WEIGHT_WEAPON[w][stat] : '—';
+      const custom = isWeaponCustom(w, stat) ? ' style="color:#fbbf24"' : '';
+      return `<td${custom}><input type="number" step="0.01" min="0" max="5" class="value-input" style="width:65px"
+        value="${val}" placeholder="${defaultVal === '—' ? '' : defaultVal}"
+        onchange="updateWeaponWeight('${w}','${stat}', this.value)"></td>`;
+    }).join('');
+    return `<tr><td style="font-weight:600;color:#60a5fa">${w}</td>${cells}</tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="max-width:700px">
+      <div class="section-label">Stat Damage Weights</div>
+      <div class="info-note" style="margin-bottom:1rem">
+        These weights approximate how much 1% of each stat translates to effective DPS gain.
+        They are used to score gear lines and rank upgrade priorities.
+        <span style="color:#fbbf24">Yellow</span> values differ from defaults.
+      </div>
+
+      <div class="section-label" style="margin-top:1.2rem">Base Weights (weapon-independent)</div>
+      <table class="attr-table">
+        <tr><th>Stat</th><th>Weight</th><th>Default</th></tr>
+        ${baseRows}
+      </table>
+
+      <div class="section-label" style="margin-top:1.5rem">Weapon-Specific Overrides</div>
+      <div class="info-note" style="margin-bottom:.7rem">
+        These override the base weight for specific weapon types. Leave blank to use the base weight.
+      </div>
+      <table class="attr-table">
+        <tr><th>Weapon</th><th>Max Ammo</th><th>Charge Speed</th><th>Charge Damage</th><th>Hit Rate</th></tr>
+        ${weaponRows}
+      </table>
+
+      <div style="margin-top:1.5rem; display:flex; gap:10px">
+        <button class="btn" onclick="resetWeightsToDefault()">Reset All to Defaults</button>
+      </div>
+    </div>
+  `;
+}
+
+function updateBaseWeight(stat, value) {
+  if (!state.customWeights) state.customWeights = {};
+  if (!state.customWeights.base) state.customWeights.base = {};
+  const v = parseFloat(value);
+  if (isNaN(v)) {
+    delete state.customWeights.base[stat];
+  } else {
+    state.customWeights.base[stat] = v;
+  }
+  save();
+}
+
+function updateWeaponWeight(weapon, stat, value) {
+  if (!state.customWeights) state.customWeights = {};
+  if (!state.customWeights.weapon) state.customWeights.weapon = {};
+  if (!state.customWeights.weapon[weapon]) state.customWeights.weapon[weapon] = {};
+  const v = parseFloat(value);
+  if (isNaN(v) || value === '') {
+    delete state.customWeights.weapon[weapon][stat];
+    if (Object.keys(state.customWeights.weapon[weapon]).length === 0) delete state.customWeights.weapon[weapon];
+  } else {
+    state.customWeights.weapon[weapon][stat] = v;
+  }
+  save();
+}
+
+function resetWeightsToDefault() {
+  delete state.customWeights;
+  save();
+  renderWeights();
+}
+
+
+// ============================================================
 //  TAB SWITCHING & INIT
 // ============================================================
 
@@ -2615,6 +2744,7 @@ function switchTab(tab, event) {
   else if (tab === 'gear')      renderGear();
   else if (tab === 'priority')  renderPriority();
   else if (tab === 'raids')     renderRaids();
+  else if (tab === 'weights')   renderWeights();
 }
 
 function goToGearSlot(nikkeId, slot) {
@@ -2663,7 +2793,7 @@ render();
 // Restore tab from query string
 const initTab = new URLSearchParams(window.location.search).get('tab');
 if (initTab && document.getElementById(initTab)) {
-  const tabs = ['overview','roster','gear','priority','raids'];
+  const tabs = ['overview','roster','gear','priority','raids','weights'];
   const idx = tabs.indexOf(initTab);
   if (idx >= 0) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
