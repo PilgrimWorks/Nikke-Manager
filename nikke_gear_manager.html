@@ -1110,8 +1110,9 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
     });
   }
 
-  // Calculate the LOSS from sacrificing good lines
+  // Calculate the LOSS from sacrificing good lines (weighted by stat DPS value)
   let totalLoss = 0;
+  let totalLossRaw = 0;
   if (sacrificedLines && sacrificedLines.length) {
     sacrificedLines.forEach(l => {
       if (!l.stat || !l.val) return;
@@ -1128,13 +1129,18 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
       const pComeBack = 1 - Math.pow(1 - comebackFrac * avgAppear, numSacLines);
       let effectiveLoss = currentVal - (pComeBack * evIfBack);
       if (l.stat === 'Elemental Damage' && !state.elementalBoss) effectiveLoss = 0;
-      if (effectiveLoss > 0) totalLoss += effectiveLoss;
+      if (effectiveLoss > 0) {
+        // Weight the loss by the stat's DPS contribution
+        const statWeight = getStatDmgWeight(l.stat, nikke.name, nikke) || 0.01;
+        totalLoss += effectiveLoss * statWeight;
+        totalLossRaw += effectiveLoss;
+      }
     });
   }
 
-  // Calculate the GAIN from landing a new good stat
+  // Calculate the GAIN from landing a new good stat (weighted by stat DPS value)
   // Skip stats where priority count is already met
-  let totalWeight = 0, weightedGain = 0;
+  let totalPoolWeight = 0, weightedGainDps = 0;
   const gains = [];
   goodPrios.forEach(p => {
     const w = pool[p.line] || 0;
@@ -1148,16 +1154,23 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
     const current = existing ? (parseFloat(existing.val) || 0) : 0;
     let gain = Math.max(0, ev - current);
     if (p.line === 'Elemental Damage' && !state.elementalBoss) gain = 0;
-    gains.push({ stat: p.line, gain, weight: w });
-    weightedGain += gain * w;
-    totalWeight += w;
+    const dmgW = getStatDmgWeight(p.line, nikke.name, nikke) || 0.01;
+    gains.push({ stat: p.line, gain, weight: w, dmgW });
+    totalPoolWeight += w;
+    weightedGainDps += gain * w * dmgW;
   });
-  if (totalWeight <= 0) return { stat: '—', gain: 0, loss: totalLoss, net: -totalLoss };
+  if (totalPoolWeight <= 0) return { stat: '—', gain: 0, loss: totalLossRaw, net: -totalLossRaw };
 
-  gains.sort((a, b) => b.weight - a.weight);
-  const grossGain = weightedGain / totalWeight;
-  const net = grossGain - totalLoss;
-  return { stat: gains[0].stat, gain: grossGain, loss: totalLoss, net };
+  // Sort by (pool chance × dmg weight) to find the most impactful stat
+  gains.sort((a, b) => (b.weight * b.dmgW) - (a.weight * a.dmgW));
+  // Gross gain: pool-weighted average raw % (for display)
+  const grossGain = gains.reduce((s, g) => s + g.gain * g.weight, 0) / totalPoolWeight;
+  // Net in raw % terms (legacy display)
+  const net = grossGain - totalLossRaw;
+  // DPS-weighted net: gain in DPS terms - loss in DPS terms (for recommendation logic)
+  const grossGainDps = weightedGainDps / totalPoolWeight;
+  const netDps = grossGainDps - totalLoss;
+  return { stat: gains[0].stat, gain: grossGain, loss: totalLossRaw, net, netDps };
 }
 
 
@@ -1306,10 +1319,6 @@ function getVerdict(nikke, slot) {
       optBSteps.push(`P(${goodStatNames}) per line: ${(gfB * 100).toFixed(1)}% — then random tier (avg value shown in gain)`);
       optBSteps.push(`Expected ~${fishRocksB} rocks`);
 
-      // Recommend A if: sacrificing an Essential line, 2 good lines, below-target line is T9+, or high-tier lines need locking
-      const sacrificingEssential = toReset.some(l => classifyLine(l.stat, nikke) === 'essential');
-      const recommendA = sacrificingEssential || goodLines.length >= 2 || toReset.some(l => l.tier && l.tier >= 9) || lockNow.length > 0;
-
       // Calculate gain for Option A (reset to target)
       const gainADetails = toReset.map(l => {
         const g = resetGain(l.stat, l.val, l.targetTier);
@@ -1322,11 +1331,43 @@ function getVerdict(nikke, slot) {
       const poolB = remainingStatPool(new Set([...usedStats, ...lockNow.map(l => l.stat)]));
       const ceGainB = changeEffectsGain(nikke, poolB, lines, sacrificing);
       let gainBLabel = 'no effective gain';
-      if (ceGainB.net > 0) {
+      if (ceGainB.netDps > 0) {
+        // DPS-weighted net is positive — this is a good trade even if raw % net is negative
+        gainBLabel = ceGainB.net > 0
+          ? `net ${ceGainB.stat} +${ceGainB.net.toFixed(2)}%`
+          : `${ceGainB.stat} +${ceGainB.gain.toFixed(2)}% (DPS net positive: losing low-weight stat)`;
+      } else if (ceGainB.net > 0) {
         gainBLabel = `net ${ceGainB.stat} +${ceGainB.net.toFixed(2)}%`;
-      } else if (ceGainB.net <= 0 && ceGainB.gain > 0) {
-        gainBLabel = `${ceGainB.stat} +${ceGainB.gain.toFixed(2)}% gain, −${ceGainB.loss.toFixed(2)}% loss = net ${ceGainB.net.toFixed(2)}%`;
+      } else if (ceGainB.gain > 0) {
+        gainBLabel = `${ceGainB.stat} +${ceGainB.gain.toFixed(2)}% gain, −${ceGainB.loss.toFixed(2)}% loss`;
       }
+
+      // Recommend A vs B based on weighted efficiency comparison
+      // Exception: don't protect Essential lines at very low tiers (T1-T3) — they're barely above a fresh roll
+      const sacrificingEssential = toReset.some(l => classifyLine(l.stat, nikke) === 'essential' && l.tier && l.tier >= 4);
+      // Compare effective weighted gain: Option A vs Option B using DPS-weighted values
+      // For Option A: we're keeping/upgrading existing lines, so count OTHER ammo lines (not this one)
+      const gainAWeighted = gainADetails.reduce((s, x) => {
+        let w = getStatDmgWeight(x.stat, nikke.name, nikke);
+        // If resetting a Max Ammo line, discount should be based on OTHER ammo lines, not including this one
+        if (x.stat === 'Max Ammo') {
+          const otherAmmo = countAmmoLines(nikke) - 1; // exclude the line being reset
+          const diminish = getAmmoDiminish();
+          const mult = otherAmmo < diminish.length ? diminish[Math.max(0, otherAmmo)] : diminish[diminish.length - 1];
+          const weapon = NIKKE_WEAPON[nikke.name] || 'AR';
+          const baseW = (state.customWeights && state.customWeights.weapon && state.customWeights.weapon[weapon] && state.customWeights.weapon[weapon]['Max Ammo'] !== undefined)
+            ? state.customWeights.weapon[weapon]['Max Ammo']
+            : (STAT_DMG_WEIGHT_WEAPON[weapon] && STAT_DMG_WEIGHT_WEAPON[weapon]['Max Ammo'] !== undefined ? STAT_DMG_WEIGHT_WEAPON[weapon]['Max Ammo'] : STAT_DMG_WEIGHT_BASE['Max Ammo']);
+          w = baseW * mult;
+        }
+        return s + x.gain * w;
+      }, 0);
+      const gainBDps = ceGainB.netDps > 0 ? ceGainB.netDps : 0;
+      // Efficiency comparison: DPS-weighted gain per rock
+      const effA = (resetRocks + fishRocksA) > 0 ? gainAWeighted / (resetRocks + fishRocksA) : 0;
+      const effB = fishRocksB > 0 ? gainBDps / fishRocksB : 0;
+      // Prefer B if it's more efficient AND we're not sacrificing a high-tier Essential line
+      const recommendA = sacrificingEssential || toReset.some(l => l.tier && l.tier >= 9) || effA >= effB;
 
       return {
         label: goodLines.length >= 2
@@ -1532,6 +1573,12 @@ function load() {
       n.gear[s].lines.forEach(l => { if (l.locked === undefined) l.locked = false; });
     });
   });
+  // Restore custom weapon mappings for user-added Nikkes
+  if (state.customWeapons) {
+    Object.entries(state.customWeapons).forEach(([name, weapon]) => {
+      NIKKE_WEAPON[name] = weapon;
+    });
+  }
   save();
 }
 
@@ -1612,9 +1659,15 @@ function hideDeleteConfirm(id) {
 }
 
 function doDelete(id) {
+  const deleted = state.nikkes.find(n => n.id === id);
   state.nikkes = state.nikkes.filter(n => n.id !== id);
   if (state.selGear === id) state.selGear = null;
   if (state.selPrio === id) state.selPrio = null;
+  // Clean up custom weapon mapping if it was a custom nikke
+  if (deleted && state.customWeapons && state.customWeapons[deleted.name]) {
+    delete state.customWeapons[deleted.name];
+    delete NIKKE_WEAPON[deleted.name];
+  }
   pendingDeleteId = null;
   save(); render();
 }
@@ -1872,6 +1925,16 @@ function renderRoster() {
         </select>
       </div>
       <div class="btn-row"><button class="btn" onclick="hideAddForm()">Cancel</button><button class="btn btn-primary" onclick="addNikke()">Add</button></div>
+      <div style="border-top:1px solid #1e2535;margin-top:12px;padding-top:12px">
+        <div class="form-panel-title" style="font-size:11px;color:#64748b">Or add a custom Nikke (not in DB yet)</div>
+        <div class="form-row"><label class="form-label">Name</label><input class="form-input" id="nn-custom-name" placeholder="e.g. New Nikke Name"/></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div class="form-row"><label class="form-label">Burst</label><select class="form-input" id="nn-custom-burst"><option value="I">I</option><option value="II">II</option><option value="III" selected>III</option></select></div>
+          <div class="form-row"><label class="form-label">Element</label><select class="form-input" id="nn-custom-element"><option value="Fire">Fire</option><option value="Water">Water</option><option value="Wind">Wind</option><option value="Electric">Electric</option><option value="Iron">Iron</option></select></div>
+          <div class="form-row"><label class="form-label">Weapon</label><select class="form-input" id="nn-custom-weapon"><option value="AR">AR</option><option value="SMG">SMG</option><option value="SR">SR</option><option value="RL">RL</option><option value="MG">MG</option><option value="SG">SG</option></select></div>
+        </div>
+        <div class="btn-row"><button class="btn btn-primary" onclick="addCustomNikke()">Add Custom</button></div>
+      </div>
     </div>`;
 }
 
@@ -1900,6 +1963,25 @@ function addNikke() {
   if (!entry) return;
   const nikke = mkNikke(entry.name, entry.burst, entry.element);
   state.nikkes.push(nikke);
+  save(); render();
+}
+
+function addCustomNikke() {
+  const name = document.getElementById('nn-custom-name').value.trim();
+  if (!name) return;
+  // Check if name already exists in roster
+  if (state.nikkes.some(n => n.name === name)) return;
+  const burst = document.getElementById('nn-custom-burst').value;
+  const element = document.getElementById('nn-custom-element').value;
+  const weapon = document.getElementById('nn-custom-weapon').value;
+  // Register the weapon type at runtime so getStatDmgWeight picks it up
+  NIKKE_WEAPON[name] = weapon;
+  const nikke = mkNikke(name, burst, element);
+  nikke.custom = true; // mark as user-created
+  state.nikkes.push(nikke);
+  // Persist custom weapon mappings
+  if (!state.customWeapons) state.customWeapons = {};
+  state.customWeapons[name] = weapon;
   save(); render();
 }
 
@@ -1953,6 +2035,16 @@ function renderGear() {
         <div class="form-row"><input class="form-input" id="gear-nn-search" placeholder="Type to filter..." oninput="filterGearNikkeList()" style="font-size:11px;padding:4px 6px"/></div>
         <div class="form-row"><select id="gear-nn-select" class="form-input" size="6" style="height:auto;overflow-y:auto;font-size:11px">${addOptions}</select></div>
         <div class="btn-row"><button class="btn" onclick="hideGearAddForm()" style="font-size:11px;padding:3px 8px">Cancel</button><button class="btn btn-primary" onclick="addNikkeFromGear()" style="font-size:11px;padding:3px 8px">Add</button></div>
+        <div style="border-top:1px solid #1e2535;margin-top:8px;padding-top:8px">
+          <div style="font-size:10px;color:#64748b;margin-bottom:4px">Custom (not in DB)</div>
+          <div class="form-row"><input class="form-input" id="gear-custom-name" placeholder="Name" style="font-size:11px;padding:3px 6px"/></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
+            <select class="form-input" id="gear-custom-burst" style="font-size:10px;padding:2px 4px"><option value="I">BI</option><option value="II">BII</option><option value="III" selected>BIII</option></select>
+            <select class="form-input" id="gear-custom-element" style="font-size:10px;padding:2px 4px"><option value="Fire">Fire</option><option value="Water">Water</option><option value="Wind">Wind</option><option value="Electric">Elec</option><option value="Iron">Iron</option></select>
+            <select class="form-input" id="gear-custom-weapon" style="font-size:10px;padding:2px 4px"><option value="AR">AR</option><option value="SMG">SMG</option><option value="SR">SR</option><option value="RL">RL</option><option value="MG">MG</option><option value="SG">SG</option></select>
+          </div>
+          <div class="btn-row" style="margin-top:4px"><button class="btn btn-primary" onclick="addCustomNikkeFromGear()" style="font-size:11px;padding:3px 8px">Add Custom</button></div>
+        </div>
       </div>`;
 
     el.innerHTML = `<div class="two-col">
@@ -2000,6 +2092,23 @@ function addNikkeFromGear() {
   const nikke = mkNikke(entry.name, entry.burst, entry.element);
   state.nikkes.push(nikke);
   state.selGear = nikke.id;
+  save(); render();
+}
+
+function addCustomNikkeFromGear() {
+  const name = document.getElementById('gear-custom-name').value.trim();
+  if (!name) return;
+  if (state.nikkes.some(n => n.name === name)) return;
+  const burst = document.getElementById('gear-custom-burst').value;
+  const element = document.getElementById('gear-custom-element').value;
+  const weapon = document.getElementById('gear-custom-weapon').value;
+  NIKKE_WEAPON[name] = weapon;
+  const nikke = mkNikke(name, burst, element);
+  nikke.custom = true;
+  state.nikkes.push(nikke);
+  state.selGear = nikke.id;
+  if (!state.customWeapons) state.customWeapons = {};
+  state.customWeapons[name] = weapon;
   save(); render();
 }
 
