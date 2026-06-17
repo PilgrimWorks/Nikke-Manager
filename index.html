@@ -351,7 +351,7 @@ details[open] > .verdict-title::before { transform: rotate(90deg); }
 .topbar-actions { display: flex; gap: 6px; align-items: center; }
 .elemental-toggle { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #94a3b8; cursor: pointer; padding: 4px 10px; border: 1px solid #2d3f5e; border-radius: 6px; }
 .elemental-toggle:has(input:checked) { border-color: #3b82f6; color: #60a5fa; }
-.btn-sm { font-size: 12px; padding: 4px 12px; border-radius: 6px; cursor: pointer; border: 1px solid #2d3f5e; background: none; color: #94a3b8; transition: background 0.1s; }
+.btn-sm { font-size: 12px; padding: 4px 12px; border-radius: 6px; cursor: pointer; border: 1px solid #2d3f5e; background: none; color: #94a3b8; transition: background 0.1s; min-height: 28px; min-width: 70px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
 .btn-sm:hover { background: #1a2235; color: #f1f5f9; }
 .btn-sm.active-sort { background: #1e3a5f; color: #60a5fa; border-color: #3b82f6; }
 
@@ -406,12 +406,12 @@ details[open] > .verdict-title::before { transform: rotate(90deg); }
 .btn-auth:hover { background: #052e16; }
 .btn-auth.signed-in { border-color: #2d3f5e; color: #94a3b8; }
 .btn-auth.signed-in:hover { background: #1a2235; }
-.sync-indicator { font-size: 11px; padding: 3px 8px; border-radius: 5px; font-weight: 500; }
+.sync-indicator { font-size: 11px; padding: 3px 8px; border-radius: 5px; font-weight: 500; display: none; }
 .sync-saving { color: #fbbf24; }
 .sync-saved  { color: #4ade80; }
 .sync-error  { color: #f87171; }
 .sync-offline { color: #64748b; }
-.user-avatar { width: 22px; height: 22px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+.user-avatar { width: 18px; height: 18px; border-radius: 50%; vertical-align: middle; margin-right: 4px; display: inline-block; }
 
 /* ── Tutorial Modal ── */
 .tutorial-overlay {
@@ -454,7 +454,7 @@ details[open] > .verdict-title::before { transform: rotate(90deg); }
     <div class="topbar-actions">
       <span id="sync-status" class="sync-indicator" style="display:none"></span>
       <button class="btn btn-sm" onclick="showTutorial()" title="Show tutorial">? Guide</button>
-      <button class="btn btn-sm" onclick="showMyData()">� My Data</button>
+      <button id="mydata-btn" class="btn btn-sm" onclick="showMyData()">📋 My Data</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
       <button id="auth-btn" class="btn btn-sm btn-auth" onclick="handleAuth()">☁ Sign In</button>
     </div>
@@ -671,12 +671,8 @@ let _saveTimeout = null;
 const DEBOUNCE_MS = 1500; // debounce cloud saves
 
 function setSyncStatus(status, msg) {
-  const el = document.getElementById('sync-status');
-  if (!el) return;
-  if (!currentUser) { el.style.display = 'none'; return; }
-  el.style.display = 'inline';
-  el.className = 'sync-indicator sync-' + status;
-  el.textContent = msg || '';
+  // Sync indicator hidden for now
+  return;
 }
 
 // Persist state that should be saved (strip transient UI fields)
@@ -701,8 +697,7 @@ function saveToCloud() {
       data._updatedAt = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('users').doc(currentUser.uid).set(data);
       setSyncStatus('saved', '☁ saved');
-      // Fade out after 2s
-      setTimeout(() => setSyncStatus('saved', ''), 2000);
+      setTimeout(() => setSyncStatus('saved', '☁ online'), 2000);
     } catch (e) {
       console.error('Cloud save failed:', e);
       setSyncStatus('error', '☁ error');
@@ -730,7 +725,7 @@ async function uploadLocalToCloud() {
     data._updatedAt = firebase.firestore.FieldValue.serverTimestamp();
     await db.collection('users').doc(currentUser.uid).set(data);
     setSyncStatus('saved', '☁ synced');
-    setTimeout(() => setSyncStatus('saved', ''), 2000);
+    setTimeout(() => setSyncStatus('saved', '☁ online'), 2000);
   } catch (e) {
     console.error('Upload failed:', e);
   }
@@ -781,7 +776,6 @@ auth.onAuthStateChanged(async (user) => {
       await uploadLocalToCloud();
     }
     setSyncStatus('saved', '☁ online');
-    setTimeout(() => setSyncStatus('saved', ''), 3000);
   } else {
     setSyncStatus('offline', '');
   }
@@ -789,16 +783,19 @@ auth.onAuthStateChanged(async (user) => {
 
 function updateAuthUI() {
   const btn = document.getElementById('auth-btn');
+  const mydataBtn = document.getElementById('mydata-btn');
   if (!btn) return;
   if (currentUser) {
     const photo = currentUser.photoURL
-      ? `<img class="user-avatar" src="${currentUser.photoURL}" alt="">`
-      : '';
+      ? `<img class="user-avatar" src="${currentUser.photoURL}" alt="" referrerpolicy="no-referrer" onerror="this.nextSibling.textContent='☁ Sign Out'">`
+      : '☁ ';
     btn.innerHTML = `${photo}Sign Out`;
     btn.classList.add('signed-in');
+    if (mydataBtn) mydataBtn.style.display = 'none';
   } else {
     btn.innerHTML = '☁ Sign In';
     btn.classList.remove('signed-in');
+    if (mydataBtn) mydataBtn.style.display = '';
   }
 }
 
