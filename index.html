@@ -27,7 +27,7 @@
   2. No duplicate stats on the same gear piece
   3. Stat pool renormalizes when stats are already on a piece
   4. Tier probability:  T1â€“5 = 12% each, T6â€“10 = 7% each, T11â€“15 = 1% each
-  5. Lock before reset â€” never reset an unlocked high-value line
+  5. Lock before reset — never reset an unlocked high-value line
   6. T12+ lines auto-flag for immediate locking
   7. Reroll cost = locked lines + 1 rock per roll
   8. DEF is always treated as trash
@@ -470,7 +470,7 @@ details[open] > .verdict-title::before { transform: rotate(90deg); }
    TIER_PROB, LINE_APPEAR, STAT_BASE_CHANCE, IS_PCT, MIN_VAL,
    STAT_DMG_WEIGHT_*, probability helpers, classifyLine,
    getTargetTier, isAtTarget, isAboveMinVal, isGoodLine,
-   changeEffectsGain, getVerdict â€” see knowledge/ folder */
+   changeEffectsGain, getVerdict — see knowledge/ folder */
 
 // ============================================================
 //  HELPER FUNCTIONS
@@ -815,7 +815,7 @@ function importData(event) {
     try {
       const imported = JSON.parse(e.target.result);
       if (!imported.nikkes || !Array.isArray(imported.nikkes)) {
-        alert('Invalid backup file â€” missing nikkes array.');
+        alert('Invalid backup file — missing nikkes array.');
         return;
       }
       if (!confirm(`This will replace your current data (${state.nikkes.length} Nikke${state.nikkes.length !== 1 ? 's' : ''}) with the imported data (${imported.nikkes.length} Nikke${imported.nikkes.length !== 1 ? 's' : ''}). Continue?`)) return;
@@ -958,7 +958,7 @@ function renderOverview() {
   rankings.sort((a, b) => b.efficiency - a.efficiency);
 
   // Raid selector dropdown
-  const raidOpts = [...state.raids].reverse().map(r => { const dn = `${r.season ? 'Season ' + r.season + ' Â· ' : ''}${r.name}${r.element ? ' â€” ' + r.element : ''}`; return `<option value="${r.id}" ${state.selRaid === r.id ? 'selected' : ''}>${dn}</option>`; }).join('');
+  const raidOpts = [...state.raids].reverse().map(r => { const dn = `${r.season ? 'Season ' + r.season + ' Â· ' : ''}${r.name}${r.element ? ' — ' + r.element : ''}`; return `<option value="${r.id}" ${state.selRaid === r.id ? 'selected' : ''}>${dn}</option>`; }).join('');
   const raidSelector = state.raids.length ? `
     <select class="form-input" style="font-size:12px;padding:3px 8px;width:auto;display:inline-block;margin-left:8px" onchange="selectRaidFilter(this.value)">
       <option value="">All Nikkes</option>${raidOpts}
@@ -987,7 +987,7 @@ function renderOverview() {
         <td>${r.slot}</td>
         <td>~${r.rocks}</td>
         <td style="color:#4ade80">${r.gainLabel}</td>
-        ${selRaid ? `<td style="color:#94a3b8">${r.dmg ? r.dmg + 'M' : 'â€”'}</td><td style="color:#60a5fa;font-weight:600">${r.dmg ? '+' + (r.gain / 100 * r.dmg).toFixed(2) + 'M' : 'â€”'}</td>` : ''}
+        ${selRaid ? `<td style="color:#94a3b8">${r.dmg ? r.dmg + 'M' : '—'}</td><td style="color:#60a5fa;font-weight:600">${r.dmg ? '+' + (r.gain / 100 * r.dmg).toFixed(2) + 'M' : '—'}</td>` : ''}
         <td style="font-weight:700;color:${selRaid ? (r.efficiency >= 0.5 ? '#4ade80' : r.efficiency >= 0.1 ? '#fbbf24' : '#f87171') : (r.efficiency >= 1 ? '#4ade80' : r.efficiency >= 0.3 ? '#fbbf24' : '#f87171')}">${selRaid ? r.efficiency.toFixed(2) + 'M/rock' : r.efficiency.toFixed(3) + '%/rock'}</td>
       </tr>`;
     const toggleBtn = next10.length ? `<tr id="rank-toggle-row"><td colspan="99" style="text-align:center;padding:8px">
@@ -1227,7 +1227,7 @@ function renderGear() {
       </div>`;
 
     el.innerHTML = `<div class="two-col">
-      <div class="gear-sidebar">${filterHtml}<div class="nikke-list">${list}${addHtml}</div></div>
+      <div class="gear-sidebar">${filterHtml}${addHtml}<div class="nikke-list">${list}</div></div>
       <div id="gear-main">${state.selGear ? '' : '<div class="empty-state">← Select a Nikke</div>'}</div>
     </div>`;
   }
@@ -1345,7 +1345,7 @@ function renderGearMain(nikke) {
     const tgtVal  = TIER_TABLE[stat] ? TIER_TABLE[stat][tgtTier - 1] : null;
     return `<tr>
       <td style="font-weight:600;color:#f1f5f9">${stat}</td>
-      <td>${tot > 0 ? tot.toFixed(2) + (IS_PCT.has(stat) ? '%' : '') : 'â€”'}</td>
+      <td>${tot > 0 ? tot.toFixed(2) + (IS_PCT.has(stat) ? '%' : '') : '—'}</td>
       <td>T${tgtTier}${tgtVal ? ' (â‰¥' + tgtVal + '%)' : ''}</td>
       <td>${metTxt}</td>
     </tr>`;
@@ -1353,7 +1353,7 @@ function renderGearMain(nikke) {
 
   const attrTable = trackedStats.length ? `
     <div class="attr-summary">
-      <div class="attr-summary-title">Attribute totals â€” all 4 gear pieces</div>
+      <div class="attr-summary-title">Attribute totals — all 4 gear pieces</div>
       <table class="attr-table">
         <thead><tr><th>Stat</th><th>Total</th><th>Target Tier</th><th>Prydwen Min</th></tr></thead>
         <tbody>${attrRows}</tbody>
@@ -1387,7 +1387,7 @@ function renderGearMain(nikke) {
           <span class="line-chance ${LINE_CHANCE_CSS[i]}">${LINE_CHANCE_LABELS[i]}</span>
         </div>
         <select onchange="updateStat('${nikke.id}','${slot}',${i},this.value)" onkeydown="gearSelectKeydown(event,'${nikke.id}','${slot}',${i})" data-gear-select="${nikke.id}-${slot}-${i}" tabindex="${i * 2 + 1}">
-          <option value="">â€” none â€”</option>${opts}
+          <option value="">— none —</option>${opts}
         </select>
         ${prioLabel}
         <div class="value-row">
@@ -1423,7 +1423,7 @@ function renderGearMain(nikke) {
       if (v.options) {
         const rec = v.options.find(o => o.recommended) || v.options[0];
         const recName = rec.title.includes('Reset') ? 'Reset' : 'Change Effects';
-        const summary = `${rankBadge}${v.label} â€” ${recName} ~${rec.rocks} rocks Â· ${rec.gain}`;
+        const summary = `${rankBadge}${v.label} — ${recName} ~${rec.rocks} rocks Â· ${rec.gain}`;
         verdictHtml = `<details class="verdict ${v.cls}">
           <summary class="verdict-title">${summary}</summary>
           ${v.options.map(opt => `
@@ -1436,7 +1436,7 @@ function renderGearMain(nikke) {
       } else {
         const gainText = v.gain ? ` Â· ${v.gain}` : '';
         const summary = v.rocks > 0
-          ? `${rankBadge}${v.label} â€” ~${v.rocks} rocks${gainText}`
+          ? `${rankBadge}${v.label} — ~${v.rocks} rocks${gainText}`
           : `${rankBadge}${v.label}`;
         verdictHtml = `<details class="verdict ${v.cls}">
           <summary class="verdict-title">${summary}</summary>
@@ -1708,7 +1708,7 @@ function renderPrioMain(nikke) {
         <span></span>
       </div>
       <div class="prio-row">
-        <select onchange="updatePrioLine('${nikke.id}',${i},this.value)"><option value="">â€” select â€”</option>${statOpts}</select>
+        <select onchange="updatePrioLine('${nikke.id}',${i},this.value)"><option value="">— select —</option>${statOpts}</select>
         <select onchange="updatePrioTier('${nikke.id}',${i},this.value)">${tierOpts}</select>
         <input class="prio-count-input" type="number" min="1" max="4" value="${count}" onchange="updatePrioCount('${nikke.id}',${i},this.value)" title="How many of this line across all 4 gear pieces"/>
         <select class="tier-target-select" onchange="updatePrioTargetTier('${nikke.id}',${i},this.value)">${tTierOpts}</select>
@@ -1734,7 +1734,7 @@ function renderPrioMain(nikke) {
     ${rows}
     <button class="add-line-btn" onclick="addPrio('${nikke.id}')">+ Add line</button>
     <div class="info-note" style="margin-top:10px">
-      DEF is always trash. Recommended reroll order: Line 3 (30%) â†’ Line 2 (50%) â†’ Line 1 (100% â€” last).
+      DEF is always trash. Recommended reroll order: Line 3 (30%) â†’ Line 2 (50%) â†’ Line 1 (100% — last).
       No duplicate stats can appear on the same gear piece.
     </div>`;
 }
@@ -1774,7 +1774,7 @@ function renderRaids() {
   const el = document.getElementById('raids');
   const sortedRaids = [...state.raids].reverse();
   const raidList = sortedRaids.map(r => {
-    const displayName = `${r.season ? 'Season ' + r.season + ' Â· ' : ''}${r.name}${r.element ? ' â€” ' + elemIcon(r.element) + ' ' + r.element : ''}`;
+    const displayName = `${r.season ? 'Season ' + r.season + ' Â· ' : ''}${r.name}${r.element ? ' — ' + elemIcon(r.element) + ' ' + r.element : ''}`;
     return `<div class="nikke-item ${state.selRaidEdit === r.id ? 'active' : ''}" onclick="selRaidEdit('${r.id}')">
       ${displayName}
       <div class="nikke-item-sub">${r.entries.length} Nikke${r.entries.length !== 1 ? 's' : ''}</div>
@@ -1870,7 +1870,7 @@ function saveEditRaid(id) {
 
 function renderRaidMain(raid) {
   const area = document.getElementById('raid-main');
-  const raidDisplayName = `${raid.season ? 'Season ' + raid.season + ' Â· ' : ''}${raid.name}${raid.element ? ' â€” ' + elemIcon(raid.element) + ' ' + raid.element + ' Weak' : ''}`;
+  const raidDisplayName = `${raid.season ? 'Season ' + raid.season + ' Â· ' : ''}${raid.name}${raid.element ? ' — ' + elemIcon(raid.element) + ' ' + raid.element + ' Weak' : ''}`;
   const viewMode = state.raidViewMode || 'damage'; // 'teams' or 'damage'
 
   // Sort unassigned entries by damage
@@ -1937,7 +1937,7 @@ function renderRaidMain(raid) {
       return `<div class="raid-team-lane" data-team="${t}" data-raid-id="${raid.id}">
         <div class="raid-team-header">
           <span class="raid-team-label">Team ${t} <span style="font-size:11px;font-weight:500;color:#64748b;margin-left:4px">${members.length}/5</span></span>
-          <span class="raid-team-total" style="color:${dmgColor}">${total ? total.toLocaleString() + 'M' : 'â€”'}</span>
+          <span class="raid-team-total" style="color:${dmgColor}">${total ? total.toLocaleString() + 'M' : '—'}</span>
         </div>
         <div class="raid-team-drop" data-team="${t}" data-raid-id="${raid.id}">${chips}${!members.length ? '<div class="raid-drop-hint">Drop Nikkes here</div>' : ''}</div>
         <input class="raid-team-note" type="text" placeholder="Notes..." value="${note.replace(/"/g, '&quot;')}"
@@ -1974,7 +1974,7 @@ function renderRaidMain(raid) {
       const n = state.nikkes.find(x => x.id === e.nikkeId);
       const name = n ? n.name : '(removed)';
       const elem = n && n.element ? elemIcon(n.element) : '';
-      const teamBadge = e.team ? `<span class="raid-team-badge">T${e.team}</span>` : '<span class="raid-team-badge" style="opacity:.3">â€”</span>';
+      const teamBadge = e.team ? `<span class="raid-team-badge">T${e.team}</span>` : '<span class="raid-team-badge" style="opacity:.3">—</span>';
       const pct = maxDmg > 0 ? ((e.damage || 0) / maxDmg * 100) : 0;
       const barColor = pct >= 80 ? '#4ade80' : pct >= 50 ? '#60a5fa' : pct >= 25 ? '#fbbf24' : '#f87171';
       return `<tr class="rank-row">
@@ -2009,7 +2009,7 @@ function renderRaidMain(raid) {
         <button class="btn-sm" onclick="showEditRaid('${raid.id}')" title="Edit raid" style="font-size:10px;padding:2px 6px">âœŽ</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:11px;color:#64748b">Total: <strong style="color:#f1f5f9">${totalDmg ? totalDmg.toLocaleString() + 'M' : 'â€”'}</strong></span>
+        <span style="font-size:11px;color:#64748b">Total: <strong style="color:#f1f5f9">${totalDmg ? totalDmg.toLocaleString() + 'M' : '—'}</strong></span>
         <button class="del-btn" onclick="deleteRaid('${raid.id}')" title="Delete raid">âœ• Delete</button>
       </div>
     </div>
@@ -2032,7 +2032,7 @@ function renderRaidMain(raid) {
     ${available.length ? `
       <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
         <select id="raid-add-nikke" class="form-input" style="flex:1;font-size:12px;padding:4px 6px">
-          <option value="">â€” add nikke â€”</option>${nikkeOpts}
+          <option value="">— add nikke —</option>${nikkeOpts}
         </select>
         <button class="btn btn-primary" onclick="addRaidEntry('${raid.id}')" style="font-size:11px;padding:4px 10px">Add</button>
       </div>` : ''}`;
@@ -2191,10 +2191,10 @@ function renderWeights() {
   const weaponRows = WEAPONS.map(w => {
     const cells = weaponStats.map(stat => {
       const val = getWeapon(w, stat);
-      const defaultVal = (STAT_DMG_WEIGHT_WEAPON[w] && STAT_DMG_WEIGHT_WEAPON[w][stat] !== undefined) ? STAT_DMG_WEIGHT_WEAPON[w][stat] : 'â€”';
+      const defaultVal = (STAT_DMG_WEIGHT_WEAPON[w] && STAT_DMG_WEIGHT_WEAPON[w][stat] !== undefined) ? STAT_DMG_WEIGHT_WEAPON[w][stat] : '—';
       const custom = isWeaponCustom(w, stat) ? ' style="color:#fbbf24"' : '';
       return `<td${custom}><input type="number" step="0.01" min="0" max="5" class="value-input" style="width:65px"
-        value="${val}" placeholder="${defaultVal === 'â€”' ? '' : defaultVal}"
+        value="${val}" placeholder="${defaultVal === '—' ? '' : defaultVal}"
         onchange="updateWeaponWeight('${w}','${stat}', this.value)"></td>`;
     }).join('');
     return `<tr><td style="font-weight:600;color:#60a5fa">${w}</td>${cells}</tr>`;
