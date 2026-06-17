@@ -1,0 +1,25 @@
+#!/bin/sh
+# ------------------------------------------------------------
+# post-commit hook: stamp knowledge/build-info.js with the
+# version, the commit hash that was just created, and its date.
+#
+# Uses a guard env var so the amend below does not loop.
+# Installed via: powershell -File scripts/install-hooks.ps1
+# ------------------------------------------------------------
+
+if [ -n "$NIKKE_STAMP_SKIP" ]; then
+  exit 0
+fi
+
+repo_root=$(git rev-parse --show-toplevel)
+
+# Regenerate build-info.js for the commit that was just made (HEAD)
+powershell -ExecutionPolicy Bypass -NoProfile -File "$repo_root/scripts/stamp-version.ps1" >/dev/null 2>&1 || exit 0
+
+# If stamping changed the file, fold it into the just-made commit
+if ! git diff --quiet -- knowledge/build-info.js; then
+  git add knowledge/build-info.js
+  NIKKE_STAMP_SKIP=1 git commit --amend --no-edit --no-verify >/dev/null 2>&1
+fi
+
+exit 0
