@@ -447,6 +447,102 @@ details[open] > .verdict-title::before { transform: rotate(90deg); }
 .tut-step-text strong { color: #60a5fa; }
 .tut-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .tut-dismiss { font-size: 11px; color: #475569; margin-top: 10px; text-align: center; }
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE / RESPONSIVE
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Remove zoom scaling on mobile */
+  .app { zoom: 1; padding: 1rem 0.5rem; }
+
+  /* Topbar: stack title left, actions below */
+  .topbar { flex-wrap: wrap; gap: 10px; }
+  .topbar-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+
+  /* Tabs: horizontal scroll, no wrapping */
+  .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+  .tab { flex-shrink: 0; padding: 7px 12px; font-size: 12px; }
+
+  /* Overview metrics: 2x2 grid */
+  .ov-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Two-column layout → single column with collapsible sidebar */
+  .two-col { grid-template-columns: 1fr; gap: 10px; }
+
+  /* Nikke list becomes horizontal scrollable strip on mobile */
+  .nikke-list { max-height: 150px; overflow-y: auto; }
+  .gear-sidebar { gap: 6px; }
+
+  /* Gear lines: stack vertically */
+  .lines-grid { grid-template-columns: 1fr; }
+
+  /* Roster grid: single column */
+  .roster-grid { grid-template-columns: 1fr; }
+
+  /* Ranking table & attr summary: horizontal scroll wrapper */
+  .attr-summary { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #overview, #gear-main, #prio-main, #raid-main { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.attr-table { min-width: 480px; }
+
+  /* Raid team chips: single column */
+  .raid-team-drop { grid-template-columns: 1fr; }
+
+  /* Priority rows: more compact */
+  .prio-col-labels { grid-template-columns: 1fr 70px 40px 60px 26px; gap: 4px; }
+  .prio-row { grid-template-columns: 1fr 70px 40px 60px 26px; gap: 4px; }
+
+  /* Tutorial modal: full-width with less padding */
+  .tutorial-modal { padding: 1.5rem 1rem; max-width: 95vw; }
+
+  /* Form panels: full width */
+  .form-panel { max-width: 100%; }
+
+  /* Prog row in overview: tighter */
+  .prog-row { grid-template-columns: 100px 1fr 38px; gap: 6px; font-size: 12px; }
+
+  /* Overview ranking table wrapper */
+  .attr-table { font-size: 11px; }
+}
+
+@media (max-width: 480px) {
+  .app { padding: 0.75rem 0.4rem; }
+
+  .title { font-size: 15px; }
+  .subtitle { font-size: 11px; }
+
+  /* Topbar actions: smaller buttons */
+  .btn-sm { font-size: 11px; padding: 3px 8px; min-width: 55px; min-height: 26px; }
+
+  /* Overview: stack metrics */
+  .ov-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .metric-card { padding: 0.6rem; }
+  .metric-val { font-size: 20px; }
+
+  /* Nikke list: shorter on very small screens */
+  .nikke-list { max-height: 120px; }
+
+  /* Priority: stack labels vertically */
+  .prio-col-labels { display: none; }
+  .prio-row { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .prio-row > select:first-child { grid-column: 1 / -1; }
+  .prio-card { padding: 0.6rem; }
+
+  /* Slot card: smaller padding */
+  .slot-card { padding: 0.6rem; }
+
+  /* Line boxes: more compact */
+  .line-box { padding: 6px; gap: 4px; }
+
+  /* Verdict: smaller text */
+  .verdict { font-size: 11px; padding: 8px 10px; }
+
+  /* Raid chips: full width */
+  .raid-chip { padding: 5px 8px; }
+
+  /* Add nikke button: full width on mobile */
+  .add-nikke-btn { width: 100%; }
+}
 </style>
 </head>
 <body>
