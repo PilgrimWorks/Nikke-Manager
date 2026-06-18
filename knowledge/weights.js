@@ -61,7 +61,7 @@ function countAmmoLines(nikke) {
 }
 
 function getStatDmgWeight(stat, nikkeName, nikkeObj) {
-  const weapon = NIKKE_WEAPON[nikkeName] || 'AR';
+  const weapon = (nikkeObj && nikkeObj.weapon) || 'AR';
   // Check custom weights first (user-editable)
   let baseWeight;
   if (state.customWeights) {
