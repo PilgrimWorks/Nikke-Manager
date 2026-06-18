@@ -479,7 +479,7 @@ function getVerdict(nikke, slot) {
           const otherAmmo = countAmmoLines(nikke) - 1;
           const diminish = getAmmoDiminish();
           const mult = otherAmmo < diminish.length ? diminish[Math.max(0, otherAmmo)] : diminish[diminish.length - 1];
-          const weapon = NIKKE_WEAPON[nikke.name] || 'AR';
+          const weapon = nikke.weapon || 'AR';
           const baseW = (state.customWeights && state.customWeights.weapon && state.customWeights.weapon[weapon] && state.customWeights.weapon[weapon]['Max Ammo'] !== undefined)
             ? state.customWeights.weapon[weapon]['Max Ammo']
             : (STAT_DMG_WEIGHT_WEAPON[weapon] && STAT_DMG_WEIGHT_WEAPON[weapon]['Max Ammo'] !== undefined ? STAT_DMG_WEIGHT_WEAPON[weapon]['Max Ammo'] : STAT_DMG_WEIGHT_BASE['Max Ammo']);
