@@ -1,9 +1,9 @@
 <#
   install-hooks.ps1
   -----------------
-  Copies the tracked git hooks from scripts/hooks/ into .git/hooks/
-  so the build-info stamp runs automatically. Git hooks are not
-  themselves version-controlled, so run this once after cloning.
+  Configures git to read hooks directly from scripts/hooks/ via
+  core.hooksPath, so no copying is needed and the hooks are always
+  in sync with the tracked source.
 
   Usage:  powershell -ExecutionPolicy Bypass -File scripts/install-hooks.ps1
 #>
@@ -11,19 +11,11 @@
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$srcDir   = Join-Path $repoRoot 'scripts/hooks'
-$dstDir   = Join-Path $repoRoot '.git/hooks'
 
-if (-not (Test-Path $dstDir)) {
-  throw "No .git/hooks directory found. Are you in a git repo?"
-}
-
-Get-ChildItem -Path $srcDir -File | ForEach-Object {
-  $dst = Join-Path $dstDir $_.Name
-  Copy-Item $_.FullName $dst -Force
-  Write-Host "Installed hook: $($_.Name)"
-}
+# Point git at the tracked hooks folder — no copying needed
+git -C $repoRoot config core.hooksPath scripts/hooks
+Write-Host "Set core.hooksPath = scripts/hooks"
 
 # Stamp once now so build-info.js is current
 & (Join-Path $repoRoot 'scripts/stamp-version.ps1')
-Write-Host "Done. Hooks installed and build-info.js stamped."
+Write-Host "Done. Hooks configured and build-info.js stamped."

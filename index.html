@@ -183,7 +183,7 @@
             .nikke-list::-webkit-scrollbar-thumb:hover {
                 background: #3b82f6;
             }
-            .gear-sidebar {
+            .nikke-sidebar {
                 display: flex;
                 flex-direction: column;
                 gap: 6px;
@@ -1478,7 +1478,7 @@
                     max-height: 150px;
                     overflow-y: auto;
                 }
-                .gear-sidebar {
+                .nikke-sidebar {
                     gap: 6px;
                 }
 
@@ -2821,7 +2821,7 @@
 
             function renderRoster() {
                 const el = document.getElementById("roster");
-                const cards = state.nikkes
+                const cards = [...state.nikkes].sort((a, b) => a.name.localeCompare(b.name))
                     .map((n) => {
                         const dots = SLOTS.map((s) => `<div class="dot ${dotStatus(n, s)}" title="${s}"></div>`).join(
                             "",
@@ -2936,7 +2936,7 @@
             let _gearSidebarSearch = "";
 
             function filterGearSidebarList() {
-                const input = document.getElementById("gear-sidebar-search");
+                const input = document.getElementById("nikke-sidebar-search");
                 if (!input) return;
                 _gearSidebarSearch = input.value.toLowerCase();
                 document.querySelectorAll("#gear .nikke-list .nikke-item").forEach((el) => {
@@ -2946,7 +2946,7 @@
 
             function renderGear() {
                 const el = document.getElementById("gear");
-                let filtered = state.nikkes;
+                let filtered = [...state.nikkes].sort((a, b) => a.name.localeCompare(b.name));
                 if (state.gearElementFilter) filtered = filtered.filter((n) => n.element === state.gearElementFilter);
                 if (state.gearBurstFilter) filtered = filtered.filter((n) => n.burst === state.gearBurstFilter);
                 const list =
@@ -2966,7 +2966,7 @@
                     .map((e) => `<option value="${e}" ${state.gearElementFilter === e ? "selected" : ""}>${e}</option>`)
                     .join("");
                 const filterHtml = `<div style="margin-bottom:6px">
-    <input id="gear-sidebar-search" class="form-input" placeholder="Search Nikke..." value="${_gearSidebarSearch.replace(/"/g, "&quot;")}" oninput="filterGearSidebarList()" style="font-size:11px;padding:4px 8px;width:100%"/>
+    <input id="nikke-sidebar-search" class="form-input" placeholder="Search Nikke..." value="${_gearSidebarSearch.replace(/"/g, "&quot;")}" oninput="filterGearSidebarList()" style="font-size:11px;padding:4px 8px;width:100%"/>
   </div>
   <div style="display:flex;gap:4px;margin-bottom:6px">
     <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearElementFilter(this.value)">
@@ -3011,7 +3011,7 @@
       </div>`;
 
                     el.innerHTML = `<div class="two-col">
-      <div class="gear-sidebar">${filterHtml}${addHtml}<div class="nikke-list">${list}</div></div>
+      <div class="nikke-sidebar">${filterHtml}${addHtml}<div class="nikke-list">${list}</div></div>
       <div id="gear-main">${state.selGear ? "" : '<div class="empty-state">← Select a Nikke</div>'}</div>
     </div>`;
                     if (_gearSidebarSearch) filterGearSidebarList();
@@ -3515,7 +3515,7 @@
 
             function renderPriority() {
                 const el = document.getElementById("priority");
-                let filtered = state.nikkes;
+                let filtered = [...state.nikkes].sort((a, b) => a.name.localeCompare(b.name));
                 if (state.gearElementFilter) filtered = filtered.filter((n) => n.element === state.gearElementFilter);
                 if (state.gearBurstFilter) filtered = filtered.filter((n) => n.burst === state.gearBurstFilter);
 
@@ -3556,7 +3556,7 @@
   </div>`;
 
                 el.innerHTML = `<div class="two-col">
-    <div class="nikke-list">${filterHtml}${list}</div>
+    <div class="nikke-sidebar">${filterHtml}<div class="nikke-list">${list}</div></div>
     <div id="prio-main">${state.selPrio ? "" : '<div class="empty-state">← Select a Nikke</div>'}</div>
   </div>`;
                 if (_prioSidebarSearch) filterPrioSidebarList();
