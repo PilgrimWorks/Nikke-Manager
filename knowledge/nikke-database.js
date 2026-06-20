@@ -5,6 +5,10 @@
 
 const SLOTS = ["Helmet", "Chest", "Gloves", "Boots"];
 
+const NIKKE_ELEMENTS = ["Fire", "Water", "Wind", "Electric", "Iron"];
+const NIKKE_MANUFACTURERS = ["Elysion", "Missilis", "Tetra", "Pilgrim", "Abnormal"];
+const NIKKE_WEAPONS = ["AR", "MG", "SG", "SMG", "SR", "RL"];
+
 // Harmony Cube TID → English name (sourced from game CDN)
 const HARMONY_CUBES = {
     1000301: "Assault Cube",
@@ -40,12 +44,17 @@ const COLLECTION_DOLLS = [
     { id: 100502, name: "Coffee Commander Doll Ltd.", rarity: "SR", weapon: "SMG" },
     { id: 100601, name: "Napping Commander Doll", rarity: "R", weapon: "SR" },
     { id: 100602, name: "Napping Commander Doll Ltd.", rarity: "SR", weapon: "SR" },
+    { id: 200201, name: "Gamekid Evolution", rarity: "SSR", weapon: "SR", treasure: "Exia" },
     { id: 200401, name: "Hero Trilogy BD", rarity: "SSR", weapon: "RL", treasure: "Laplace" },
+    { id: 200501, name: "First Phone and Phone Book", rarity: "SSR", weapon: "SG", treasure: "Viper" },
     { id: 200601, name: "Sheet of Paper", rarity: "SSR", weapon: "SMG", treasure: "Miranda" },
     { id: 200701, name: "Antique Compass", rarity: "SSR", weapon: "SR", treasure: "Helm" },
     { id: 200801, name: "Villain Figurine", rarity: "SSR", weapon: "SG", treasure: "Drake" },
     { id: 201101, name: "Fire Starter", rarity: "SSR", weapon: "AR", treasure: "Tove" },
+    { id: 201201, name: "Music Notebook", rarity: "SSR", weapon: "AR", treasure: "Julia" },
+    { id: 201301, name: "Practice Shoes", rarity: "SSR", weapon: "RL", treasure: "Bay" },
     { id: 201401, name: "Central Government Special Medal", rarity: "SSR", weapon: "AR", treasure: "Privaty" },
+    { id: 201501, name: "Four-Leaf Clover Bookmark", rarity: "SSR", weapon: "SG", treasure: "Zwei" },
     { id: 201701, name: "Peony Hairpin", rarity: "SSR", weapon: "AR", treasure: "Moran" },
 ];
 

@@ -927,6 +927,17 @@
                 border-radius: 6px;
                 color: #e2e8f0;
             }
+            /* Hide native OS dropdown arrow and replace with a consistent chevron */
+            .app select:not([size]) {
+                appearance: none;
+                -webkit-appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpolyline points='0,0 5,5 10,0' fill='none' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+                background-repeat: no-repeat !important;
+                background-position: right 8px center !important;
+                background-size: 10px 6px !important;
+                padding-right: 24px !important;
+                cursor: pointer;
+            }
             .btn {
                 font-size: 13px;
                 padding: 6px 16px;
@@ -1632,11 +1643,14 @@
 
             /* ── Themed number steppers (replace native spin buttons) ── */
             .nikke-stats-edit input[type="number"]::-webkit-outer-spin-button,
-            .nikke-stats-edit input[type="number"]::-webkit-inner-spin-button {
+            .nikke-stats-edit input[type="number"]::-webkit-inner-spin-button,
+            .stepper input[type="number"]::-webkit-outer-spin-button,
+            .stepper input[type="number"]::-webkit-inner-spin-button {
                 -webkit-appearance: none;
                 margin: 0;
             }
-            .nikke-stats-edit input[type="number"] {
+            .nikke-stats-edit input[type="number"],
+            .stepper input[type="number"] {
                 -moz-appearance: textfield;
                 appearance: textfield;
             }
@@ -1761,6 +1775,7 @@
                 <button class="tab" onclick="switchTab('raids', event)">Solo Raids</button>
                 <button class="tab" onclick="switchTab('priority', event)">Line Priorities</button>
                 <button class="tab" onclick="switchTab('weights', event)">Weights</button>
+                <button class="tab" onclick="switchTab('cubes', event)">Cubes</button>
             </div>
 
             <div id="overview" class="section active"></div>
@@ -1769,6 +1784,7 @@
             <div id="priority" class="section"></div>
             <div id="raids" class="section"></div>
             <div id="weights" class="section"></div>
+            <div id="cubes" class="section"></div>
         </div>
 
         <!-- Tutorial overlay for new users -->
@@ -2068,6 +2084,10 @@
                 rankSort: "efficiency",
                 rankSortAsc: false,
                 gearElementFilter: "",
+                gearManufacturerFilter: "",
+                gearWeaponFilter: "",
+                gearSidebarSort: "power",
+                gearSidebarSortDir: "desc",
             };
 
             // ============================================================
@@ -2222,6 +2242,8 @@
                         rankSort: "efficiency",
                         rankSortAsc: false,
                         gearElementFilter: "",
+                        gearSidebarSort: "power",
+                        gearSidebarSortDir: "desc",
                         cubeLevels: {},
                     };
                     try {
@@ -2312,6 +2334,8 @@
                 if (state.elementalBoss === undefined) state.elementalBoss = true;
                 if (state.gearElementFilter === undefined) state.gearElementFilter = "";
                 if (state.gearBurstFilter === undefined) state.gearBurstFilter = "";
+                if (state.gearSidebarSort === undefined) state.gearSidebarSort = "power";
+                if (state.gearSidebarSortDir === undefined) state.gearSidebarSortDir = "desc";
                 if (state.overviewElementFilter === undefined) state.overviewElementFilter = "";
                 if (!state.raids) state.raids = [];
                 if (state.selRaid === undefined) state.selRaid = null;
@@ -3007,11 +3031,35 @@
                 });
             }
 
+            function sortNikkesBySidebar(nikkes) {
+                const by = state.gearSidebarSort || "power";
+                const asc = (state.gearSidebarSortDir || "desc") === "asc";
+                return [...nikkes].sort((a, b) => {
+                    let diff = 0;
+                    if (by === "alpha") {
+                        diff = a.name.localeCompare(b.name);
+                        if (diff !== 0) return asc ? diff : -diff;
+                        return (b.power ?? -1) - (a.power ?? -1);
+                    } else if (by === "power") {
+                        diff = (a.power ?? -1) - (b.power ?? -1);
+                    } else if (by === "lb") {
+                        diff = ((a.limitBreak ?? 0) + (a.cores ?? 0)) - ((b.limitBreak ?? 0) + (b.cores ?? 0));
+                    } else if (by === "bond") {
+                        diff = (a.bond ?? -1) - (b.bond ?? -1);
+                    }
+                    if (diff !== 0) return asc ? diff : -diff;
+                    return (b.power ?? -1) - (a.power ?? -1);
+                });
+            }
+
             function renderGear() {
                 const el = document.getElementById("gear");
-                let filtered = [...state.nikkes].sort((a, b) => a.name.localeCompare(b.name));
+                let filtered = state.nikkes.slice();
                 if (state.gearElementFilter) filtered = filtered.filter((n) => n.element === state.gearElementFilter);
                 if (state.gearBurstFilter) filtered = filtered.filter((n) => n.burst === state.gearBurstFilter);
+                if (state.gearManufacturerFilter) filtered = filtered.filter((n) => (NIKKE_DB_MAP.get(n.name) || {}).manufacturer === state.gearManufacturerFilter);
+                if (state.gearWeaponFilter) filtered = filtered.filter((n) => (n.weapon || (NIKKE_DB_MAP.get(n.name) || {}).weapon) === state.gearWeaponFilter);
+                filtered = sortNikkesBySidebar(filtered);
                 const list =
                     filtered
                         .map((n) => {
@@ -3023,13 +3071,29 @@
                         .join("") ||
                     '<div style="font-size:12px;color:#475569;padding:6px">No Nikkes match filter</div>';
 
-                // Build element filter options from elements present in roster
-                const elements = [...new Set(state.nikkes.map((n) => n.element).filter(Boolean))].sort();
-                const elemOpts = elements
+                // Build filter options from fixed game constants
+                const elemOpts = NIKKE_ELEMENTS
                     .map((e) => `<option value="${e}" ${state.gearElementFilter === e ? "selected" : ""}>${e}</option>`)
                     .join("");
+                const mfrOpts = NIKKE_MANUFACTURERS
+                    .map((m) => `<option value="${m}" ${state.gearManufacturerFilter === m ? "selected" : ""}>${m}</option>`)
+                    .join("");
+                const weaponOpts = NIKKE_WEAPONS
+                    .map((w) => `<option value="${w}" ${state.gearWeaponFilter === w ? "selected" : ""}>${w}</option>`)
+                    .join("");
+                const sortDir = state.gearSidebarSortDir || "desc";
+                const sortBy = state.gearSidebarSort || "power";
                 const filterHtml = `<div style="margin-bottom:6px">
     <input id="nikke-sidebar-search" class="form-input" placeholder="Search Nikke..." value="${_gearSidebarSearch.replace(/"/g, "&quot;")}" oninput="filterGearSidebarList()" style="font-size:11px;padding:4px 8px;width:100%"/>
+  </div>
+  <div style="display:flex;gap:4px;margin-bottom:6px">
+    <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearSidebarSort(this.value)">
+      <option value="power" ${sortBy === "power" ? "selected" : ""}>Power</option>
+      <option value="alpha" ${sortBy === "alpha" ? "selected" : ""}>Alphabetical</option>
+      <option value="lb" ${sortBy === "lb" ? "selected" : ""}>Limit Break</option>
+      <option value="bond" ${sortBy === "bond" ? "selected" : ""}>Bond</option>
+    </select>
+    <button onclick="toggleGearSidebarSortDir()" title="Toggle sort direction" style="font-size:14px;padding:2px 7px;background:#0f1117;color:#94a3b8;border:1px solid #2d3f5e;border-radius:5px;cursor:pointer;flex-shrink:0;line-height:1;transition:color 0.1s,background 0.1s" onmouseover="this.style.background='#1a2235';this.style.color='#e2e8f0'" onmouseout="this.style.background='#0f1117';this.style.color='#94a3b8'">${sortDir === "asc" ? "↑" : "↓"}</button>
   </div>
   <div style="display:flex;gap:4px;margin-bottom:6px">
     <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearElementFilter(this.value)">
@@ -3041,9 +3105,17 @@
       <option value="II" ${state.gearBurstFilter === "II" ? "selected" : ""}>B2</option>
       <option value="III" ${state.gearBurstFilter === "III" ? "selected" : ""}>B3</option>
     </select>
+  </div>
+  <div style="display:flex;gap:4px;margin-bottom:6px">
+    <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearManufacturerFilter(this.value)">
+      <option value="">All Manufacturers</option>${mfrOpts}
+    </select>
+    <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearWeaponFilter(this.value)">
+      <option value="">All Weapons</option>${weaponOpts}
+    </select>
   </div>`;
 
-                const sidebarKey = `${state.gearElementFilter}|${state.gearBurstFilter}|${filtered.map((n) => n.id + dotStatus(n, "Helmet") + dotStatus(n, "Chest") + dotStatus(n, "Gloves") + dotStatus(n, "Boots")).join(",")}|${state.selGear}`;
+                const sidebarKey = `${state.gearElementFilter}|${state.gearBurstFilter}|${state.gearManufacturerFilter}|${state.gearWeaponFilter}|${sortBy}|${sortDir}|${filtered.map((n) => n.id + dotStatus(n, "Helmet") + dotStatus(n, "Chest") + dotStatus(n, "Gloves") + dotStatus(n, "Boots")).join(",")}|${state.selGear}`;
 
                 if (sidebarKey !== _gearSidebarCache || !el.innerHTML) {
                     _gearSidebarCache = sidebarKey;
@@ -3073,10 +3145,15 @@
         </div>
       </div>`;
 
-                    el.innerHTML = `<div class="two-col">
-      <div class="nikke-sidebar">${filterHtml}${addHtml}<div class="nikke-list">${list}</div></div>
+                    const sidebarEl = document.getElementById("gear-sidebar-inner");
+                    if (!sidebarEl) {
+                        el.innerHTML = `<div class="two-col">
+      <div class="nikke-sidebar" id="gear-sidebar-inner">${filterHtml}${addHtml}<div class="nikke-list">${list}</div></div>
       <div id="gear-main">${state.selGear ? "" : '<div class="empty-state">← Select a Nikke</div>'}</div>
     </div>`;
+                    } else {
+                        sidebarEl.innerHTML = filterHtml + addHtml + `<div class="nikke-list">${list}</div>`;
+                    }
                     if (_gearSidebarSearch) filterGearSidebarList();
                 }
 
@@ -3091,6 +3168,19 @@
                 save();
                 renderGear();
                 renderPriority();
+            }
+
+            function setGearSidebarSort(val) {
+                state.gearSidebarSort = val;
+                state.gearSidebarSortDir = (val === "alpha") ? "asc" : "desc";
+                save();
+                renderGear();
+            }
+
+            function toggleGearSidebarSortDir() {
+                state.gearSidebarSortDir = (state.gearSidebarSortDir === "asc") ? "desc" : "asc";
+                save();
+                renderGear();
             }
 
             function showGearAddForm() {
@@ -3148,6 +3238,18 @@
                 save();
                 renderGear();
                 renderPriority();
+            }
+
+            function setGearManufacturerFilter(val) {
+                state.gearManufacturerFilter = val;
+                save();
+                renderGear();
+            }
+
+            function setGearWeaponFilter(val) {
+                state.gearWeaponFilter = val;
+                save();
+                renderGear();
             }
 
             function selGearNikke(id) {
@@ -3253,7 +3355,7 @@
           <span class="line-chance ${LINE_CHANCE_CSS[i]}">${LINE_CHANCE_LABELS[i]}</span>
         </div>
         <select onchange="updateStat('${nikke.id}','${slot}',${i},this.value)" onkeydown="gearSelectKeydown(event,'${nikke.id}','${slot}',${i})" data-gear-select="${nikke.id}-${slot}-${i}" tabindex="${i * 2 + 1}">
-          <option value="">— none —</option>${opts}
+          <option value="">None</option>${opts}
         </select>
         ${prioLabel}
         <div class="value-row">
@@ -3343,12 +3445,16 @@
                     "font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em";
                 const fieldInputCss =
                     "font-size:12px;padding:4px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%";
+                const trackedTids = new Set(Object.keys(state.cubeLevels ?? {}).filter((tid) => (state.cubeLevels ?? {})[tid] != null));
+                const hasUntracked = Object.keys(HARMONY_CUBES).some((tid) => !trackedTids.has(tid));
                 const cubeOpts = Object.entries(HARMONY_CUBES)
+                    .filter(([tid]) => trackedTids.has(tid))
                     .map(([tid, name]) => {
                         const lv = (state.cubeLevels ?? {})[tid];
-                        const label = lv != null ? `${name} - Lv.${lv}` : name;
+                        const label = `${name} - Lv.${lv}`;
                         return `<option value="${tid}" ${nikke.cube && String(nikke.cube.tid) === tid ? "selected" : ""}>${label}</option>`;
                     })
+                    .concat(hasUntracked ? [`<option value="__add_cube__" style="color:#60a5fa">+ Add another cube</option>`] : [])
                     .join("");
                 const equippedDollDb = nikke.doll ? COLLECTION_DOLLS.find((d) => d.id === nikke.doll.tid) : null;
                 const isTreasureDoll = equippedDollDb != null && equippedDollDb.treasure != null;
@@ -3368,21 +3474,21 @@
       <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 10px">
         <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Power</span>
           <input type="text" inputmode="numeric" style="${fieldInputCss}" placeholder="—" value="${nikke.power != null ? nikke.power : ""}" onchange="updateNikkeStat('${nikke.id}','power',this.value)"/></label>
-        <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Bond</span>
-          ${statStepperHtml(nikke.id, "bond", nikke.bond, 0, bondMax, false)}</label>
         <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Limit Break</span>
           ${statStepperHtml(nikke.id, "limitBreak", nikke.limitBreak, 0, lbMax, false, undefined, lbMax === 0)}</label>
         <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Cores</span>
           ${statStepperHtml(nikke.id, "cores", nikke.cores, 0, coresMax, false, undefined, coresMax === 0)}</label>
+        <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Bond</span>
+          ${statStepperHtml(nikke.id, "bond", nikke.bond, 0, bondMax, false)}</label>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;margin-top:8px">
         <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Cube</span>
           <div style="display:flex;gap:4px">
-            <select style="${fieldInputCss};flex:1" onchange="updateNikkeCube('${nikke.id}',this.value)"><option value="">— none —</option>${cubeOpts}</select>
+            <select style="${fieldInputCss};flex:1" onchange="updateNikkeCube('${nikke.id}',this.value)"><option value="">None</option>${cubeOpts}</select>
           </div></label>
         <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Doll</span>
           <div style="display:flex;gap:4px">
-            <select style="${fieldInputCss};flex:1" onchange="updateNikkeDoll('${nikke.id}',this.value)"><option value="">— none —</option>${dollOpts}</select>
+            <select style="${fieldInputCss};flex:1" onchange="updateNikkeDoll('${nikke.id}',this.value)"><option value="">None</option>${dollOpts}</select>
             ${nikke.doll && !isTreasureDoll ? statStepperHtml(nikke.id, "doll", nikke.doll.lv, 0, 15, true, "flex:none;width:96px") : ""}
           </div></label>
       </div>
@@ -3418,7 +3524,7 @@
                       "</div>"
                     : "";
 
-                area.innerHTML = `
+                const hdrHtml = `
     <div class="nikke-hdr" style="display:flex;align-items:flex-start;justify-content:space-between">
       <div style="display:flex;align-items:center;gap:12px">
         ${nikkeIcon(nikke.name, 56)}
@@ -3431,10 +3537,14 @@
         <input type="checkbox" onchange="toggleElementalBoss(this.checked)" ${state.elementalBoss ? "checked" : ""} style="accent-color:#3b82f6"/>
         <span>Elemental boss</span>
       </label>
-    </div>
-    ${statsPanel}
-    ${attrTable}
-    ${slots}`;
+    </div>`;
+                const bodyHtml = statsPanel + attrTable + slots;
+                const existingHdr = area.querySelector("[data-nikke-hdr]");
+                if (!existingHdr || existingHdr.dataset.nikkeHdr !== nikke.name) {
+                    area.innerHTML = `<div data-nikke-hdr="${nikke.name}">${hdrHtml}</div><div id="gear-body-inner">${bodyHtml}</div>`;
+                } else {
+                    document.getElementById("gear-body-inner").innerHTML = bodyHtml;
+                }
             }
 
             // ── Editable Nikke stats (Power / Bond / Limit Break / Cores / Cube / Doll) ──
@@ -3503,6 +3613,10 @@
             }
 
             function updateNikkeCube(nid, tid) {
+                if (tid === "__add_cube__") {
+                    switchTab("cubes", null);
+                    return;
+                }
                 const n = state.nikkes.find((x) => x.id === nid);
                 if (!n) return;
                 if (!tid) {
@@ -4635,13 +4749,114 @@
             }
 
             // ============================================================
+            //  CUBES TAB
+            // ============================================================
+
+            function renderCubes() {
+                const el = document.getElementById("cubes");
+                const levels = state.cubeLevels ?? {};
+
+                // Map cube tid → list of Nikke names using it
+                const cubeUsers = {};
+                state.nikkes.forEach((n) => {
+                    if (n.cube && n.cube.tid) {
+                        if (!cubeUsers[n.cube.tid]) cubeUsers[n.cube.tid] = [];
+                        cubeUsers[n.cube.tid].push(n.name || String(n.id));
+                    }
+                });
+
+                const rows = Object.entries(HARMONY_CUBES).map(([tid, name]) => {
+                    const tidNum = parseInt(tid, 10);
+                    const hasLevel = levels[tid] != null;
+                    const level = levels[tid];
+                    const users = (cubeUsers[tidNum] || []).slice().sort((a, b) => a.localeCompare(b));
+                    const userCell = users.length
+                        ? `<span style="color:#94a3b8;font-size:12px">${users.join(", ")}</span>`
+                        : `<span style="color:#334155;font-size:12px">—</span>`;
+                    const minDis = hasLevel && level <= 1 ? " disabled" : "";
+                    const maxDis = hasLevel && level >= 15 ? " disabled" : "";
+                    const levelCell = hasLevel
+                        ? `<div class="stepper" style="width:96px">
+                            <button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="stepCubeLevel(${tid},-1)"${minDis}>−</button>
+                            <input class="stepper-input" type="number" inputmode="numeric" min="1" max="15" step="1" placeholder="—" value="${level}" onchange="updateCubeLevel(${tid},this.value)"/>
+                            <button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="stepCubeLevel(${tid},1)"${maxDis}>+</button>
+                          </div>`
+                        : `<span style="color:#475569;font-size:12px">not tracked</span>`;
+                    const actionCell = hasLevel
+                        ? `<button class="btn" style="padding:2px 8px;font-size:11px;background:#7f1d1d;border-color:#991b1b"
+                            onclick="removeCubeLevel(${tid})">Remove</button>`
+                        : `<button class="btn" style="padding:2px 8px;font-size:11px"
+                            onclick="addCubeLevel(${tid})">Add</button>`;
+                    return `<tr>
+                        <td style="font-weight:600">${name}</td>
+                        <td>${levelCell}</td>
+                        <td>${actionCell}</td>
+                        <td style="white-space:normal;word-break:break-word">${userCell}</td>
+                    </tr>`;
+                }).join("");
+
+                el.innerHTML = `
+                    <div>
+                        <table class="attr-table" style="table-layout:fixed;width:100%">
+                            <tr>
+                                <th style="width:140px">Cube</th>
+                                <th style="width:110px">Level</th>
+                                <th style="width:80px"></th>
+                                <th>Equipped By</th>
+                            </tr>
+                            ${rows}
+                        </table>
+                    </div>
+                `;
+            }
+
+            function updateCubeLevel(tid, value) {
+                if (!state.cubeLevels) state.cubeLevels = {};
+                const v = parseInt(value, 10);
+                if (!isNaN(v) && v >= 1) {
+                    state.cubeLevels[tid] = Math.min(v, 15);
+                } else {
+                    delete state.cubeLevels[tid];
+                }
+                save();
+                renderCubes();
+            }
+
+            function stepCubeLevel(tid, delta) {
+                if (!state.cubeLevels) state.cubeLevels = {};
+                const cur = state.cubeLevels[tid] != null ? state.cubeLevels[tid] : 1;
+                state.cubeLevels[tid] = Math.max(1, Math.min(15, cur + delta));
+                save();
+                renderCubes();
+            }
+
+            function addCubeLevel(tid) {
+                if (!state.cubeLevels) state.cubeLevels = {};
+                state.cubeLevels[tid] = 1;
+                save();
+                renderCubes();
+            }
+
+            function removeCubeLevel(tid) {
+                if (state.cubeLevels) delete state.cubeLevels[tid];
+                save();
+                renderCubes();
+            }
+
+            // ============================================================
             //  TAB SWITCHING & INIT
             // ============================================================
 
             function switchTab(tab, event) {
+                const tabBtnOrderSwitch = ["overview", "gear", "raids", "priority", "weights", "cubes"];
                 document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
                 document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
-                if (event) event.target.closest(".tab").classList.add("active");
+                if (event) {
+                    event.target.closest(".tab").classList.add("active");
+                } else {
+                    const idx = tabBtnOrderSwitch.indexOf(tab);
+                    if (idx >= 0) document.querySelectorAll(".tab")[idx].classList.add("active");
+                }
                 document.getElementById(tab).classList.add("active");
                 // Remember tab in query string
                 const url = new URL(window.location);
@@ -4653,6 +4868,7 @@
                 else if (tab === "priority") renderPriority();
                 else if (tab === "raids") renderRaids();
                 else if (tab === "weights") renderWeights();
+                else if (tab === "cubes") renderCubes();
             }
 
             function goToGearNikke(nikkeId) {
@@ -4704,6 +4920,7 @@
                 renderPriority();
                 renderRaids();
                 renderWeights();
+                renderCubes();
             }
 
             load();
@@ -4771,6 +4988,8 @@
                     rankSort: "efficiency",
                     rankSortAsc: false,
                     gearElementFilter: "",
+                    gearSidebarSort: "power",
+                    gearSidebarSortDir: "desc",
                 };
                 save();
                 render();
@@ -4786,7 +5005,7 @@
                     // No data yet — always show the guide on load
                     showTutorial();
                     // Auto-switch to Nikkes tab
-                    const tabBtnOrder = ["overview", "gear", "raids", "priority", "weights"];
+                    const tabBtnOrder = ["overview", "gear", "raids", "priority", "weights", "cubes"];
                     const gearIdx = tabBtnOrder.indexOf("gear");
                     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
                     document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
@@ -4805,7 +5024,7 @@
                 const initTab = new URLSearchParams(window.location.search).get("tab");
                 if (initTab && document.getElementById(initTab)) {
                     // Map section IDs to tab button indices (roster has no button)
-                    const tabBtnOrder = ["overview", "gear", "raids", "priority", "weights"];
+                    const tabBtnOrder = ["overview", "gear", "raids", "priority", "weights", "cubes"];
                     const btnIdx = tabBtnOrder.indexOf(initTab);
                     if (btnIdx >= 0) {
                         document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
