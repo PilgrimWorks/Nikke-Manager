@@ -1944,6 +1944,15 @@
                 SLOTS.forEach((s) => {
                     const v = getVerdict(nikke, s);
                     if (!v || v.cls === "v-keep") return;
+                    // Use pre-computed DPS-weighted gain if available
+                    if (v.options) {
+                        const rec = v.options.find((o) => o.recommended) || v.options[0];
+                        if (rec && rec.dpsGain > 0) { total += rec.dpsGain; return; }
+                    } else if (v.dpsGain > 0) {
+                        total += v.dpsGain;
+                        return;
+                    }
+                    // Fallback: parse gain string (for older verdict shapes)
                     let gainStr = "";
                     if (v.options) {
                         const rec = v.options.find((o) => o.recommended) || v.options[0];
@@ -1952,19 +1961,19 @@
                         gainStr = v.gain || "";
                     }
                     if (!gainStr) return;
-                    let gainTotal = 0;
-                    const netMatch = gainStr.match(/net\s+(?:\S+\s+)?([+-]?\d+\.?\d*)%/);
-                    if (netMatch) {
-                        gainTotal = parseFloat(netMatch[1]);
-                    } else {
-                        const matches = gainStr.match(/\+(\d+\.?\d*)%/g);
-                        if (matches)
-                            gainTotal = matches.reduce(
-                                (sum, m) => sum + parseFloat(m.replace("+", "").replace("%", "")),
-                                0,
-                            );
-                    }
-                    if (gainTotal > 0) total += gainTotal;
+                    // Parse individual stat gains separated by " or "
+                    const parts = gainStr.split(/\s+or\s+/);
+                    let bestWeighted = 0;
+                    parts.forEach((part) => {
+                        const m = part.match(/([A-Za-z\s]+?)\s*\+(\d+\.?\d*)%/);
+                        if (m) {
+                            const stat = ALL_LINES.find((l) => part.includes(l)) || "";
+                            const val = parseFloat(m[2]);
+                            const w = stat ? getStatDmgWeight(stat, nikke.name, nikke) : 1.0;
+                            bestWeighted = Math.max(bestWeighted, val * w);
+                        }
+                    });
+                    if (bestWeighted > 0) total += bestWeighted;
                 });
                 return total;
             }
@@ -2640,44 +2649,19 @@
                         const v = getVerdict(n, slot);
                         if (!v || v.cls === "v-keep") return; // skip done slots
                         let rocks = 0,
-                            gainTotal = 0,
-                            gainLabel = "";
+                            gainLabel = "",
+                            weightedGainRaw = 0;
                         if (v.options) {
                             const rec = v.options.find((o) => o.recommended) || v.options[0];
                             rocks = rec.rocks;
                             gainLabel = rec.gain;
-                            const netMatch = rec.gain.match(/net\s+(?:\S+\s+)?([+-]?\d+\.?\d*)%/);
-                            if (netMatch) {
-                                gainTotal = parseFloat(netMatch[1]);
-                            } else {
-                                const matches = rec.gain.match(/\+(\d+\.?\d*)%/g);
-                                if (matches)
-                                    gainTotal = matches.reduce(
-                                        (s, m) => s + parseFloat(m.replace("+", "").replace("%", "")),
-                                        0,
-                                    );
-                            }
+                            weightedGainRaw = rec.dpsGain || 0;
                         } else {
                             rocks = v.rocks;
                             gainLabel = v.gain || "";
-                            const netMatch = (v.gain || "").match(/net\s+(?:\S+\s+)?([+-]?\d+\.?\d*)%/);
-                            if (netMatch) {
-                                gainTotal = parseFloat(netMatch[1]);
-                            } else {
-                                const matches = (v.gain || "").match(/\+(\d+\.?\d*)%/g);
-                                if (matches)
-                                    gainTotal = matches.reduce(
-                                        (s, m) => s + parseFloat(m.replace("+", "").replace("%", "")),
-                                        0,
-                                    );
-                            }
+                            weightedGainRaw = v.dpsGain || 0;
                         }
-                        if (rocks <= 0 || gainTotal <= 0) return;
-                        // Apply stat damage weight based on which stat the gain is for
-                        const statMatch = gainLabel.match(/^(?:net\s+)?(\w[\w\s]*?)\s+[+-]/);
-                        const gainStat = statMatch ? ALL_LINES.find((l) => gainLabel.includes(l)) || "" : "";
-                        const dmgWeight = gainStat ? getStatDmgWeight(gainStat, n.name, n) : 1.0;
-                        const weightedGainRaw = gainTotal * dmgWeight;
+                        if (rocks <= 0 || weightedGainRaw <= 0) return;
                         // Weight by damage if raid selected
                         const dmg = raidDmgMap[n.id] || 0;
                         const weightedGain = dmg > 0 ? (weightedGainRaw / 100) * dmg : weightedGainRaw;
@@ -2687,12 +2671,11 @@
                             nikke: n.name,
                             slot,
                             rocks,
-                            gain: gainTotal,
+                            gain: weightedGainRaw,
                             gainLabel,
                             efficiency,
                             dmg,
                             weightedGain,
-                            dmgWeight,
                         });
                     });
                 });
@@ -3983,7 +3966,7 @@
                             }
                             return `<tr class="rank-row">
         <td style="font-size:11px;color:#475569;width:24px">${rank + 1}</td>
-        <td style="font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px">${n ? nikkeIcon(name, 30) : ""}${elem}${name}</td>
+        <td style="font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;cursor:pointer" onclick="goToGearNikke('${e.nikkeId}')" title="View in Gear Tracker">${n ? nikkeIcon(name, 30) : ""}${elem}${name}</td>
         <td style="width:36px;text-align:center">${teamBadge}</td>
         <td style="width:130px"><div style="display:flex;align-items:center;gap:3px">
           <input class="prio-count-input" type="text" inputmode="decimal" value="${e.damage || ""}" placeholder="0"
@@ -4402,6 +4385,19 @@
                 else if (tab === "priority") renderPriority();
                 else if (tab === "raids") renderRaids();
                 else if (tab === "weights") renderWeights();
+            }
+
+            function goToGearNikke(nikkeId) {
+                state.selGear = nikkeId;
+                // Switch to gear tab
+                document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+                document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
+                document.querySelectorAll(".tab")[1].classList.add("active"); // Gear Tracker tab
+                document.getElementById("gear").classList.add("active");
+                const url = new URL(window.location);
+                url.searchParams.set("tab", "gear");
+                history.replaceState(null, "", url);
+                renderGear();
             }
 
             function goToGearSlot(nikkeId, slot) {

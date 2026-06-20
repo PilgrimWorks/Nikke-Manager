@@ -261,6 +261,11 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
   // Calculate the GAIN from landing a new good stat (weighted by stat DPS value)
   let totalPoolWeight = 0, weightedGainDps = 0;
   const gains = [];
+  // Build set of stats being sacrificed so we don't count them as "existing"
+  const sacrificedStats = new Set();
+  if (sacrificedLines) {
+    sacrificedLines.forEach(l => { if (l.stat) sacrificedStats.add(l.stat); });
+  }
   goodPrios.forEach(p => {
     const w = pool[p.line] || 0;
     if (w <= 0) return;
@@ -268,8 +273,9 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
     const have = statCountAcrossGear[p.line] || 0;
     if (have >= needed) return;
     const ev = expectedValAnyTier(p.line);
+    // If this stat is on the current piece but being sacrificed, treat current as 0
     const existing = currentLines.find(l => l.stat === p.line);
-    const current = existing ? (parseFloat(existing.val) || 0) : 0;
+    const current = (existing && !sacrificedStats.has(p.line)) ? (parseFloat(existing.val) || 0) : 0;
     let gain = Math.max(0, ev - current);
     if (p.line === 'Elemental Damage' && !state.elementalBoss) gain = 0;
     const dmgW = getStatDmgWeight(p.line, nikke.name, nikke) || 0.01;
@@ -284,7 +290,7 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
   const net = grossGain - totalLossRaw;
   const grossGainDps = weightedGainDps / totalPoolWeight;
   const netDps = grossGainDps - totalLoss;
-  return { stat: gains[0].stat, gain: grossGain, loss: totalLossRaw, net, netDps };
+  return { stat: gains[0].stat, gain: grossGain, loss: totalLossRaw, net, netDps, gains };
 }
 
 
@@ -346,18 +352,25 @@ function getVerdict(nikke, slot) {
     const gainParts = goodPrios.map(p => {
       const ev = expectedValAnyTier(p.line);
       return `${p.line} +${ev.toFixed(2)}%`;
-    }).join(', ');
+    });
+    // Compute DPS-weighted gain (best single stat you could land, weighted)
+    const emptyDpsGain = goodPrios.reduce((best, p) => {
+      const ev = expectedValAnyTier(p.line);
+      const w = getStatDmgWeight(p.line, nikke.name, nikke) || 0.01;
+      return Math.max(best, ev * w);
+    }, 0);
     return {
       label: `Ready to roll — ~${fishRocks} rocks for ${goodStatNames}`,
       steps: [
         `Use Overload to start rolling effects on this gear`,
         `${(pGood * 100).toFixed(0)}% chance per roll to hit ${goodStatNames} (1 rock/roll)`,
-        `Expected gains: ${gainParts}`,
+        `Expected gains: ${gainParts.join(', ')}`,
         `Expected ~${fishRocks} rocks to land your first good line`,
       ],
       cls: 'v-ok',
       rocks: fishRocks,
-      gain: gainParts,
+      gain: gainParts.join(', '),
+      dpsGain: emptyDpsGain,
     };
   }
 
@@ -460,15 +473,20 @@ function getVerdict(nikke, slot) {
       const gainALabel = gainADetails.length
         ? gainADetails.map(x => `${x.stat} +${x.gain.toFixed(2)}%`).join(', ')
         : 'no effective gain';
-      const poolB = remainingStatPool(new Set([...usedStats, ...lockNow.map(l => l.stat)]));
+      const poolB = remainingStatPool(new Set([...lockNow.map(l => l.stat), ...ann.filter(l => l.locked && l.stat).map(l => l.stat)]));
       const ceGainB = changeEffectsGain(nikke, poolB, lines, sacrificing);
       let gainBLabel = 'no effective gain';
-      if (ceGainB.netDps > 0) {
-        gainBLabel = ceGainB.net > 0
-          ? `net ${ceGainB.stat} +${ceGainB.net.toFixed(2)}%`
-          : `${ceGainB.stat} +${ceGainB.gain.toFixed(2)}% (DPS net positive: losing low-weight stat)`;
-      } else if (ceGainB.net > 0) {
-        gainBLabel = `net ${ceGainB.stat} +${ceGainB.net.toFixed(2)}%`;
+      if (ceGainB.netDps > 0 || ceGainB.net > 0) {
+        // Show per-stat expected gains for clarity
+        const perStat = (ceGainB.gains || [])
+          .filter(g => g.gain > 0)
+          .map(g => `${g.stat} +${g.gain.toFixed(2)}%`);
+        const lossNote = ceGainB.loss > 0 ? `, −${ceGainB.loss.toFixed(2)}% sacrificed` : '';
+        if (perStat.length) {
+          gainBLabel = perStat.join(' or ') + lossNote;
+        } else {
+          gainBLabel = `net +${ceGainB.net.toFixed(2)}%${lossNote}`;
+        }
       } else if (ceGainB.gain > 0) {
         gainBLabel = `${ceGainB.stat} +${ceGainB.gain.toFixed(2)}% gain, −${ceGainB.loss.toFixed(2)}% loss`;
       }
@@ -498,8 +516,8 @@ function getVerdict(nikke, slot) {
           : `1 good line — fix value or fish for better`,
         cls: 'v-ok',
         options: [
-          { title: 'Option A — Reset Attributes to fix value(s)', steps: optASteps, rocks: resetRocks + fishRocksA, recommended: recommendA, gain: gainALabel },
-          { title: 'Option B — Sacrifice & Change Effects',        steps: optBSteps, rocks: fishRocksB,             recommended: !recommendA, gain: gainBLabel },
+          { title: 'Option A — Reset Attributes to fix value(s)', steps: optASteps, rocks: resetRocks + fishRocksA, recommended: recommendA, gain: gainALabel, dpsGain: gainAWeighted },
+          { title: 'Option B — Sacrifice & Change Effects',        steps: optBSteps, rocks: fishRocksB,             recommended: !recommendA, gain: gainBLabel, dpsGain: gainBDps },
         ],
       };
     }
@@ -521,8 +539,12 @@ function getVerdict(nikke, slot) {
       const sacForGain = sacUnlocked.filter(l => !lockNow.find(lk => lk.idx === l.idx));
       const ceGain = changeEffectsGain(nikke, poolCE, lines, sacForGain);
       let ceGainLabel = 'no effective gain';
-      if (ceGain.net > 0) {
-        ceGainLabel = `net ${ceGain.stat} +${ceGain.net.toFixed(2)}%`;
+      if (ceGain.net > 0 || ceGain.netDps > 0) {
+        const perStat = (ceGain.gains || [])
+          .filter(g => g.gain > 0)
+          .map(g => `${g.stat} +${g.gain.toFixed(2)}%`);
+        const lossNote = ceGain.loss > 0 ? `, −${ceGain.loss.toFixed(2)}% sacrificed` : '';
+        ceGainLabel = perStat.length ? perStat.join(' or ') + lossNote : `net +${ceGain.net.toFixed(2)}%`;
       } else if (ceGain.gain > 0) {
         ceGainLabel = `${ceGain.stat} +${ceGain.gain.toFixed(2)}%`;
       }
@@ -531,7 +553,8 @@ function getVerdict(nikke, slot) {
         .filter(p => (p.tier === 'Essential' || p.tier === 'Ideal') && !existingGoodStats.has(p.line) && !usedStats.has(p.line))
         .map(p => p.line);
       const targetStatLabel = missingGoodStats.length ? missingGoodStats.join('/') : goodStatNames;
-      return { label: `1 good line — fish for ${targetStatLabel}`, steps, cls: 'v-ok', rocks: fishRocks, gain: ceGainLabel };
+      const ceGainDps = ceGain.netDps > 0 ? ceGain.netDps : (ceGain.net > 0 ? ceGain.net : 0);
+      return { label: `1 good line — fish for ${targetStatLabel}`, steps, cls: 'v-ok', rocks: fishRocks, gain: ceGainLabel, dpsGain: ceGainDps };
     }
   }
 
@@ -542,6 +565,13 @@ function getVerdict(nikke, slot) {
   const fishRocks = estChangeEffectsRocks(fl, gf, lockedCount);
   const sacStats  = ann.filter(l => l.stat).map(l => l.stat);
   const ceGain3 = changeEffectsGain(nikke, pool, lines);
+  let ceGain3Label = 'no effective gain';
+  if (ceGain3.gain > 0) {
+    const perStat = (ceGain3.gains || [])
+      .filter(g => g.gain > 0)
+      .map(g => `${g.stat} +${g.gain.toFixed(2)}%`);
+    ceGain3Label = perStat.length ? perStat.join(' or ') : `${ceGain3.stat} +${ceGain3.gain.toFixed(2)}%`;
+  }
   return {
     label: 'No Essential/Ideal lines — Change Effects freely',
     steps: [
@@ -553,6 +583,7 @@ function getVerdict(nikke, slot) {
     ],
     cls: 'v-reroll',
     rocks: fishRocks,
-    gain: ceGain3.gain > 0 ? `${ceGain3.stat} +${ceGain3.gain.toFixed(2)}%` : 'no effective gain',
+    gain: ceGain3Label,
+    dpsGain: ceGain3.netDps > 0 ? ceGain3.netDps : (ceGain3.gain > 0 ? ceGain3.gain : 0),
   };
 }
