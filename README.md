@@ -1,6 +1,6 @@
-# NIKKE Overload Gear Manager
+# Nikke Manager
 
-A browser-based tool to track overload gear rolls for NIKKE: Goddess of Victory — get reroll verdicts, rock cost estimates, and see at a glance which gear slots are worth working on next.
+A browser-based tool to track overload gear rolls for Nikke: Goddess of Victory — get reroll verdicts, rock cost estimates, and see at a glance which gear slots are worth working on next.
 
 **Live app:** https://bongjames.github.io/Nikke-Overload-Gears-Manager
 
@@ -12,13 +12,13 @@ Overload gear has up to 3 random stat lines per piece, and rerolling them costs 
 
 ### Tabs
 
-| Tab | Purpose |
-|-----|---------|
-| **Overview** | Ranks all your Nikkes' gear slots by reroll priority — see where your rocks will have the most impact |
-| **Gear Tracker** | Enter your rolled stat lines per Nikke and slot; get a keep / lock+reroll / reset verdict with expected rock costs |
+| Tab                 | Purpose                                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Overview**        | Ranks all your Nikkes' gear slots by reroll priority — see where your rocks will have the most impact              |
+| **Gear Tracker**    | Enter your rolled stat lines per Nikke and slot; get a keep / lock+reroll / reset verdict with expected rock costs |
 | **Line Priorities** | Set which stats matter for each Nikke (e.g. ATK + Elemental DMG) and how many of each you need across all 4 pieces |
-| **Solo Raids** | Track your solo raid teams and damage scores |
-| **Weights** | Customise how much each stat is worth in the scoring formula |
+| **Solo Raids**      | Track your solo raid teams and damage scores                                                                       |
+| **Weights**         | Customise how much each stat is worth in the scoring formula                                                       |
 
 ### Verdict logic
 
@@ -35,9 +35,10 @@ Open the app at https://bongjames.github.io/Nikke-Overload-Gears-Manager
 
 ### Option 1 — Auto-import with the browser extension (recommended)
 
-The **NIKKE Manager** Chrome extension reads your gear data directly from [blablalink.com](https://www.blablalink.com) (which mirrors your in-game account) and imports everything into the app automatically — no manual data entry needed.
+The **Nikke Manager** Chrome extension reads your gear data directly from [blablalink.com](https://www.blablalink.com) (which mirrors your in-game account) and imports everything into the app automatically — no manual data entry needed.
 
 **Requirements:**
+
 - A [blablalink.com](https://www.blablalink.com) account linked to your NIKKE game
 - Google Chrome (or any Chromium-based browser)
 
@@ -50,14 +51,14 @@ The extension is not yet on the Chrome Web Store. To get the current version, me
 1. Open Chrome and go to `chrome://extensions`
 2. Enable **Developer mode** (toggle in the top-right corner)
 3. Click **Load unpacked** and select the extension folder
-4. The NIKKE Manager icon will appear in your toolbar
+4. The Nikke Manager icon will appear in your toolbar
 
 > Chrome may show a warning about developer mode extensions on browser startup — click **Cancel** to dismiss it. This is normal for manually loaded extensions.
 
 **Usage:**
 
 1. Log in to [blablalink.com](https://www.blablalink.com) in Chrome
-2. Click the **NIKKE Manager** icon in your toolbar
+2. Click the **Nikke Manager** icon in your toolbar
 3. Click **Fetch Data** and wait around 10 seconds
 4. The extension automatically opens the Gear Manager and imports your data
 

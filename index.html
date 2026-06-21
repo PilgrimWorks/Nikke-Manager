@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>NIKKE Manager</title>
+        <title>Nikke Manager</title>
         <link rel="icon" href="assets/favicon.ico" sizes="any" />
         <link rel="icon" href="assets/favicon_32.png" type="image/png" sizes="32x32" />
         <link rel="icon" href="assets/favicon_192.png" type="image/png" sizes="192x192" />
@@ -443,6 +443,10 @@
                 opacity: 0.3;
                 cursor: not-allowed;
             }
+            select.value-input {
+                background-color: #0f1117;
+                cursor: pointer;
+            }
             .value-unit {
                 font-size: 11px;
                 color: #475569;
@@ -479,7 +483,7 @@
                 background: #22c55e;
             }
             .bar-ideal {
-                background: #3b82f6;
+                background: #22c55e;
             }
             .bar-passable {
                 background: #f59e0b;
@@ -500,8 +504,8 @@
                 color: #4ade80;
             }
             .prio-ideal {
-                background: #0c1f3f;
-                color: #60a5fa;
+                background: #052e16;
+                color: #4ade80;
             }
             .prio-passable {
                 background: #3f2a06;
@@ -869,8 +873,8 @@
                 color: #4ade80;
             }
             .p-ideal {
-                background: #0c1f3f;
-                color: #60a5fa;
+                background: #052e16;
+                color: #4ade80;
             }
             .p-passable {
                 background: #3f2a06;
@@ -1726,7 +1730,7 @@
                 <div style="display: flex; align-items: center; gap: 10px">
                     <img src="assets/nikke_custom_module.svg" alt="Logo" style="width: 36px; height: 36px" />
                     <div>
-                        <div class="title">NIKKE Manager</div>
+                        <div class="title">Nikke Manager</div>
                         <div class="subtitle">Overload gear tracker &amp; reroll advisor</div>
                         <div
                             class="subtitle app-version"
@@ -1748,7 +1752,8 @@
                             xmlns="http://www.w3.org/2000/svg"
                             width="14"
                             height="14"
-                            viewBox="0 0 24 24"
+                            viewB
+                            ``````
                             fill="currentColor"
                         >
                             <path
@@ -1796,8 +1801,8 @@
                     <div class="tut-step">
                         <div class="tut-step-num">1</div>
                         <div class="tut-step-text">
-                            <strong>Add your Nikkes</strong> — Use the "+ Add Nikke" button in the Nikkes tab to add
-                            the characters you're gearing up.
+                            <strong>Add your Nikkes</strong> — Use the "+ Add Nikke" button in the Nikkes tab to add the
+                            characters you're gearing up.
                         </div>
                     </div>
                     <div class="tut-step">
@@ -2038,7 +2043,10 @@
                     // Use pre-computed DPS-weighted gain if available
                     if (v.options) {
                         const rec = v.options.find((o) => o.recommended) || v.options[0];
-                        if (rec && rec.dpsGain > 0) { total += rec.dpsGain; return; }
+                        if (rec && rec.dpsGain > 0) {
+                            total += rec.dpsGain;
+                            return;
+                        }
                     } else if (v.dpsGain > 0) {
                         total += v.dpsGain;
                         return;
@@ -2925,7 +2933,8 @@
 
             function renderRoster() {
                 const el = document.getElementById("roster");
-                const cards = [...state.nikkes].sort((a, b) => a.name.localeCompare(b.name))
+                const cards = [...state.nikkes]
+                    .sort((a, b) => a.name.localeCompare(b.name))
                     .map((n) => {
                         const dots = SLOTS.map((s) => `<div class="dot ${dotStatus(n, s)}" title="${s}"></div>`).join(
                             "",
@@ -3060,7 +3069,7 @@
                     } else if (by === "power") {
                         diff = (a.power ?? -1) - (b.power ?? -1);
                     } else if (by === "lb") {
-                        diff = ((a.limitBreak ?? 0) + (a.cores ?? 0)) - ((b.limitBreak ?? 0) + (b.cores ?? 0));
+                        diff = (a.limitBreak ?? 0) + (a.cores ?? 0) - ((b.limitBreak ?? 0) + (b.cores ?? 0));
                     } else if (by === "bond") {
                         diff = (a.bond ?? -1) - (b.bond ?? -1);
                     }
@@ -3074,8 +3083,14 @@
                 let filtered = state.nikkes.slice();
                 if (state.gearElementFilter) filtered = filtered.filter((n) => n.element === state.gearElementFilter);
                 if (state.gearBurstFilter) filtered = filtered.filter((n) => n.burst === state.gearBurstFilter);
-                if (state.gearManufacturerFilter) filtered = filtered.filter((n) => (NIKKE_DB_MAP.get(n.name) || {}).manufacturer === state.gearManufacturerFilter);
-                if (state.gearWeaponFilter) filtered = filtered.filter((n) => (n.weapon || (NIKKE_DB_MAP.get(n.name) || {}).weapon) === state.gearWeaponFilter);
+                if (state.gearManufacturerFilter)
+                    filtered = filtered.filter(
+                        (n) => (NIKKE_DB_MAP.get(n.name) || {}).manufacturer === state.gearManufacturerFilter,
+                    );
+                if (state.gearWeaponFilter)
+                    filtered = filtered.filter(
+                        (n) => (n.weapon || (NIKKE_DB_MAP.get(n.name) || {}).weapon) === state.gearWeaponFilter,
+                    );
                 filtered = sortNikkesBySidebar(filtered);
                 const list =
                     filtered
@@ -3089,15 +3104,15 @@
                     '<div style="font-size:12px;color:#475569;padding:6px">No Nikkes match filter</div>';
 
                 // Build filter options from fixed game constants
-                const elemOpts = NIKKE_ELEMENTS
-                    .map((e) => `<option value="${e}" ${state.gearElementFilter === e ? "selected" : ""}>${e}</option>`)
-                    .join("");
-                const mfrOpts = NIKKE_MANUFACTURERS
-                    .map((m) => `<option value="${m}" ${state.gearManufacturerFilter === m ? "selected" : ""}>${m}</option>`)
-                    .join("");
-                const weaponOpts = NIKKE_WEAPONS
-                    .map((w) => `<option value="${w}" ${state.gearWeaponFilter === w ? "selected" : ""}>${w}</option>`)
-                    .join("");
+                const elemOpts = NIKKE_ELEMENTS.map(
+                    (e) => `<option value="${e}" ${state.gearElementFilter === e ? "selected" : ""}>${e}</option>`,
+                ).join("");
+                const mfrOpts = NIKKE_MANUFACTURERS.map(
+                    (m) => `<option value="${m}" ${state.gearManufacturerFilter === m ? "selected" : ""}>${m}</option>`,
+                ).join("");
+                const weaponOpts = NIKKE_WEAPONS.map(
+                    (w) => `<option value="${w}" ${state.gearWeaponFilter === w ? "selected" : ""}>${w}</option>`,
+                ).join("");
                 const sortDir = state.gearSidebarSortDir || "desc";
                 const sortBy = state.gearSidebarSort || "power";
                 const filterHtml = `<div style="margin-bottom:6px">
@@ -3189,13 +3204,13 @@
 
             function setGearSidebarSort(val) {
                 state.gearSidebarSort = val;
-                state.gearSidebarSortDir = (val === "alpha") ? "asc" : "desc";
+                state.gearSidebarSortDir = val === "alpha" ? "asc" : "desc";
                 save();
                 renderGear();
             }
 
             function toggleGearSidebarSortDir() {
-                state.gearSidebarSortDir = (state.gearSidebarSortDir === "asc") ? "desc" : "asc";
+                state.gearSidebarSortDir = state.gearSidebarSortDir === "asc" ? "desc" : "asc";
                 save();
                 renderGear();
             }
@@ -3366,6 +3381,15 @@
                                 (l) => `<option value="${l}" ${line.stat === l ? "selected" : ""}>${l}</option>`,
                             ).join("");
                             const unit = line.stat && IS_PCT.has(line.stat) ? "%" : "";
+                            const tierOpts =
+                                line.stat && TIER_TABLE[line.stat]
+                                    ? TIER_TABLE[line.stat]
+                                          .map((v, ti) => {
+                                              const vStr = v.toFixed(2);
+                                              return `<option value="${vStr}"${String(line.val ?? "").trim() === vStr ? " selected" : ""}>${vStr}</option>`;
+                                          })
+                                          .join("")
+                                    : "";
                             return `<div class="line-box" style="${line.locked ? "border-color:#166534;background:#052e16" : ""}">
         <div class="line-header">
           <span class="line-label">Line ${i + 1}</span>
@@ -3376,15 +3400,14 @@
         </select>
         ${prioLabel}
         <div class="value-row">
-          <input class="value-input" type="text" inputmode="decimal"
+          <select class="value-input"
             data-gear-val="${nikke.id}-${slot}-${i}"
-            placeholder="${line.stat ? "value" : "-"}"
-            value="${line.val || ""}"
             ${!line.stat ? "disabled" : ""}
             tabindex="${i * 2 + 2}"
-            oninput="formatValLive(this)"
-            onblur="updateVal('${nikke.id}','${slot}',${i},this.value)"
-            onkeydown="gearValKeydown(event,'${nikke.id}','${slot}',${i})"/>
+            onchange="updateVal('${nikke.id}','${slot}',${i},this.value)">
+            <option value="">—</option>
+            ${tierOpts}
+          </select>
           ${unit ? `<span class="value-unit">${unit}</span>` : ""}
           ${tb ? `<span class="tier-badge ${tb.cls}">${tb.label}</span>` : ""}
         </div>
@@ -3455,14 +3478,18 @@
 
                 // Editable Nikke stats: Power / Bond / Limit Break / Cores / Cube / Doll
                 const db = NIKKE_DB_MAP.get(nikke.name) || {};
-                const bondMax = (db.manufacturer === "Pilgrim" || nikke.name === "Rapi: Red Hood" || nikke.name === "Anis: Star") ? 40 : 30;
+                const bondMax =
+                    db.manufacturer === "Pilgrim" || nikke.name === "Rapi: Red Hood" || nikke.name === "Anis: Star"
+                        ? 40
+                        : 30;
                 const lbMax = db.rarity === "SSR" ? 3 : db.rarity === "SR" ? 2 : 0;
                 const coresMax = db.rarity === "SSR" ? 7 : 0;
-                const fieldLabelCss =
-                    "font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em";
+                const fieldLabelCss = "font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em";
                 const fieldInputCss =
                     "font-size:12px;padding:4px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%";
-                const trackedTids = new Set(Object.keys(state.cubeLevels ?? {}).filter((tid) => (state.cubeLevels ?? {})[tid] != null));
+                const trackedTids = new Set(
+                    Object.keys(state.cubeLevels ?? {}).filter((tid) => (state.cubeLevels ?? {})[tid] != null),
+                );
                 const hasUntracked = Object.keys(HARMONY_CUBES).some((tid) => !trackedTids.has(tid));
                 const cubeOpts = Object.entries(HARMONY_CUBES)
                     .filter(([tid]) => trackedTids.has(tid))
@@ -3471,16 +3498,19 @@
                         const label = `${name} - Lv.${lv}`;
                         return `<option value="${tid}" ${nikke.cube && String(nikke.cube.tid) === tid ? "selected" : ""}>${label}</option>`;
                     })
-                    .concat(hasUntracked ? [`<option value="__add_cube__" style="color:#60a5fa">+ Add another cube</option>`] : [])
+                    .concat(
+                        hasUntracked
+                            ? [`<option value="__add_cube__" style="color:#60a5fa">+ Add another cube</option>`]
+                            : [],
+                    )
                     .join("");
                 const equippedDollDb = nikke.doll ? COLLECTION_DOLLS.find((d) => d.id === nikke.doll.tid) : null;
                 const isTreasureDoll = equippedDollDb != null && equippedDollDb.treasure != null;
-                const dollOpts = COLLECTION_DOLLS
-                    .filter((d) => {
-                        if (nikke.doll && nikke.doll.tid === d.id) return true;
-                        if (d.treasure != null) return d.treasure === nikke.name;
-                        return d.weapon === db.weapon;
-                    })
+                const dollOpts = COLLECTION_DOLLS.filter((d) => {
+                    if (nikke.doll && nikke.doll.tid === d.id) return true;
+                    if (d.treasure != null) return d.treasure === nikke.name;
+                    return d.weapon === db.weapon;
+                })
                     .map(
                         (d) =>
                             `<option value="${d.id}" ${nikke.doll && nikke.doll.tid === d.id ? "selected" : ""}>[${d.rarity}] ${d.name}</option>`,
@@ -3532,12 +3562,7 @@
                 ].filter(Boolean);
                 const metaLine = metaItems.length
                     ? '<div style="display:flex;flex-wrap:wrap;gap:3px 14px;font-size:13px;color:#cbd5e1;margin-top:5px">' +
-                      metaItems
-                          .map(
-                              ([k, v]) =>
-                                  `<span><span style="color:#64748b">${k}:</span> ${v}</span>`,
-                          )
-                          .join("") +
+                      metaItems.map(([k, v]) => `<span><span style="color:#64748b">${k}:</span> ${v}</span>`).join("") +
                       "</div>"
                     : "";
 
@@ -3567,7 +3592,10 @@
             // ── Editable Nikke stats (Power / Bond / Limit Break / Cores / Cube / Doll) ──
             function getNikkeStatMax(n, field) {
                 const db = NIKKE_DB_MAP.get(n.name) || {};
-                if (field === "bond") return (db.manufacturer === "Pilgrim" || n.name === "Rapi: Red Hood" || n.name === "Anis: Star") ? 40 : 30;
+                if (field === "bond")
+                    return db.manufacturer === "Pilgrim" || n.name === "Rapi: Red Hood" || n.name === "Anis: Star"
+                        ? 40
+                        : 30;
                 if (field === "limitBreak") return db.rarity === "SSR" ? 3 : db.rarity === "SR" ? 2 : 0;
                 if (field === "cores") return db.rarity === "SSR" ? 7 : 0;
                 return null;
@@ -3586,8 +3614,8 @@
                 const v = value != null ? value : "";
                 const maxAttr = max != null ? `max="${max}" ` : "";
                 const numVal = value != null ? Number(value) : null;
-                const minDis = (disabled || (numVal != null && numVal <= min)) ? " disabled" : "";
-                const maxDis = (disabled || (max != null && numVal != null && numVal >= max)) ? " disabled" : "";
+                const minDis = disabled || (numVal != null && numVal <= min) ? " disabled" : "";
+                const maxDis = disabled || (max != null && numVal != null && numVal >= max) ? " disabled" : "";
                 const inputDis = disabled ? " disabled" : "";
                 return `<div class="stepper"${extraStyle ? ` style="${extraStyle}"` : ""}>
             <button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="${stepFn}('${nid}','${field}',-1)"${minDis}>−</button>
@@ -3823,11 +3851,7 @@
             }
 
             function gearValKeydown(event, nid, slot, i) {
-                if (event.key === "Enter" || event.key === "Tab") {
-                    event.preventDefault();
-                    // Trigger blur to save value, then jump to next line's select
-                    event.target.blur();
-                }
+                // select onchange handles saving; nothing to intercept
             }
 
             function gearSelectKeydown(event, nid, slot, i) {
@@ -4785,35 +4809,37 @@
                     }
                 });
 
-                const rows = Object.entries(HARMONY_CUBES).map(([tid, name]) => {
-                    const tidNum = parseInt(tid, 10);
-                    const hasLevel = levels[tid] != null;
-                    const level = levels[tid];
-                    const users = (cubeUsers[tidNum] || []).slice().sort((a, b) => a.localeCompare(b));
-                    const userCell = users.length
-                        ? `<span style="color:#94a3b8;font-size:12px">${users.join(", ")}</span>`
-                        : `<span style="color:#334155;font-size:12px">—</span>`;
-                    const minDis = hasLevel && level <= 1 ? " disabled" : "";
-                    const maxDis = hasLevel && level >= 15 ? " disabled" : "";
-                    const levelCell = hasLevel
-                        ? `<div class="stepper" style="width:96px">
+                const rows = Object.entries(HARMONY_CUBES)
+                    .map(([tid, name]) => {
+                        const tidNum = parseInt(tid, 10);
+                        const hasLevel = levels[tid] != null;
+                        const level = levels[tid];
+                        const users = (cubeUsers[tidNum] || []).slice().sort((a, b) => a.localeCompare(b));
+                        const userCell = users.length
+                            ? `<span style="color:#94a3b8;font-size:12px">${users.join(", ")}</span>`
+                            : `<span style="color:#334155;font-size:12px">—</span>`;
+                        const minDis = hasLevel && level <= 1 ? " disabled" : "";
+                        const maxDis = hasLevel && level >= 15 ? " disabled" : "";
+                        const levelCell = hasLevel
+                            ? `<div class="stepper" style="width:96px">
                             <button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="stepCubeLevel(${tid},-1)"${minDis}>−</button>
                             <input class="stepper-input" type="number" inputmode="numeric" min="1" max="15" step="1" placeholder="—" value="${level}" onchange="updateCubeLevel(${tid},this.value)"/>
                             <button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="stepCubeLevel(${tid},1)"${maxDis}>+</button>
                           </div>`
-                        : `<span style="color:#475569;font-size:12px">not tracked</span>`;
-                    const actionCell = hasLevel
-                        ? `<button class="btn" style="padding:2px 8px;font-size:11px;background:#7f1d1d;border-color:#991b1b"
+                            : `<span style="color:#475569;font-size:12px">not tracked</span>`;
+                        const actionCell = hasLevel
+                            ? `<button class="btn" style="padding:2px 8px;font-size:11px;background:#7f1d1d;border-color:#991b1b"
                             onclick="removeCubeLevel(${tid})">Remove</button>`
-                        : `<button class="btn" style="padding:2px 8px;font-size:11px"
+                            : `<button class="btn" style="padding:2px 8px;font-size:11px"
                             onclick="addCubeLevel(${tid})">Add</button>`;
-                    return `<tr>
+                        return `<tr>
                         <td style="font-weight:600">${name}</td>
                         <td>${levelCell}</td>
                         <td>${actionCell}</td>
                         <td style="white-space:normal;word-break:break-word">${userCell}</td>
                     </tr>`;
-                }).join("");
+                    })
+                    .join("");
 
                 el.innerHTML = `
                     <div>
