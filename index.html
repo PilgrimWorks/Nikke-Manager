@@ -2168,6 +2168,7 @@
                 delete s.selPrio;
                 delete s.selRaid;
                 delete s.selRaidEdit;
+                delete s._localUpdatedAt;
                 return s;
             }
 
@@ -2261,8 +2262,27 @@
                             save();
                             render();
                         } else {
-                            // Same count — quietly sync local to cloud
-                            await uploadLocalToCloud();
+                            // Same nikke count — compare timestamps to decide which is newer
+                            const cloudTime = cloudData._updatedAt && cloudData._updatedAt.toMillis
+                                ? cloudData._updatedAt.toMillis()
+                                : (cloudData._updatedAt && cloudData._updatedAt.seconds
+                                    ? cloudData._updatedAt.seconds * 1000
+                                    : 0);
+                            const localTime = state._localUpdatedAt || 0;
+                            if (cloudTime > localTime) {
+                                // Cloud is newer — use cloud data
+                                Object.assign(state, cloudData);
+                                delete state._updatedAt;
+                                migrateState();
+                                state.selGear = state.nikkes.length ? state.nikkes[0].id : null;
+                                state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
+                                state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
+                                save();
+                                render();
+                            } else {
+                                // Local is newer or same — upload local to cloud
+                                await uploadLocalToCloud();
+                            }
                         }
                     } else if (state.nikkes.length > 0) {
                         // Cloud empty but local has data — upload
@@ -2342,6 +2362,7 @@
             }
 
             function save() {
+                state._localUpdatedAt = Date.now();
                 try {
                     localStorage.setItem("nikke_v8", JSON.stringify(state));
                 } catch (e) {}
@@ -2805,9 +2826,16 @@
                     });
 
                 const rankings = [];
+                const savedElementalBoss = state.elementalBoss;
                 nk.forEach((n) => {
                     if (!n.priorities.length) return;
                     if (raidNikkeIds && !raidNikkeIds.has(n.id)) return; // filter by raid
+                    // If raid has an element weakness, only count Elemental Damage for matching Nikkes
+                    if (selRaid && selRaid.element && n.element !== selRaid.element) {
+                        state.elementalBoss = false;
+                    } else {
+                        state.elementalBoss = savedElementalBoss;
+                    }
                     SLOTS.forEach((slot) => {
                         const v = getVerdict(n, slot);
                         if (!v || v.cls === "v-keep") return; // skip done slots
@@ -2842,6 +2870,7 @@
                         });
                     });
                 });
+                state.elementalBoss = savedElementalBoss;
                 rankings.sort((a, b) => b.efficiency - a.efficiency);
 
                 // Raid selector dropdown
