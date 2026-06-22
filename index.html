@@ -73,7 +73,10 @@
                 margin: 0;
                 padding: 0;
             }
-            input, select, textarea, button {
+            input,
+            select,
+            textarea,
+            button {
                 font-family: inherit;
                 font-size: inherit;
             }
@@ -1791,7 +1794,7 @@
                 background: #243049;
                 color: #e2e8f0;
             }
-            .stepper-btn:active {
+            .stepper-btn.stepper-pressed {
                 background: #2d3a57;
             }
             .stepper-btn:disabled {
@@ -2312,11 +2315,12 @@
                             render();
                         } else {
                             // Same nikke count — compare timestamps to decide which is newer
-                            const cloudTime = cloudData._updatedAt && cloudData._updatedAt.toMillis
-                                ? cloudData._updatedAt.toMillis()
-                                : (cloudData._updatedAt && cloudData._updatedAt.seconds
-                                    ? cloudData._updatedAt.seconds * 1000
-                                    : 0);
+                            const cloudTime =
+                                cloudData._updatedAt && cloudData._updatedAt.toMillis
+                                    ? cloudData._updatedAt.toMillis()
+                                    : cloudData._updatedAt && cloudData._updatedAt.seconds
+                                      ? cloudData._updatedAt.seconds * 1000
+                                      : 0;
                             const localTime = state._localUpdatedAt || 0;
                             if (cloudTime > localTime) {
                                 // Cloud is newer — use cloud data
@@ -2402,12 +2406,14 @@
                 }
             }
 
-            // Convert Roman numeral burst to number (I→1, II→2, III→3, All→All)
-            function burstNum(b) {
-                if (b === "III" || b === "3") return "3";
-                if (b === "II" || b === "2") return "2";
-                if (b === "I" || b === "1") return "1";
-                return b; // 'All' or anything else
+            // Returns display string for a nikke's burst(s): "All", "B3", "B2", or "B1"
+            function burstDisplay(n) {
+                const count = (n.burst1 ? 1 : 0) + (n.burst2 ? 1 : 0) + (n.burst3 ? 1 : 0);
+                if (count >= 3) return "All";
+                if (n.burst3) return "B3";
+                if (n.burst2) return "B2";
+                if (n.burst1) return "B1";
+                return "";
             }
 
             function save() {
@@ -2456,7 +2462,6 @@
                     if (!n.element) {
                         const dbEntry = NIKKE_DATABASE.find((e) => e.name === n.name);
                         n.element = dbEntry ? dbEntry.element : "";
-                        if (dbEntry && !n.burst) n.burst = dbEntry.burst;
                     }
                     n.priorities.forEach((p) => {
                         if (!p.targetTier) p.targetTier = 11;
@@ -2627,7 +2632,13 @@
                     let nikke = state.nikkes.find((n) => n.name === resolvedName);
 
                     if (!nikke) {
-                        nikke = mkNikke(resolvedName, dbEntry ? dbEntry.burst : "III", dbEntry ? dbEntry.element : "");
+                        nikke = mkNikke(
+                            resolvedName,
+                            dbEntry ? dbEntry.burst1 : false,
+                            dbEntry ? dbEntry.burst2 : false,
+                            dbEntry ? dbEntry.burst3 : true,
+                            dbEntry ? dbEntry.element : "",
+                        );
                         state.nikkes.push(nikke);
                         if (hasGear) added++;
                         else addedNoGear++;
@@ -2746,7 +2757,7 @@
                 }, 4000);
             }
 
-            function mkNikke(name, burst, element, weapon) {
+            function mkNikke(name, burst1, burst2, burst3, element, weapon) {
                 const gear = {};
                 SLOTS.forEach((s) => {
                     gear[s] = {
@@ -2763,7 +2774,9 @@
                 return {
                     id: "n" + Date.now() + Math.floor(Math.random() * 1000000),
                     name,
-                    burst,
+                    burst1: burst1 || false,
+                    burst2: burst2 || false,
+                    burst3: burst3 || false,
                     element,
                     weapon: weapon || (NIKKE_DB_MAP.get(name) && NIKKE_DB_MAP.get(name).weapon) || "AR",
                     gear,
@@ -3055,7 +3068,7 @@
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="display:flex;align-items:center;gap:10px;min-width:0">
           ${nikkeIcon(n.name, 44)}
-          <div style="min-width:0"><div class="nikke-name">${n.name}</div><div class="nikke-meta">${n.element || ""} · B${burstNum(n.burst)}</div></div>
+          <div style="min-width:0"><div class="nikke-name">${n.name}</div><div class="nikke-meta">${n.element || ""} · ${burstDisplay(n)}</div></div>
         </div>
         <button class="del-btn" onclick="requestDelete('${n.id}')" title="Remove">✕</button>
       </div>
@@ -3072,7 +3085,7 @@
                 // Build options for the Nikke selector, excluding already-added ones
                 const addedNames = new Set(state.nikkes.map((n) => n.name));
                 const options = NIKKE_DATABASE.filter((n) => !addedNames.has(n.name))
-                    .map((n) => `<option value="${n.name}">${n.name} · ${n.element} · B${burstNum(n.burst)}</option>`)
+                    .map((n) => `<option value="${n.name}">${n.name} · ${n.element} · ${burstDisplay(n)}</option>`)
                     .join("");
 
                 el.innerHTML = `
@@ -3096,7 +3109,11 @@
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
           <div class="form-row"><label class="form-label">Burst</label><select class="form-input" id="nn-custom-burst"><option value="I">I</option><option value="II">II</option><option value="III" selected>III</option></select></div>
           <div class="form-row"><label class="form-label">Element</label><select class="form-input" id="nn-custom-element"><option value="Fire">Fire</option><option value="Water">Water</option><option value="Wind">Wind</option><option value="Electric">Electric</option><option value="Iron">Iron</option></select></div>
-          <div class="form-row"><label class="form-label">Weapon</label><select class="form-input" id="nn-custom-weapon"><option value="AR">AR</option><option value="SMG">SMG</option><option value="SR">SR</option><option value="RL">RL</option><option value="MG">MG</option><option value="SG">SG</option></select></div>
+          <div class="form-row"><label class="form-label">Weapon</label><select class="form-input" id="nn-custom-weapon">${Object.entries(
+              NIKKE_WEAPONS,
+          )
+              .map(([c, n]) => `<option value="${c}">${n}</option>`)
+              .join("")}</select></div>
         </div>
         <div class="btn-row"><button class="btn btn-primary" onclick="addCustomNikke()">Add Custom</button></div>
       </div>
@@ -3119,7 +3136,7 @@
                     (n) => !addedNames.has(n.name) && n.name.toLowerCase().includes(q),
                 );
                 sel.innerHTML = filtered
-                    .map((n) => `<option value="${n.name}">${n.name} · ${n.element} · B${burstNum(n.burst)}</option>`)
+                    .map((n) => `<option value="${n.name}">${n.name} · ${n.element} · ${burstDisplay(n)}</option>`)
                     .join("");
             }
 
@@ -3129,7 +3146,7 @@
                 if (!name) return;
                 const entry = NIKKE_DATABASE.find((n) => n.name === name);
                 if (!entry) return;
-                const nikke = mkNikke(entry.name, entry.burst, entry.element);
+                const nikke = mkNikke(entry.name, entry.burst1, entry.burst2, entry.burst3, entry.element);
                 state.nikkes.push(nikke);
                 save();
                 render();
@@ -3140,10 +3157,10 @@
                 if (!name) return;
                 // Check if name already exists in roster
                 if (state.nikkes.some((n) => n.name === name)) return;
-                const burst = document.getElementById("nn-custom-burst").value;
+                const _burst = document.getElementById("nn-custom-burst").value;
                 const element = document.getElementById("nn-custom-element").value;
                 const weapon = document.getElementById("nn-custom-weapon").value;
-                const nikke = mkNikke(name, burst, element, weapon);
+                const nikke = mkNikke(name, _burst === "I", _burst === "II", _burst === "III", element, weapon);
                 nikke.custom = true; // mark as user-created
                 state.nikkes.push(nikke);
                 // Persist custom weapon mappings
@@ -3194,7 +3211,10 @@
                 const el = document.getElementById("gear");
                 let filtered = state.nikkes.slice();
                 if (state.gearElementFilter) filtered = filtered.filter((n) => n.element === state.gearElementFilter);
-                if (state.gearBurstFilter) filtered = filtered.filter((n) => n.burst === state.gearBurstFilter);
+                if (state.gearBurstFilter) {
+                    const _bk = { I: "burst1", II: "burst2", III: "burst3" }[state.gearBurstFilter];
+                    if (_bk) filtered = filtered.filter((n) => n[_bk]);
+                }
                 if (state.gearManufacturerFilter)
                     filtered = filtered.filter(
                         (n) => (NIKKE_DB_MAP.get(n.name) || {}).manufacturer === state.gearManufacturerFilter,
@@ -3222,9 +3242,12 @@
                 const mfrOpts = NIKKE_MANUFACTURERS.map(
                     (m) => `<option value="${m}" ${state.gearManufacturerFilter === m ? "selected" : ""}>${m}</option>`,
                 ).join("");
-                const weaponOpts = NIKKE_WEAPONS.map(
-                    (w) => `<option value="${w}" ${state.gearWeaponFilter === w ? "selected" : ""}>${w}</option>`,
-                ).join("");
+                const weaponOpts = Object.keys(NIKKE_WEAPONS)
+                    .map(
+                        (code) =>
+                            `<option value="${code}" ${state.gearWeaponFilter === code ? "selected" : ""}>${code}</option>`,
+                    )
+                    .join("");
                 const sortDir = state.gearSidebarSortDir || "desc";
                 const sortBy = state.gearSidebarSort || "power";
                 const filterHtml = `<div style="margin-bottom:6px">
@@ -3279,10 +3302,7 @@
                     // Add Nikke button and form
                     const addedNames = new Set(state.nikkes.map((n) => n.name));
                     const addOptions = NIKKE_DATABASE.filter((n) => !addedNames.has(n.name))
-                        .map(
-                            (n) =>
-                                `<option value="${n.name}">${n.name} · ${n.element} · B${burstNum(n.burst)}</option>`,
-                        )
+                        .map((n) => `<option value="${n.name}">${n.name} · ${n.element} · ${burstDisplay(n)}</option>`)
                         .join("");
                     const addHtml = `<button class="add-line-btn" onclick="showGearAddForm()" style="margin-top:6px;width:100%">+ Add Nikke</button>
       <div id="gear-add-form" class="form-panel" style="max-width:100%;margin-top:6px">
@@ -3295,7 +3315,11 @@
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
             <select class="form-input" id="gear-custom-burst" style="font-size:12px;padding:2px 4px"><option value="I">BI</option><option value="II">BII</option><option value="III" selected>BIII</option></select>
             <select class="form-input" id="gear-custom-element" style="font-size:12px;padding:2px 4px"><option value="Fire">Fire</option><option value="Water">Water</option><option value="Wind">Wind</option><option value="Electric">Elec</option><option value="Iron">Iron</option></select>
-            <select class="form-input" id="gear-custom-weapon" style="font-size:12px;padding:2px 4px"><option value="AR">AR</option><option value="SMG">SMG</option><option value="SR">SR</option><option value="RL">RL</option><option value="MG">MG</option><option value="SG">SG</option></select>
+            <select class="form-input" id="gear-custom-weapon" style="font-size:12px;padding:2px 4px">${Object.entries(
+                NIKKE_WEAPONS,
+            )
+                .map(([c, n]) => `<option value="${c}">${n}</option>`)
+                .join("")}</select>
           </div>
           <div class="btn-row" style="margin-top:4px"><button class="btn btn-primary" onclick="addCustomNikkeFromGear()" style="font-size:13px;padding:3px 8px">Add Custom</button></div>
         </div>
@@ -3355,7 +3379,7 @@
                     (n) => !addedNames.has(n.name) && n.name.toLowerCase().includes(q),
                 );
                 sel.innerHTML = filtered
-                    .map((n) => `<option value="${n.name}">${n.name} · ${n.element} · B${burstNum(n.burst)}</option>`)
+                    .map((n) => `<option value="${n.name}">${n.name} · ${n.element} · ${burstDisplay(n)}</option>`)
                     .join("");
             }
 
@@ -3365,7 +3389,7 @@
                 if (!name) return;
                 const entry = NIKKE_DATABASE.find((n) => n.name === name);
                 if (!entry) return;
-                const nikke = mkNikke(entry.name, entry.burst, entry.element);
+                const nikke = mkNikke(entry.name, entry.burst1, entry.burst2, entry.burst3, entry.element);
                 state.nikkes.push(nikke);
                 state.selGear = nikke.id;
                 save();
@@ -3376,10 +3400,10 @@
                 const name = document.getElementById("gear-custom-name").value.trim();
                 if (!name) return;
                 if (state.nikkes.some((n) => n.name === name)) return;
-                const burst = document.getElementById("gear-custom-burst").value;
+                const _burst = document.getElementById("gear-custom-burst").value;
                 const element = document.getElementById("gear-custom-element").value;
                 const weapon = document.getElementById("gear-custom-weapon").value;
-                const nikke = mkNikke(name, burst, element, weapon);
+                const nikke = mkNikke(name, _burst === "I", _burst === "II", _burst === "III", element, weapon);
                 nikke.custom = true;
                 state.nikkes.push(nikke);
                 state.selGear = nikke.id;
@@ -3653,19 +3677,11 @@
     </div>`;
 
                 // Look up weapon / rarity / manufacturer / class from the database
-                const WEAPON_NAMES = {
-                    AR: "Assault Rifle",
-                    SMG: "Submachine Gun",
-                    SR: "Sniper Rifle",
-                    RL: "Rocket Launcher",
-                    MG: "Minigun",
-                    SG: "Shotgun",
-                };
                 const weaponCode = nikke.weapon || db.weapon || "";
-                const weaponLabel = WEAPON_NAMES[weaponCode] || weaponCode;
+                const weaponLabel = NIKKE_WEAPONS[weaponCode] || weaponCode;
                 const metaItems = [
                     nikke.element ? ["Element", nikke.element] : null,
-                    nikke.burst ? ["Burst", `B${burstNum(nikke.burst)}`] : null,
+                    nikke.burst1 || nikke.burst2 || nikke.burst3 ? ["Burst", burstDisplay(nikke)] : null,
                     weaponLabel ? ["Weapon", weaponLabel] : null,
                     db.rarity ? ["Rarity", db.rarity] : null,
                     db.manufacturer ? ["Manufacturer", db.manufacturer] : null,
@@ -3906,7 +3922,10 @@
                 const el = document.getElementById("priority");
                 let filtered = [...state.nikkes].sort((a, b) => a.name.localeCompare(b.name));
                 if (state.gearElementFilter) filtered = filtered.filter((n) => n.element === state.gearElementFilter);
-                if (state.gearBurstFilter) filtered = filtered.filter((n) => n.burst === state.gearBurstFilter);
+                if (state.gearBurstFilter) {
+                    const _bk = { I: "burst1", II: "burst2", III: "burst3" }[state.gearBurstFilter];
+                    if (_bk) filtered = filtered.filter((n) => n[_bk]);
+                }
 
                 // Auto-select top Nikke if none selected
                 if (!state.selPrio && filtered.length > 0) {
@@ -4598,7 +4617,7 @@
             function renderWeights() {
                 const el = document.getElementById("weights");
                 const ALL_STATS = Object.keys(STAT_DMG_WEIGHT_BASE);
-                const WEAPONS = ["SR", "RL", "AR", "SMG", "MG", "SG"];
+                const WEAPONS = Object.keys(NIKKE_WEAPONS);
 
                 // Resolve current effective values
                 function getBase(stat) {
@@ -4880,10 +4899,10 @@
                 const el = document.getElementById("wishlist");
 
                 const BOSSING_ORDER = ["SSS", "SS", "S", "A", "B", "C", "D", "E", "F"];
-                const TREASURE_NAMES = new Set(COLLECTION_DOLLS.filter(d => d.treasure).map(d => d.treasure));
+                const TREASURE_NAMES = new Set(COLLECTION_DOLLS.filter((d) => d.treasure).map((d) => d.treasure));
 
                 const rosterByName = {};
-                for (const n of (state.nikkes ?? [])) rosterByName[n.name] = n;
+                for (const n of state.nikkes ?? []) rosterByName[n.name] = n;
 
                 const pools = { Elysion: [], Missilis: [], Tetra: [], "Pilgrim/Over-spec": [] };
 
@@ -4908,7 +4927,7 @@
                     const lbBoosted = isTreasure && lb < 2 && rawIdx < 999;
                     if (lbBoosted) bossingIdx = Math.max(0, rawIdx - 1);
 
-                    const burstVal = { III: 3, All: 3, II: 2, I: 1 }[db.burst] ?? 0;
+                    const burstVal = { III: 1, All: 1 }[db.burst] ?? 0;
 
                     const candidate = {
                         name: db.name,
@@ -4939,28 +4958,28 @@
 
                 const POOL_ORDER = ["Elysion", "Missilis", "Tetra", "Pilgrim/Over-spec"];
 
-                const cardsHtml = POOL_ORDER.map(mfr => {
+                const cardsHtml = POOL_ORDER.map((mfr) => {
                     const picks = pools[mfr].sort(sortFn).slice(0, 5);
-                    const rows = picks.length === 0
-                        ? `<tr><td colspan="4" style="color:#64748b;text-align:center;padding:.75rem">No eligible Nikkes</td></tr>`
-                        : picks.map((p, i) => {
-                            const treasureBadge = p.lbBoosted
-                                ? ` <span style="color:#60a5fa;font-size:11px;vertical-align:middle">★ Treasure</span>`
-                                : '';
-                            const lbCell = p.lb > 0
-                                ? `${p.lb}/3`
-                                : `<span style="color:#64748b">—</span>`;
-                            const coresCell = p.cores > 0
-                                ? `${p.cores}/7`
-                                : `<span style="color:#64748b">—</span>`;
-                            return `
+                    const rows =
+                        picks.length === 0
+                            ? `<tr><td colspan="4" style="color:#64748b;text-align:center;padding:.75rem">No eligible Nikkes</td></tr>`
+                            : picks
+                                  .map((p, i) => {
+                                      const treasureBadge = p.lbBoosted
+                                          ? ` <span style="color:#60a5fa;font-size:11px;vertical-align:middle">★ Treasure</span>`
+                                          : "";
+                                      const lbCell = p.lb > 0 ? `${p.lb}/3` : `<span style="color:#64748b">—</span>`;
+                                      const coresCell =
+                                          p.cores > 0 ? `${p.cores}/7` : `<span style="color:#64748b">—</span>`;
+                                      return `
                                 <tr>
                                     <td style="color:#64748b;width:1.5rem">${i + 1}</td>
                                     <td>${p.name}${treasureBadge}</td>
                                     <td style="color:#64748b">${lbCell}</td>
                                     <td style="color:#64748b">${coresCell}</td>
                                 </tr>`;
-                        }).join('');
+                                  })
+                                  .join("");
                     return `
                         <div style="flex:1 1 380px;min-width:0">
                             <div style="font-size:15px;font-weight:600;color:#f1f5f9;margin-bottom:.5rem;padding-bottom:.25rem;border-bottom:1px solid #1e2535">${mfr}</div>
@@ -4982,15 +5001,11 @@
                                 <tbody>${rows}</tbody>
                             </table>
                         </div>`;
-                }).join('');
+                }).join("");
 
                 el.innerHTML = `
                     <div style="max-width:960px">
                         <div class="section-label">Wishlist Recommendations</div>
-                        <div class="info-note" style="margin-bottom:1.5rem">
-                            Recommended 5 Nikkes per manufacturer wishlist slot, ranked by bossing rating then burst tier then power.
-                            Overspec and Pilgrim Nikkes share one pool. Nikkes with 7 cores are excluded. Treasure units below LB 2 are treated as one bossing tier higher.
-                        </div>
                         <div style="display:flex;flex-wrap:wrap;gap:1.5rem">
                             ${cardsHtml}
                         </div>
@@ -5154,6 +5169,26 @@
             document.getElementById("mydata-overlay").addEventListener("click", function (e) {
                 if (e.target === this) dismissMyData();
             });
+
+            // Drive stepper-btn pressed state via explicit class so only the
+            // clicked button gets the visual — CSS :active propagates to ancestors
+            // and can bleed onto sibling buttons after an innerHTML re-render.
+            document.addEventListener(
+                "pointerdown",
+                function (e) {
+                    const btn = e.target.closest(".stepper-btn");
+                    if (!btn || btn.disabled) return;
+                    btn.classList.add("stepper-pressed");
+                    function cleanup() {
+                        btn.classList.remove("stepper-pressed");
+                        document.removeEventListener("pointerup", cleanup, true);
+                        document.removeEventListener("pointercancel", cleanup, true);
+                    }
+                    document.addEventListener("pointerup", cleanup, true);
+                    document.addEventListener("pointercancel", cleanup, true);
+                },
+                true,
+            );
 
             // If brand new (0 Nikkes), show tutorial and land on Nikkes tab
             const _isNewUser = (function handleNewUser() {
