@@ -63,6 +63,11 @@ const COLLECTION_DOLLS = [
     { id: 201401, name: "Central Government Special Medal", rarity: "SSR", weapon: "AR", treasure: "Privaty" },
     { id: 201501, name: "Four-Leaf Clover Bookmark", rarity: "SSR", weapon: "SG", treasure: "Zwei" },
     { id: 201701, name: "Peony Hairpin", rarity: "SSR", weapon: "AR", treasure: "Moran" },
+    { id: 201801, name: "Armored Plushie", rarity: "SSR", weapon: "AR", treasure: "Centi" },
+    { id: 201901, name: "Piston Cup", rarity: "SSR", weapon: "MG", treasure: "Diesel" },
+    { id: 202001, name: "Snow Globe", rarity: "SSR", weapon: "SMG", treasure: "Frima" },
+    { id: 202101, name: "Calcium Supplement", rarity: "SSR", weapon: "SR", treasure: "Milk" },
+    { id: 202201, name: "Rubber Ducky", rarity: "SSR", weapon: "SG", treasure: "Poli" },
 ];
 
 const PRIORITY_TIERS = ["Ideal", "Passable"];
