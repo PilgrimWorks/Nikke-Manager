@@ -73,11 +73,15 @@
                 margin: 0;
                 padding: 0;
             }
+            input, select, textarea, button {
+                font-family: inherit;
+                font-size: inherit;
+            }
             body {
                 font-family: "Segoe UI", system-ui, sans-serif;
                 background: #0f1117;
                 color: #e2e8f0;
-                font-size: 16px;
+                font-size: 18px;
                 min-height: 100vh;
             }
 
@@ -86,7 +90,6 @@
                 max-width: 1100px;
                 margin: 0 auto;
                 padding: 1.5rem 1rem;
-                zoom: 1.15;
             }
             .topbar {
                 display: flex;
@@ -97,24 +100,24 @@
                 border-bottom: 1px solid #1e2535;
             }
             .title {
-                font-size: 18px;
+                font-size: 21px;
                 font-weight: 600;
                 color: #f1f5f9;
             }
             .subtitle {
-                font-size: 12px;
+                font-size: 14px;
                 color: #64748b;
                 margin-top: 3px;
             }
             .app-version {
-                font-size: 10px;
+                font-size: 12px;
                 color: #475569;
                 margin-top: 1px;
                 font-family: "Segoe UI", system-ui, sans-serif;
                 letter-spacing: 0.02em;
             }
             .badge {
-                font-size: 11px;
+                font-size: 13px;
                 background: #1e3a5f;
                 color: #60a5fa;
                 padding: 3px 10px;
@@ -130,7 +133,7 @@
                 border-bottom: 1px solid #1e2535;
             }
             .tab {
-                font-size: 13px;
+                font-size: 15px;
                 padding: 7px 16px;
                 border: none;
                 background: none;
@@ -166,7 +169,8 @@
                 display: flex;
                 flex-direction: column;
                 gap: 4px;
-                max-height: 70vh;
+                flex: 1;
+                min-height: 200px;
                 overflow-y: auto;
                 overflow-x: hidden;
             }
@@ -187,12 +191,13 @@
                 display: flex;
                 flex-direction: column;
                 gap: 6px;
+                height: 100%;
             }
             .nikke-item {
                 padding: 8px 11px;
                 border-radius: 8px;
                 cursor: pointer;
-                font-size: 13px;
+                font-size: 15px;
                 border: 1px solid transparent;
                 line-height: 1.3;
                 transition: background 0.1s;
@@ -205,7 +210,7 @@
                 border-color: #2d3f5e;
             }
             .nikke-item-sub {
-                font-size: 11px;
+                font-size: 13px;
                 color: #64748b;
                 margin-top: 2px;
                 font-weight: 400;
@@ -226,7 +231,7 @@
                 position: relative;
             }
             .nikke-name {
-                font-size: 13px;
+                font-size: 15px;
                 font-weight: 600;
                 margin-bottom: 2px;
                 color: #f1f5f9;
@@ -235,7 +240,7 @@
                 text-overflow: ellipsis;
             }
             .nikke-meta {
-                font-size: 11px;
+                font-size: 13px;
                 color: #64748b;
                 margin-bottom: 9px;
             }
@@ -273,7 +278,7 @@
                 cursor: pointer;
                 height: 68px;
                 color: #64748b;
-                font-size: 13px;
+                font-size: 15px;
                 border-radius: 10px;
                 width: 175px;
                 transition: background 0.1s;
@@ -284,7 +289,7 @@
 
             /* ── Delete confirm ── */
             .del-btn {
-                font-size: 12px;
+                font-size: 14px;
                 background: none;
                 border: none;
                 color: #475569;
@@ -305,7 +310,7 @@
                 border: 1px solid #ef4444;
                 border-radius: 8px;
                 padding: 6px 8px;
-                font-size: 11px;
+                font-size: 13px;
                 color: #ef4444;
                 z-index: 10;
                 white-space: nowrap;
@@ -317,7 +322,7 @@
                 display: flex;
             }
             .del-confirm-yes {
-                font-size: 11px;
+                font-size: 13px;
                 font-weight: 600;
                 background: #ef4444;
                 color: #fff;
@@ -327,7 +332,7 @@
                 cursor: pointer;
             }
             .del-confirm-no {
-                font-size: 11px;
+                font-size: 13px;
                 background: none;
                 border: 1px solid #2d3f5e;
                 border-radius: 4px;
@@ -351,7 +356,7 @@
                 margin-bottom: 10px;
             }
             .slot-tag {
-                font-size: 11px;
+                font-size: 13px;
                 background: #1a2235;
                 color: #94a3b8;
                 padding: 2px 9px;
@@ -359,7 +364,6 @@
                 border: 1px solid #2d3f5e;
                 font-weight: 600;
                 letter-spacing: 0.04em;
-                text-transform: uppercase;
             }
             .lines-grid {
                 display: grid;
@@ -381,13 +385,12 @@
                 justify-content: space-between;
             }
             .line-label {
-                font-size: 10px;
+                font-size: 12px;
                 color: #475569;
-                text-transform: uppercase;
                 letter-spacing: 0.05em;
             }
             .line-chance {
-                font-size: 10px;
+                font-size: 12px;
                 padding: 1px 5px;
                 border-radius: 4px;
                 font-weight: 600;
@@ -406,7 +409,7 @@
             }
             .line-box select {
                 width: 100%;
-                font-size: 12px;
+                font-size: 14px;
                 border: 1px solid #2d3f5e;
                 background: #151c2b;
                 color: #e2e8f0;
@@ -429,7 +432,7 @@
             }
             .value-input {
                 width: 100%;
-                font-size: 12px;
+                font-size: 14px;
                 border: none;
                 border-bottom: 1px solid #2d3f5e;
                 background: none;
@@ -455,11 +458,11 @@
                 border-color: #3b82f6;
             }
             .value-unit {
-                font-size: 11px;
+                font-size: 13px;
                 color: #475569;
             }
             .tier-badge {
-                font-size: 10px;
+                font-size: 12px;
                 padding: 1px 5px;
                 border-radius: 4px;
                 font-weight: 700;
@@ -500,9 +503,8 @@
             }
             .line-prio-bar {
                 border-radius: 3px;
-                font-size: 9px;
+                font-size: 10px;
                 font-weight: 600;
-                text-transform: uppercase;
                 letter-spacing: 0.03em;
                 display: flex;
                 align-items: center;
@@ -525,11 +527,10 @@
                 color: #f87171;
             }
             .prio-tag {
-                font-size: 9px;
+                font-size: 10px;
                 padding: 1px 5px;
                 border-radius: 3px;
                 font-weight: 600;
-                text-transform: uppercase;
                 letter-spacing: 0.03em;
             }
             .prio-essential {
@@ -549,7 +550,7 @@
                 color: #f87171;
             }
             .rank-badge {
-                font-size: 10px;
+                font-size: 12px;
                 font-weight: 700;
                 padding: 1px 6px;
                 border-radius: 4px;
@@ -576,7 +577,7 @@
                 color: #93c5fd !important;
             }
             .lock-btn {
-                font-size: 10px;
+                font-size: 12px;
                 padding: 2px 6px;
                 border-radius: 4px;
                 border: 1px solid #2d3f5e;
@@ -600,11 +601,11 @@
                 cursor: not-allowed;
             }
             .warn-text {
-                font-size: 10px;
+                font-size: 12px;
                 color: #ef4444;
             }
             .below-text {
-                font-size: 10px;
+                font-size: 12px;
                 color: #f59e0b;
             }
 
@@ -613,7 +614,7 @@
                 margin-top: 9px;
                 padding: 10px 12px;
                 border-radius: 8px;
-                font-size: 12px;
+                font-size: 14px;
                 line-height: 1.6;
             }
             .v-keep {
@@ -633,7 +634,7 @@
             }
             .verdict-title {
                 font-weight: 700;
-                font-size: 13px;
+                font-size: 15px;
                 margin-bottom: 7px;
                 cursor: pointer;
                 list-style: none;
@@ -643,7 +644,7 @@
             }
             .verdict-title::before {
                 content: "▶";
-                font-size: 9px;
+                font-size: 10px;
                 transition: transform 0.15s;
             }
             details[open] > .verdict-title::before {
@@ -672,7 +673,7 @@
                 display: flex;
                 gap: 7px;
                 align-items: baseline;
-                font-size: 11px;
+                font-size: 13px;
             }
             .step-num {
                 font-weight: 700;
@@ -683,14 +684,14 @@
             .rock-est {
                 display: inline-block;
                 margin-top: 6px;
-                font-size: 11px;
+                font-size: 13px;
                 padding: 2px 9px;
                 border-radius: 5px;
                 background: rgba(255, 255, 255, 0.08);
                 font-weight: 700;
             }
             .recommended-badge {
-                font-size: 10px;
+                font-size: 12px;
                 background: #166534;
                 color: #4ade80;
                 padding: 1px 6px;
@@ -708,25 +709,23 @@
                 padding: 0.9rem;
             }
             .attr-summary-title {
-                font-size: 11px;
+                font-size: 13px;
                 font-weight: 600;
                 margin-bottom: 9px;
                 color: #64748b;
-                text-transform: uppercase;
                 letter-spacing: 0.07em;
             }
             .attr-table {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 12px;
+                font-size: 14px;
             }
             .attr-table th {
                 text-align: left;
-                font-size: 10px;
+                font-size: 12px;
                 font-weight: 600;
                 color: #475569;
                 padding: 3px 7px;
-                text-transform: uppercase;
                 letter-spacing: 0.05em;
                 border-bottom: 1px solid #1e2535;
             }
@@ -767,7 +766,7 @@
                 margin-bottom: 5px;
             }
             .prio-col-label {
-                font-size: 10px;
+                font-size: 12px;
                 color: #475569;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
@@ -782,7 +781,7 @@
             }
             .prio-row select,
             .tier-target-select {
-                font-size: 12px;
+                font-size: 14px;
                 background: #0f1117;
                 color: #e2e8f0;
                 border: 1px solid #2d3f5e;
@@ -791,7 +790,7 @@
             }
             .prio-count-input {
                 width: 100%;
-                font-size: 12px;
+                font-size: 14px;
                 padding: 2px 4px;
                 text-align: center;
                 border: 1px solid #2d3f5e;
@@ -803,7 +802,7 @@
                 width: 100%;
             }
             .add-line-btn {
-                font-size: 12px;
+                font-size: 14px;
                 background: none;
                 border: 1px dashed #2d3f5e;
                 border-radius: 6px;
@@ -817,12 +816,12 @@
                 background: #1a2235;
             }
             .prio-hint {
-                font-size: 11px;
+                font-size: 13px;
                 color: #475569;
                 margin-top: 4px;
             }
             .small-del-btn {
-                font-size: 12px;
+                font-size: 14px;
                 background: none;
                 border: none;
                 color: #475569;
@@ -849,13 +848,13 @@
                 text-align: center;
             }
             .metric-val {
-                font-size: 24px;
+                font-size: 28px;
                 font-weight: 700;
                 margin-bottom: 3px;
                 color: #f1f5f9;
             }
             .metric-label {
-                font-size: 11px;
+                font-size: 13px;
                 color: #64748b;
             }
             .ov-nikke {
@@ -870,7 +869,7 @@
                 grid-template-columns: 130px 1fr 38px;
                 gap: 10px;
                 align-items: center;
-                font-size: 13px;
+                font-size: 15px;
                 margin-bottom: 6px;
             }
             .prog-bg {
@@ -885,7 +884,7 @@
                 background: #3b82f6;
             }
             .prog-pct {
-                font-size: 11px;
+                font-size: 13px;
                 color: #64748b;
                 text-align: right;
             }
@@ -896,7 +895,7 @@
                 margin-top: 4px;
             }
             .pill {
-                font-size: 11px;
+                font-size: 13px;
                 padding: 2px 8px;
                 border-radius: 5px;
                 font-weight: 500;
@@ -932,7 +931,7 @@
                 display: block;
             }
             .form-panel-title {
-                font-size: 13px;
+                font-size: 15px;
                 font-weight: 600;
                 margin-bottom: 12px;
                 color: #f1f5f9;
@@ -941,14 +940,14 @@
                 margin-bottom: 10px;
             }
             .form-label {
-                font-size: 12px;
+                font-size: 14px;
                 color: #94a3b8;
                 margin-bottom: 4px;
                 display: block;
             }
             .form-input {
                 width: 100%;
-                font-size: 13px;
+                font-size: 15px;
                 padding: 6px 9px;
                 background: #0f1117;
                 border: 1px solid #2d3f5e;
@@ -957,7 +956,7 @@
             }
             .form-row select {
                 width: 100%;
-                font-size: 13px;
+                font-size: 15px;
                 padding: 6px 9px;
                 background: #0f1117;
                 border: 1px solid #2d3f5e;
@@ -976,7 +975,7 @@
                 cursor: pointer;
             }
             .btn {
-                font-size: 13px;
+                font-size: 15px;
                 padding: 6px 16px;
                 border-radius: 6px;
                 cursor: pointer;
@@ -1016,13 +1015,13 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: 700;
                 color: #60a5fa;
                 flex-shrink: 0;
             }
             .info-note {
-                font-size: 11px;
+                font-size: 13px;
                 color: #64748b;
                 padding: 7px 10px;
                 background: #0f1117;
@@ -1030,10 +1029,9 @@
                 border: 1px solid #1e2535;
             }
             .section-label {
-                font-size: 11px;
+                font-size: 13px;
                 font-weight: 600;
                 color: #475569;
-                text-transform: uppercase;
                 letter-spacing: 0.07em;
                 margin-bottom: 9px;
             }
@@ -1041,7 +1039,7 @@
                 text-align: center;
                 padding: 3rem 1rem;
                 color: #475569;
-                font-size: 13px;
+                font-size: 15px;
             }
             .topbar-actions {
                 display: flex;
@@ -1052,7 +1050,7 @@
                 display: flex;
                 align-items: center;
                 gap: 5px;
-                font-size: 11px;
+                font-size: 13px;
                 color: #94a3b8;
                 cursor: pointer;
                 padding: 4px 10px;
@@ -1064,7 +1062,7 @@
                 color: #60a5fa;
             }
             .btn-sm {
-                font-size: 12px;
+                font-size: 14px;
                 padding: 4px 12px;
                 border-radius: 6px;
                 cursor: pointer;
@@ -1110,13 +1108,13 @@
                 min-height: 28px;
             }
             .raid-team-label {
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: 700;
                 color: #60a5fa;
                 white-space: nowrap;
             }
             .raid-team-total {
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: 700;
                 color: #4ade80;
                 white-space: nowrap;
@@ -1124,7 +1122,7 @@
             }
             .raid-team-note {
                 width: 100%;
-                font-size: 13px;
+                font-size: 15px;
                 padding: 5px 28px 5px 10px;
                 background: #0f172a;
                 border: 1px solid #475569;
@@ -1167,7 +1165,7 @@
                 border: none;
                 border-radius: 3px;
                 color: #64748b;
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: 700;
                 line-height: 1;
                 cursor: pointer;
@@ -1195,7 +1193,7 @@
                 border-color: #60a5fa;
             }
             .raid-drop-hint {
-                font-size: 10px;
+                font-size: 12px;
                 color: #334155;
                 padding: 4px 8px;
                 grid-column: 1 / -1;
@@ -1248,7 +1246,7 @@
                 border: 1px solid #475569;
                 border-radius: 4px;
                 color: #94a3b8;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: 700;
                 line-height: 1;
                 cursor: pointer;
@@ -1264,7 +1262,7 @@
                 border: 1px solid #2d3f5e;
                 cursor: pointer;
                 color: #64748b;
-                font-size: 10px;
+                font-size: 12px;
                 padding: 2px 5px;
                 margin-left: 3px;
                 line-height: 1;
@@ -1278,7 +1276,7 @@
             }
             .raid-chip-dmg-input {
                 width: 55px;
-                font-size: 11px;
+                font-size: 13px;
                 font-weight: 700;
                 padding: 1px 4px;
                 background: #0f1117;
@@ -1297,7 +1295,7 @@
             }
             .raid-chip-name {
                 font-weight: 600;
-                font-size: 11px;
+                font-size: 13px;
                 line-height: 1.3;
                 white-space: nowrap;
                 overflow: hidden;
@@ -1311,11 +1309,11 @@
                 gap: 4px;
             }
             .raid-chip-dmg-label {
-                font-size: 11px;
+                font-size: 13px;
                 font-weight: 700;
             }
             .raid-team-badge {
-                font-size: 10px;
+                font-size: 12px;
                 font-weight: 700;
                 padding: 2px 6px;
                 border-radius: 4px;
@@ -1340,7 +1338,7 @@
                 color: #e2e8f0;
                 border: 1px solid #2d3f5e;
                 border-radius: 6px;
-                font-size: 13px;
+                font-size: 15px;
             }
             #nn-select option {
                 padding: 4px 8px;
@@ -1366,7 +1364,7 @@
                 background: #1a2235;
             }
             .sync-indicator {
-                font-size: 11px;
+                font-size: 13px;
                 padding: 3px 8px;
                 border-radius: 5px;
                 font-weight: 500;
@@ -1418,13 +1416,13 @@
                 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
             }
             .tutorial-modal h2 {
-                font-size: 18px;
+                font-size: 21px;
                 font-weight: 700;
                 color: #f1f5f9;
                 margin-bottom: 6px;
             }
             .tutorial-modal .tut-subtitle {
-                font-size: 13px;
+                font-size: 15px;
                 color: #64748b;
                 margin-bottom: 1.2rem;
             }
@@ -1450,14 +1448,14 @@
                 flex-shrink: 0;
                 background: #1e3a5f;
                 color: #60a5fa;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: 700;
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
             .tut-step-text {
-                font-size: 13px;
+                font-size: 15px;
                 line-height: 1.5;
                 color: #e2e8f0;
             }
@@ -1470,7 +1468,7 @@
                 gap: 8px;
             }
             .tut-dismiss {
-                font-size: 11px;
+                font-size: 13px;
                 color: #475569;
                 margin-top: 10px;
                 text-align: center;
@@ -1481,9 +1479,7 @@
    ══════════════════════════════════════════════════════════════ */
 
             @media (max-width: 768px) {
-                /* Remove zoom scaling on mobile */
                 .app {
-                    zoom: 1;
                     padding: 1rem 0.5rem;
                 }
 
@@ -1507,7 +1503,7 @@
                 .tab {
                     flex-shrink: 0;
                     padding: 7px 12px;
-                    font-size: 12px;
+                    font-size: 14px;
                 }
 
                 /* Overview metrics: 2x2 grid */
@@ -1589,12 +1585,12 @@
                 .prog-row {
                     grid-template-columns: 100px 1fr 38px;
                     gap: 6px;
-                    font-size: 12px;
+                    font-size: 14px;
                 }
 
                 /* Overview ranking table wrapper */
                 .attr-table {
-                    font-size: 11px;
+                    font-size: 13px;
                 }
             }
 
@@ -1604,15 +1600,15 @@
                 }
 
                 .title {
-                    font-size: 15px;
+                    font-size: 17px;
                 }
                 .subtitle {
-                    font-size: 11px;
+                    font-size: 13px;
                 }
 
                 /* Topbar actions: smaller buttons */
                 .btn-sm {
-                    font-size: 11px;
+                    font-size: 13px;
                     padding: 3px 8px;
                     min-width: 55px;
                     min-height: 26px;
@@ -1627,7 +1623,7 @@
                     padding: 0.6rem;
                 }
                 .metric-val {
-                    font-size: 20px;
+                    font-size: 23px;
                 }
 
                 /* Nikke list: shorter on very small screens */
@@ -1663,7 +1659,7 @@
 
                 /* Verdict: smaller text */
                 .verdict {
-                    font-size: 11px;
+                    font-size: 13px;
                     padding: 8px 10px;
                 }
 
@@ -1675,6 +1671,57 @@
                 /* Add nikke button: full width on mobile */
                 .add-nikke-btn {
                     width: 100%;
+                }
+            }
+
+            /* ── Cubes table: Equipped By wraps below on mobile ── */
+            @media (max-width: 768px) {
+                .cube-table,
+                .cube-table tbody {
+                    display: block;
+                    width: 100%;
+                }
+                .cube-table tr {
+                    display: grid;
+                    grid-template-columns: 1fr auto auto;
+                    column-gap: 8px;
+                    row-gap: 4px;
+                    padding: 8px 4px;
+                    border-bottom: 1px solid #1a2235;
+                }
+                .cube-table tr:last-child {
+                    border-bottom: none;
+                }
+                /* Header row: hide the Equipped By th since it moves inline */
+                .cube-table tr:first-child th:last-child {
+                    display: none;
+                }
+                /* Cube name */
+                .cube-table td:nth-child(1),
+                .cube-table th:nth-child(1) {
+                    grid-column: 1;
+                    grid-row: 1;
+                    align-self: center;
+                }
+                /* Level stepper */
+                .cube-table td:nth-child(2),
+                .cube-table th:nth-child(2) {
+                    grid-column: 2;
+                    grid-row: 1;
+                    align-self: center;
+                }
+                /* Add/Remove button */
+                .cube-table td:nth-child(3),
+                .cube-table th:nth-child(3) {
+                    grid-column: 3;
+                    grid-row: 1;
+                    align-self: center;
+                }
+                /* Equipped By: full width on second row */
+                .cube-table td:nth-child(4) {
+                    grid-column: 1 / -1;
+                    grid-row: 2;
+                    padding-top: 0;
                 }
             }
 
@@ -1710,7 +1757,7 @@
                 border-radius: 0;
                 background: transparent;
                 color: #e2e8f0;
-                font-size: 12px;
+                font-size: 14px;
                 padding: 4px 2px;
             }
             .stepper .stepper-input:focus {
@@ -1722,7 +1769,7 @@
                 border: none;
                 background: #1a2030;
                 color: #94a3b8;
-                font-size: 15px;
+                font-size: 17px;
                 font-weight: 600;
                 line-height: 1;
                 cursor: pointer;
@@ -1813,6 +1860,7 @@
                 <button class="tab" onclick="switchTab('priority', event)">Line Priorities</button>
                 <button class="tab" onclick="switchTab('weights', event)">Weights</button>
                 <button class="tab" onclick="switchTab('cubes', event)">Cubes</button>
+                <button class="tab" onclick="switchTab('wishlist', event)">Wishlist</button>
             </div>
 
             <div id="overview" class="section active"></div>
@@ -1822,6 +1870,7 @@
             <div id="raids" class="section"></div>
             <div id="weights" class="section"></div>
             <div id="cubes" class="section"></div>
+            <div id="wishlist" class="section"></div>
         </div>
 
         <!-- Tutorial overlay for new users -->
@@ -1888,9 +1937,9 @@
                             exportData();
                             dismissMyData();
                         "
-                        style="width: 100%; padding: 12px; font-size: 14px"
+                        style="width: 100%; padding: 12px; font-size: 16px"
                     >
-                        ⬇ Backup My Data<br /><span style="font-size: 11px; opacity: 0.7"
+                        ⬇ Backup My Data<br /><span style="font-size: 13px; opacity: 0.7"
                             >Download a file with all your Nikkes &amp; gear</span
                         >
                     </button>
@@ -1900,9 +1949,9 @@
                             document.getElementById('import-file').click();
                             dismissMyData();
                         "
-                        style="width: 100%; padding: 12px; font-size: 14px; background: #1e40af"
+                        style="width: 100%; padding: 12px; font-size: 16px; background: #1e40af"
                     >
-                        ⬆ Restore My Data<br /><span style="font-size: 11px; opacity: 0.7"
+                        ⬆ Restore My Data<br /><span style="font-size: 13px; opacity: 0.7"
                             >Load a previously saved backup file</span
                         >
                     </button>
@@ -1912,13 +1961,13 @@
                         style="
                             width: 100%;
                             padding: 12px;
-                            font-size: 14px;
+                            font-size: 16px;
                             background: #7f1d1d;
                             border-color: #b91c1c;
                             color: #fecaca;
                         "
                     >
-                        🗑 Clear All Data<br /><span style="font-size: 11px; opacity: 0.7"
+                        🗑 Clear All Data<br /><span style="font-size: 13px; opacity: 0.7"
                             >Permanently delete all Nikkes &amp; gear</span
                         >
                     </button>
@@ -2684,7 +2733,7 @@
                     "color:#4ade80",
                     "padding:12px 18px",
                     "border-radius:8px",
-                    "font-size:13px",
+                    "font-size:15px",
                     "box-shadow:0 4px 12px rgba(0,0,0,.5)",
                     "pointer-events:none",
                     "opacity:1",
@@ -2883,7 +2932,7 @@
                     .join("");
                 const raidSelector = state.raids.length
                     ? `
-    <select class="form-input" style="font-size:12px;padding:3px 8px;width:auto;display:inline-block;margin-left:8px" onchange="selectRaidFilter(this.value)">
+    <select class="form-input" style="font-size:14px;padding:3px 8px;width:auto;display:inline-block;margin-left:8px" onchange="selectRaidFilter(this.value)">
       <option value="">All Nikkes</option>${raidOpts}
     </select>`
                     : "";
@@ -2926,7 +2975,7 @@
                           const next10Rows = next10.length
                               ? `<tbody id="rank-next10" style="display:none">${next10.map((r, i) => renderRow(r, i + 10)).join("")}</tbody>`
                               : "";
-                          return `<div class="section-label" style="margin-top:1.5rem">Rock efficiency ranking${raidSelector} <span style="font-size:10px;color:#475569;font-weight:400">(${selRaid ? "damage gain per rock" : "gain% per rock"}, higher = better)</span></div>
+                          return `<div class="section-label" style="margin-top:1.5rem">Rock efficiency ranking${raidSelector} <span style="font-size:12px;color:#475569;font-weight:400">(${selRaid ? "damage gain per rock" : "gain% per rock"}, higher = better)</span></div>
     <table class="attr-table" style="width:100%;table-layout:fixed">
       <colgroup>
         <col style="width:4%">
@@ -2943,7 +2992,7 @@
       ${next10Rows}
     </table>`;
                       })()
-                    : `<div class="section-label" style="margin-top:1.5rem">Rock efficiency ranking${raidSelector}</div><div style="font-size:12px;color:#475569">No actionable slots to rank</div>`;
+                    : `<div class="section-label" style="margin-top:1.5rem">Rock efficiency ranking${raidSelector}</div><div style="font-size:14px;color:#475569">No actionable slots to rank</div>`;
 
                 el.innerHTML = `
     <div class="ov-grid">
@@ -2953,7 +3002,7 @@
       <div class="metric-card"><div class="metric-val">${pct}%</div><div class="metric-label">Completion</div></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-      <input id="overview-search" class="form-input" placeholder="Search Nikke..." value="${_overviewSearch.replace(/"/g, "&quot;")}" oninput="filterOverviewList()" style="font-size:11px;padding:4px 8px;width:160px"/>
+      <input id="overview-search" class="form-input" placeholder="Search Nikke..." value="${_overviewSearch.replace(/"/g, "&quot;")}" oninput="filterOverviewList()" style="font-size:13px;padding:4px 8px;width:160px"/>
       <label class="elemental-toggle" title="Include Elemental Damage in gain calculations" style="margin-left:auto">
         <input type="checkbox" id="elemental-chk" onchange="toggleElementalBoss(this.checked)" ${state.elementalBoss ? "checked" : ""} style="accent-color:#3b82f6"/>
         <span>Elemental boss</span>
@@ -3042,7 +3091,7 @@
       </div>
       <div class="btn-row"><button class="btn" onclick="hideAddForm()">Cancel</button><button class="btn btn-primary" onclick="addNikke()">Add</button></div>
       <div style="border-top:1px solid #1e2535;margin-top:12px;padding-top:12px">
-        <div class="form-panel-title" style="font-size:11px;color:#64748b">Or add a custom Nikke (not in DB yet)</div>
+        <div class="form-panel-title" style="font-size:13px;color:#64748b">Or add a custom Nikke (not in DB yet)</div>
         <div class="form-row"><label class="form-label">Name</label><input class="form-input" id="nn-custom-name" placeholder="e.g. New Nikke Name"/></div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
           <div class="form-row"><label class="form-label">Burst</label><select class="form-input" id="nn-custom-burst"><option value="I">I</option><option value="II">II</option><option value="III" selected>III</option></select></div>
@@ -3164,7 +3213,7 @@
     </div>`;
                         })
                         .join("") ||
-                    '<div style="font-size:12px;color:#475569;padding:6px">No Nikkes match filter</div>';
+                    '<div style="font-size:14px;color:#475569;padding:6px">No Nikkes match filter</div>';
 
                 // Build filter options from fixed game constants
                 const elemOpts = NIKKE_ELEMENTS.map(
@@ -3179,35 +3228,47 @@
                 const sortDir = state.gearSidebarSortDir || "desc";
                 const sortBy = state.gearSidebarSort || "power";
                 const filterHtml = `<div style="margin-bottom:6px">
-    <input id="nikke-sidebar-search" class="form-input" placeholder="Search Nikke..." value="${_gearSidebarSearch.replace(/"/g, "&quot;")}" oninput="filterGearSidebarList()" style="font-size:11px;padding:4px 8px;width:100%"/>
+    <input id="nikke-sidebar-search" class="form-input" placeholder="Search Nikke..." value="${_gearSidebarSearch.replace(/"/g, "&quot;")}" oninput="filterGearSidebarList()" style="font-size:13px;padding:4px 8px;width:100%"/>
   </div>
   <div style="display:flex;gap:4px;margin-bottom:6px">
-    <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearSidebarSort(this.value)">
+    <select style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearSidebarSort(this.value)">
       <option value="power" ${sortBy === "power" ? "selected" : ""}>Power</option>
       <option value="alpha" ${sortBy === "alpha" ? "selected" : ""}>Alphabetical</option>
       <option value="lb" ${sortBy === "lb" ? "selected" : ""}>Limit Break</option>
       <option value="bond" ${sortBy === "bond" ? "selected" : ""}>Bond</option>
     </select>
-    <button onclick="toggleGearSidebarSortDir()" title="Toggle sort direction" style="font-size:14px;padding:2px 7px;background:#0f1117;color:#94a3b8;border:1px solid #2d3f5e;border-radius:5px;cursor:pointer;flex-shrink:0;line-height:1;transition:color 0.1s,background 0.1s" onmouseover="this.style.background='#1a2235';this.style.color='#e2e8f0'" onmouseout="this.style.background='#0f1117';this.style.color='#94a3b8'">${sortDir === "asc" ? "↑" : "↓"}</button>
+    <button onclick="toggleGearSidebarSortDir()" title="Toggle sort direction" style="font-size:16px;padding:2px 7px;background:#0f1117;color:#94a3b8;border:1px solid #2d3f5e;border-radius:5px;cursor:pointer;flex-shrink:0;line-height:1;transition:color 0.1s,background 0.1s" onmouseover="this.style.background='#1a2235';this.style.color='#e2e8f0'" onmouseout="this.style.background='#0f1117';this.style.color='#94a3b8'">${sortDir === "asc" ? "↑" : "↓"}</button>
   </div>
   <div style="display:flex;gap:4px;margin-bottom:6px">
-    <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearElementFilter(this.value)">
-      <option value="">All Elements</option>${elemOpts}
-    </select>
-    <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearBurstFilter(this.value)">
-      <option value="">All Bursts</option>
-      <option value="I" ${state.gearBurstFilter === "I" ? "selected" : ""}>B1</option>
-      <option value="II" ${state.gearBurstFilter === "II" ? "selected" : ""}>B2</option>
-      <option value="III" ${state.gearBurstFilter === "III" ? "selected" : ""}>B3</option>
-    </select>
+    <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+      <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Element</span>
+      <select style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%" onchange="setGearElementFilter(this.value)">
+        <option value="">All</option>${elemOpts}
+      </select>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+      <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Burst</span>
+      <select style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%" onchange="setGearBurstFilter(this.value)">
+        <option value="">All</option>
+        <option value="I" ${state.gearBurstFilter === "I" ? "selected" : ""}>B1</option>
+        <option value="II" ${state.gearBurstFilter === "II" ? "selected" : ""}>B2</option>
+        <option value="III" ${state.gearBurstFilter === "III" ? "selected" : ""}>B3</option>
+      </select>
+    </div>
   </div>
   <div style="display:flex;gap:4px;margin-bottom:6px">
-    <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearManufacturerFilter(this.value)">
-      <option value="">All Manufacturers</option>${mfrOpts}
-    </select>
-    <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearWeaponFilter(this.value)">
-      <option value="">All Weapons</option>${weaponOpts}
-    </select>
+    <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+      <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Manufacturer</span>
+      <select style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%" onchange="setGearManufacturerFilter(this.value)">
+        <option value="">All</option>${mfrOpts}
+      </select>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+      <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Weapon</span>
+      <select style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%" onchange="setGearWeaponFilter(this.value)">
+        <option value="">All</option>${weaponOpts}
+      </select>
+    </div>
   </div>`;
 
                 const sidebarKey = `${state.gearElementFilter}|${state.gearBurstFilter}|${state.gearManufacturerFilter}|${state.gearWeaponFilter}|${sortBy}|${sortDir}|${filtered.map((n) => n.id + dotStatus(n, "Helmet") + dotStatus(n, "Chest") + dotStatus(n, "Gloves") + dotStatus(n, "Boots")).join(",")}|${state.selGear}`;
@@ -3225,18 +3286,18 @@
                         .join("");
                     const addHtml = `<button class="add-line-btn" onclick="showGearAddForm()" style="margin-top:6px;width:100%">+ Add Nikke</button>
       <div id="gear-add-form" class="form-panel" style="max-width:100%;margin-top:6px">
-        <div class="form-row"><input class="form-input" id="gear-nn-search" placeholder="Type to filter..." oninput="filterGearNikkeList()" style="font-size:11px;padding:4px 6px"/></div>
-        <div class="form-row"><select id="gear-nn-select" class="form-input" size="6" style="height:auto;overflow-y:auto;font-size:11px">${addOptions}</select></div>
-        <div class="btn-row"><button class="btn" onclick="hideGearAddForm()" style="font-size:11px;padding:3px 8px">Cancel</button><button class="btn btn-primary" onclick="addNikkeFromGear()" style="font-size:11px;padding:3px 8px">Add</button></div>
+        <div class="form-row"><input class="form-input" id="gear-nn-search" placeholder="Type to filter..." oninput="filterGearNikkeList()" style="font-size:13px;padding:4px 6px"/></div>
+        <div class="form-row"><select id="gear-nn-select" class="form-input" size="6" style="height:auto;overflow-y:auto;font-size:13px">${addOptions}</select></div>
+        <div class="btn-row"><button class="btn" onclick="hideGearAddForm()" style="font-size:13px;padding:3px 8px">Cancel</button><button class="btn btn-primary" onclick="addNikkeFromGear()" style="font-size:13px;padding:3px 8px">Add</button></div>
         <div style="border-top:1px solid #1e2535;margin-top:8px;padding-top:8px">
-          <div style="font-size:10px;color:#64748b;margin-bottom:4px">Custom (not in DB)</div>
-          <div class="form-row"><input class="form-input" id="gear-custom-name" placeholder="Name" style="font-size:11px;padding:3px 6px"/></div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:4px">Custom (not in DB)</div>
+          <div class="form-row"><input class="form-input" id="gear-custom-name" placeholder="Name" style="font-size:13px;padding:3px 6px"/></div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
-            <select class="form-input" id="gear-custom-burst" style="font-size:10px;padding:2px 4px"><option value="I">BI</option><option value="II">BII</option><option value="III" selected>BIII</option></select>
-            <select class="form-input" id="gear-custom-element" style="font-size:10px;padding:2px 4px"><option value="Fire">Fire</option><option value="Water">Water</option><option value="Wind">Wind</option><option value="Electric">Elec</option><option value="Iron">Iron</option></select>
-            <select class="form-input" id="gear-custom-weapon" style="font-size:10px;padding:2px 4px"><option value="AR">AR</option><option value="SMG">SMG</option><option value="SR">SR</option><option value="RL">RL</option><option value="MG">MG</option><option value="SG">SG</option></select>
+            <select class="form-input" id="gear-custom-burst" style="font-size:12px;padding:2px 4px"><option value="I">BI</option><option value="II">BII</option><option value="III" selected>BIII</option></select>
+            <select class="form-input" id="gear-custom-element" style="font-size:12px;padding:2px 4px"><option value="Fire">Fire</option><option value="Water">Water</option><option value="Wind">Wind</option><option value="Electric">Elec</option><option value="Iron">Iron</option></select>
+            <select class="form-input" id="gear-custom-weapon" style="font-size:12px;padding:2px 4px"><option value="AR">AR</option><option value="SMG">SMG</option><option value="SR">SR</option><option value="RL">RL</option><option value="MG">MG</option><option value="SG">SG</option></select>
           </div>
-          <div class="btn-row" style="margin-top:4px"><button class="btn btn-primary" onclick="addCustomNikkeFromGear()" style="font-size:11px;padding:3px 8px">Add Custom</button></div>
+          <div class="btn-row" style="margin-top:4px"><button class="btn btn-primary" onclick="addCustomNikkeFromGear()" style="font-size:13px;padding:3px 8px">Add Custom</button></div>
         </div>
       </div>`;
 
@@ -3410,8 +3471,8 @@
                     const sc = scorePiece(nikke, slot);
 
                     const badge = sc
-                        ? `<span style="font-size:11px;padding:2px 8px;border-radius:5px;font-weight:600;background:${v.cls === "v-keep" ? "#052e16" : v.cls === "v-ok" ? "#3f2a06" : "#3f1010"};color:${v.cls === "v-keep" ? "#4ade80" : v.cls === "v-ok" ? "#fcd34d" : "#f87171"}">${sc.good} good · ${sc.trash} trash</span>`
-                        : `<span style="font-size:11px;color:#334155">Not entered</span>`;
+                        ? `<span style="font-size:13px;padding:2px 8px;border-radius:5px;font-weight:600;background:${v.cls === "v-keep" ? "#052e16" : v.cls === "v-ok" ? "#3f2a06" : "#3f1010"};color:${v.cls === "v-keep" ? "#4ade80" : v.cls === "v-ok" ? "#fcd34d" : "#f87171"}">${sc.good} good · ${sc.trash} trash</span>`
+                        : `<span style="font-size:13px;color:#334155">Not entered</span>`;
 
                     const lineBoxes = gear.lines
                         .map((line, i) => {
@@ -3517,7 +3578,7 @@
 
                     const tierLvLabel =
                         gear.tier || gear.lv
-                            ? `<span style="font-size:11px;color:#94a3b8;font-weight:400">T${gear.tier} Lv${gear.lv}</span>`
+                            ? `<span style="font-size:13px;color:#94a3b8;font-weight:400">T${gear.tier} Lv${gear.lv}</span>`
                             : "";
                     return `<div class="slot-card">
       <div class="slot-header"><div style="display:flex;align-items:center;gap:6px"><span class="slot-tag">${slot}</span>${tierLvLabel}</div><div style="display:flex;align-items:center;gap:6px">${badge}</div></div>
@@ -3534,9 +3595,9 @@
                         : 30;
                 const lbMax = db.rarity === "SSR" ? 3 : db.rarity === "SR" ? 2 : 0;
                 const coresMax = db.rarity === "SSR" ? 7 : 0;
-                const fieldLabelCss = "font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em";
+                const fieldLabelCss = "font-size:12px;color:#64748b;letter-spacing:.04em";
                 const fieldInputCss =
-                    "font-size:12px;padding:4px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%";
+                    "font-size:14px;padding:4px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%";
                 const trackedTids = new Set(
                     Object.keys(state.cubeLevels ?? {}).filter((tid) => (state.cubeLevels ?? {})[tid] != null),
                 );
@@ -3611,7 +3672,7 @@
                     db.class ? ["Class", db.class] : null,
                 ].filter(Boolean);
                 const metaLine = metaItems.length
-                    ? '<div style="display:flex;flex-wrap:wrap;gap:3px 14px;font-size:13px;color:#cbd5e1;margin-top:5px">' +
+                    ? '<div style="display:flex;flex-wrap:wrap;gap:3px 14px;font-size:15px;color:#cbd5e1;margin-top:5px">' +
                       metaItems.map(([k, v]) => `<span><span style="color:#64748b">${k}:</span> ${v}</span>`).join("") +
                       "</div>"
                     : "";
@@ -3621,7 +3682,7 @@
       <div style="display:flex;align-items:center;gap:12px">
         ${nikkeIcon(nikke.name, 56)}
         <div>
-          <div style="font-size:22px;font-weight:700;color:#f1f5f9;line-height:1.15">${nikke.name}</div>
+          <div style="font-size:25px;font-weight:700;color:#f1f5f9;line-height:1.15">${nikke.name}</div>
           ${metaLine}
         </div>
       </div>
@@ -3861,7 +3922,7 @@
     </div>`,
                         )
                         .join("") ||
-                    '<div style="font-size:12px;color:#475569;padding:6px">No Nikkes match filter</div>';
+                    '<div style="font-size:14px;color:#475569;padding:6px">No Nikkes match filter</div>';
 
                 // Build element filter options from elements present in roster
                 const elements = [...new Set(state.nikkes.map((n) => n.element).filter(Boolean))].sort();
@@ -3869,13 +3930,13 @@
                     .map((e) => `<option value="${e}" ${state.gearElementFilter === e ? "selected" : ""}>${e}</option>`)
                     .join("");
                 const filterHtml = `<div style="margin-bottom:6px">
-    <input id="prio-sidebar-search" class="form-input" placeholder="Search Nikke..." value="${_prioSidebarSearch.replace(/"/g, "&quot;")}" oninput="filterPrioSidebarList()" style="font-size:11px;padding:4px 8px;width:100%"/>
+    <input id="prio-sidebar-search" class="form-input" placeholder="Search Nikke..." value="${_prioSidebarSearch.replace(/"/g, "&quot;")}" oninput="filterPrioSidebarList()" style="font-size:13px;padding:4px 8px;width:100%"/>
   </div>
   <div style="display:flex;gap:4px;margin-bottom:6px">
-    <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearElementFilter(this.value)">
+    <select style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearElementFilter(this.value)">
       <option value="">All Elements</option>${elemOpts}
     </select>
-    <select style="font-size:11px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearBurstFilter(this.value)">
+    <select style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearBurstFilter(this.value)">
       <option value="">All Bursts</option>
       <option value="I" ${state.gearBurstFilter === "I" ? "selected" : ""}>B1</option>
       <option value="II" ${state.gearBurstFilter === "II" ? "selected" : ""}>B2</option>
@@ -3952,8 +4013,8 @@
     <div class="nikke-hdr">
       ${nikkeIcon(nikke.name, 56)}
       <div>
-        <div style="font-size:14px;font-weight:600;color:#f1f5f9">${nikke.name}</div>
-        <div style="font-size:11px;color:#64748b">Priorities apply across all 4 gear slots</div>
+        <div style="font-size:16px;font-weight:600;color:#f1f5f9">${nikke.name}</div>
+        <div style="font-size:13px;color:#64748b">Priorities apply across all 4 gear slots</div>
       </div>
     </div>
     <div class="info-note" style="margin-bottom:10px">
@@ -4032,16 +4093,16 @@
       <div class="nikke-item-sub">${r.entries.length} Nikke${r.entries.length !== 1 ? "s" : ""}</div>
     </div>`;
                         })
-                        .join("") || '<div style="font-size:12px;color:#475569;padding:6px">No raids created</div>';
+                        .join("") || '<div style="font-size:14px;color:#475569;padding:6px">No raids created</div>';
 
                 el.innerHTML = `<div class="two-col">
     <div class="nikke-list">
       ${raidList}
       <button class="add-line-btn" onclick="showAddRaidForm()" style="margin-top:8px">+ New Raid</button>
       <div id="add-raid-form" class="form-panel" style="max-width:170px">
-        <div class="form-row"><input class="form-input" id="raid-season-input" placeholder="Season #" type="number" min="1" style="font-size:12px"/></div>
+        <div class="form-row"><input class="form-input" id="raid-season-input" placeholder="Season #" type="number" min="1" style="font-size:14px"/></div>
         <div class="form-row"><input class="form-input" id="raid-name-input" placeholder="Boss name"/></div>
-        <div class="form-row"><select class="form-input" id="raid-element-input" style="font-size:12px">
+        <div class="form-row"><select class="form-input" id="raid-element-input" style="font-size:14px">
           <option value="">No weakness</option>
           <option value="Fire">Fire</option>
           <option value="Water">Water</option>
@@ -4049,7 +4110,7 @@
           <option value="Electric">Electric</option>
           <option value="Iron">Iron</option>
         </select></div>
-        <div class="btn-row"><button class="btn btn-primary" onclick="addRaid()" style="font-size:11px;padding:4px 10px">Add</button></div>
+        <div class="btn-row"><button class="btn btn-primary" onclick="addRaid()" style="font-size:13px;padding:4px 10px">Add</button></div>
       </div>
     </div>
     <div id="raid-main">${state.selRaidEdit ? "" : '<div class="empty-state">← Select or create a raid</div>'}</div>
@@ -4158,8 +4219,8 @@
 
                 // View toggle
                 const viewToggle = `<div style="display:flex;gap:4px">
-    <button class="btn-sm${viewMode === "damage" ? " active-sort" : ""}" onclick="setRaidView('damage')" style="font-size:10px;padding:2px 8px">Damage</button>
-    <button class="btn-sm${viewMode === "teams" ? " active-sort" : ""}" onclick="setRaidView('teams')" style="font-size:10px;padding:2px 8px">Teams</button>
+    <button class="btn-sm${viewMode === "damage" ? " active-sort" : ""}" onclick="setRaidView('damage')" style="font-size:12px;padding:2px 8px">Damage</button>
+    <button class="btn-sm${viewMode === "teams" ? " active-sort" : ""}" onclick="setRaidView('teams')" style="font-size:12px;padding:2px 8px">Teams</button>
   </div>`;
 
                 let bodyHtml = "";
@@ -4239,8 +4300,8 @@
                     const unassigned = teams[0] || [];
                     const unassignedChips = unassigned.map(renderChip).join("");
                     const sortBtns = `<div style="display:flex;gap:4px;margin-left:auto">
-      <button class="btn-sm${sortMode === "damage" ? " active-sort" : ""}" onclick="setRaidSort2('damage')" style="font-size:9px;padding:1px 5px">Dmg ↓</button>
-      <button class="btn-sm${sortMode === "default" ? " active-sort" : ""}" onclick="setRaidSort2('default')" style="font-size:9px;padding:1px 5px">Order</button>
+      <button class="btn-sm${sortMode === "damage" ? " active-sort" : ""}" onclick="setRaidSort2('damage')" style="font-size:10px;padding:1px 5px">Dmg ↓</button>
+      <button class="btn-sm${sortMode === "default" ? " active-sort" : ""}" onclick="setRaidSort2('default')" style="font-size:10px;padding:1px 5px">Order</button>
     </div>`;
 
                     bodyHtml = `
@@ -4248,7 +4309,7 @@
       <div class="raid-teams-grid">${teamLanes}</div>
       <div class="raid-unassigned-section">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-          <span style="font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.05em">Unassigned (${unassigned.length})</span>
+          <span style="font-size:13px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.05em">Unassigned (${unassigned.length})</span>
           ${sortBtns}
         </div>
         <div class="raid-team-drop raid-unassigned-drop" data-team="0" data-raid-id="${raid.id}">${unassignedChips}${!unassigned.length ? '<div class="raid-drop-hint">All Nikkes assigned!</div>' : ""}</div>
@@ -4309,12 +4370,12 @@
                                           : relPct >= 25
                                             ? "#fbbf24"
                                             : "#f87171";
-                                gainCell = `<span style="color:${gainColor};font-weight:700" title="+${gainPct.toFixed(2)}% from improving overload gear">+${gainM.toFixed(1)}M</span> <span style="font-size:10px;color:${gainColor}">(+${gainPct.toFixed(1)}%)</span>`;
+                                gainCell = `<span style="color:${gainColor};font-weight:700" title="+${gainPct.toFixed(2)}% from improving overload gear">+${gainM.toFixed(1)}M</span> <span style="font-size:12px;color:${gainColor}">(+${gainPct.toFixed(1)}%)</span>`;
                                 gainBar = `<div class="raid-dmg-bar-bg"><div class="raid-dmg-bar" style="width:${relPct.toFixed(1)}%;background:${gainColor}"></div></div>`;
                             }
                             return `<tr class="rank-row">
-        <td style="font-size:11px;color:#475569;width:24px">${rank + 1}</td>
-        <td style="font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;cursor:pointer" onclick="goToGearNikke('${e.nikkeId}')" title="View in Gear Tracker">${n ? nikkeIcon(name, 30) : ""}${elem}${name}</td>
+        <td style="font-size:13px;color:#475569;width:24px">${rank + 1}</td>
+        <td style="font-size:15px;font-weight:500;display:flex;align-items:center;gap:8px;cursor:pointer" onclick="goToGearNikke('${e.nikkeId}')" title="View in Gear Tracker">${n ? nikkeIcon(name, 30) : ""}${elem}${name}</td>
         <td style="width:36px;text-align:center">${teamBadge}</td>
         <td style="width:130px"><div style="display:flex;align-items:center;gap:3px">
           <input class="prio-count-input" type="text" inputmode="decimal" value="${e.damage || ""}" placeholder="0"
@@ -4322,11 +4383,11 @@
             onfocus="this.select()"
             onblur="raidDmgOnBlur('${raid.id}',${e.origIdx},this.value)"
             onkeydown="raidDmgKeydown(event,'${raid.id}',${e.origIdx})"
-            style="text-align:right;width:100%;font-size:14px;font-weight:700"/>
-          <span style="font-size:11px;color:#475569">M</span>
+            style="text-align:right;width:100%;font-size:16px;font-weight:700"/>
+          <span style="font-size:13px;color:#475569">M</span>
         </div></td>
         <td style="width:100px"><div class="raid-dmg-bar-bg"><div class="raid-dmg-bar" style="width:${pct.toFixed(1)}%;background:${barColor}"></div></div></td>
-        <td style="width:120px;text-align:right;font-size:12px">${gainCell}</td>
+        <td style="width:120px;text-align:right;font-size:14px">${gainCell}</td>
         <td style="width:80px">${gainBar}</td>
         <td style="width:26px"><button class="small-del-btn" onclick="removeRaidEntry('${raid.id}',${e.origIdx})" title="Remove">✕</button></td>
       </tr>`;
@@ -4343,24 +4404,24 @@
                 area.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:8px">
-        <span id="raid-title-display" style="font-size:14px;font-weight:600;color:#f1f5f9">${raidDisplayName}</span>
-        <button class="btn-sm" onclick="showEditRaid('${raid.id}')" title="Edit raid" style="font-size:10px;padding:2px 6px;min-width:auto">✎</button>
+        <span id="raid-title-display" style="font-size:16px;font-weight:600;color:#f1f5f9">${raidDisplayName}</span>
+        <button class="btn-sm" onclick="showEditRaid('${raid.id}')" title="Edit raid" style="font-size:12px;padding:2px 6px;min-width:auto">✎</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:11px;color:#64748b">Total: <strong style="color:#f1f5f9">${totalDmg ? totalDmg.toLocaleString() + "M" : "—"}</strong></span>
+        <span style="font-size:13px;color:#64748b">Total: <strong style="color:#f1f5f9">${totalDmg ? totalDmg.toLocaleString() + "M" : "—"}</strong></span>
         <button class="del-btn" onclick="deleteRaid('${raid.id}')" title="Delete raid">✕ Delete</button>
       </div>
     </div>
     <div id="raid-edit-form" style="display:none;margin-bottom:10px;padding:10px;background:#151c2b;border:1px solid #1e2535;border-radius:8px">
       <div style="display:flex;gap:6px;align-items:center">
-        <input class="form-input" id="raid-edit-season" value="${raid.season || ""}" placeholder="S#" type="number" min="1" style="width:50px;font-size:12px;padding:4px 8px"/>
-        <input class="form-input" id="raid-edit-name" value="${raid.name}" placeholder="Boss name" style="flex:1;font-size:12px;padding:4px 8px"/>
-        <select class="form-input" id="raid-edit-element" style="font-size:12px;padding:4px 6px;width:auto">
+        <input class="form-input" id="raid-edit-season" value="${raid.season || ""}" placeholder="S#" type="number" min="1" style="width:50px;font-size:14px;padding:4px 8px"/>
+        <input class="form-input" id="raid-edit-name" value="${raid.name}" placeholder="Boss name" style="flex:1;font-size:14px;padding:4px 8px"/>
+        <select class="form-input" id="raid-edit-element" style="font-size:14px;padding:4px 6px;width:auto">
           <option value="">No weakness</option>
           ${["Fire", "Water", "Wind", "Electric", "Iron"].map((e) => `<option value="${e}" ${raid.element === e ? "selected" : ""}>${e}</option>`).join("")}
         </select>
-        <button class="btn btn-primary" onclick="saveEditRaid('${raid.id}')" style="font-size:11px;padding:4px 10px">Save</button>
-        <button class="btn-sm" onclick="hideEditRaid()" style="font-size:11px;padding:4px 8px">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEditRaid('${raid.id}')" style="font-size:13px;padding:4px 10px">Save</button>
+        <button class="btn-sm" onclick="hideEditRaid()" style="font-size:13px;padding:4px 8px">Cancel</button>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -4371,10 +4432,10 @@
         available.length
             ? `
       <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
-        <select id="raid-add-nikke" class="form-input" style="flex:1;font-size:12px;padding:4px 6px">
+        <select id="raid-add-nikke" class="form-input" style="flex:1;font-size:14px;padding:4px 6px">
           <option value="">— add nikke —</option>${nikkeOpts}
         </select>
-        <button class="btn btn-primary" onclick="addRaidEntry('${raid.id}')" style="font-size:11px;padding:4px 10px">Add</button>
+        <button class="btn btn-primary" onclick="addRaidEntry('${raid.id}')" style="font-size:13px;padding:4px 10px">Add</button>
       </div>`
             : ""
     }`;
@@ -4586,7 +4647,7 @@
       <td${custom}>${stat}</td>
       <td><input type="number" step="0.01" min="0" max="5" class="value-input" style="width:70px"
         value="${val}" onchange="updateBaseWeight('${stat}', this.value)"></td>
-      <td style="font-size:10px;color:#475569">${STAT_DMG_WEIGHT_BASE[stat]}</td>
+      <td style="font-size:12px;color:#475569">${STAT_DMG_WEIGHT_BASE[stat]}</td>
     </tr>`;
                 }).join("");
 
@@ -4621,8 +4682,8 @@
       <td${custom}>${diminishLabels[i] || `Line ${i + 1}+`}</td>
       <td><input type="number" step="0.01" min="0" max="1" class="value-input" style="width:70px"
         value="${val}" onchange="updateAmmoDiminish(${i}, this.value)"></td>
-      <td style="font-size:10px;color:#475569">${AMMO_DIMINISH_DEFAULT[i]}</td>
-      <td style="font-size:10px;color:#475569">×${val} = effective weight is ${(val * 100).toFixed(0)}% of base</td>
+      <td style="font-size:12px;color:#475569">${AMMO_DIMINISH_DEFAULT[i]}</td>
+      <td style="font-size:12px;color:#475569">×${val} = effective weight is ${(val * 100).toFixed(0)}% of base</td>
     </tr>`;
                     })
                     .join("");
@@ -4738,8 +4799,8 @@
                         const level = levels[tid];
                         const users = (cubeUsers[tidNum] || []).slice().sort((a, b) => a.localeCompare(b));
                         const userCell = users.length
-                            ? `<span style="color:#94a3b8;font-size:12px">${users.join(", ")}</span>`
-                            : `<span style="color:#334155;font-size:12px">—</span>`;
+                            ? `<span style="color:#94a3b8;font-size:14px">${users.join(", ")}</span>`
+                            : `<span style="color:#334155;font-size:14px">—</span>`;
                         const minDis = hasLevel && level <= 1 ? " disabled" : "";
                         const maxDis = hasLevel && level >= 15 ? " disabled" : "";
                         const levelCell = hasLevel
@@ -4748,11 +4809,11 @@
                             <input class="stepper-input" type="number" inputmode="numeric" min="1" max="15" step="1" placeholder="—" value="${level}" onchange="updateCubeLevel(${tid},this.value)"/>
                             <button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="stepCubeLevel(${tid},1)"${maxDis}>+</button>
                           </div>`
-                            : `<span style="color:#475569;font-size:12px">not tracked</span>`;
+                            : `<span style="color:#475569;font-size:14px">not tracked</span>`;
                         const actionCell = hasLevel
-                            ? `<button class="btn" style="padding:2px 8px;font-size:11px;background:#7f1d1d;border-color:#991b1b"
+                            ? `<button class="btn" style="padding:2px 8px;font-size:13px;background:#7f1d1d;border-color:#991b1b"
                             onclick="removeCubeLevel(${tid})">Remove</button>`
-                            : `<button class="btn" style="padding:2px 8px;font-size:11px"
+                            : `<button class="btn" style="padding:2px 8px;font-size:13px"
                             onclick="addCubeLevel(${tid})">Add</button>`;
                         return `<tr>
                         <td style="font-weight:600">${name}</td>
@@ -4765,7 +4826,7 @@
 
                 el.innerHTML = `
                     <div>
-                        <table class="attr-table" style="table-layout:fixed;width:100%">
+                        <table class="attr-table cube-table" style="table-layout:fixed;width:100%">
                             <tr>
                                 <th style="width:140px">Cube</th>
                                 <th style="width:110px">Level</th>
@@ -4812,11 +4873,136 @@
             }
 
             // ============================================================
+            //  WISHLIST
+            // ============================================================
+
+            function renderWishlist() {
+                const el = document.getElementById("wishlist");
+
+                const BOSSING_ORDER = ["SSS", "SS", "S", "A", "B", "C", "D", "E", "F"];
+                const TREASURE_NAMES = new Set(COLLECTION_DOLLS.filter(d => d.treasure).map(d => d.treasure));
+
+                const rosterByName = {};
+                for (const n of (state.nikkes ?? [])) rosterByName[n.name] = n;
+
+                const pools = { Elysion: [], Missilis: [], Tetra: [], "Pilgrim/Over-spec": [] };
+
+                for (const db of NIKKE_DATABASE) {
+                    if (db.rarity !== "SSR") continue;
+                    if (db.manufacturer === "Abnormal") continue;
+                    if (db.seasonal) continue;
+
+                    const roster = rosterByName[db.name];
+                    const cores = roster ? (roster.cores ?? 0) : 0;
+                    const lb = roster ? (roster.limitBreak ?? 0) : 0;
+                    const power = roster ? (roster.power ?? 0) : 0;
+
+                    if (cores >= 7) continue;
+
+                    const bossing = db.build?.bossing ?? null;
+                    const isTreasure = TREASURE_NAMES.has(db.name);
+
+                    let rawIdx = bossing ? BOSSING_ORDER.indexOf(bossing) : 999;
+                    if (rawIdx === -1) rawIdx = 999;
+                    let bossingIdx = rawIdx;
+                    const lbBoosted = isTreasure && lb < 2 && rawIdx < 999;
+                    if (lbBoosted) bossingIdx = Math.max(0, rawIdx - 1);
+
+                    const burstVal = { III: 3, All: 3, II: 2, I: 1 }[db.burst] ?? 0;
+
+                    const candidate = {
+                        name: db.name,
+                        bossing,
+                        effectiveBossing: lbBoosted ? BOSSING_ORDER[bossingIdx] : bossing,
+                        lbBoosted,
+                        isOverspec: db.overspec === true,
+                        burst: db.burst,
+                        bossingIdx,
+                        burstVal,
+                        power,
+                        cores,
+                        lb,
+                    };
+
+                    if (db.overspec || db.manufacturer === "Pilgrim") {
+                        pools["Pilgrim/Over-spec"].push(candidate);
+                    } else {
+                        pools[db.manufacturer].push(candidate);
+                    }
+                }
+
+                const sortFn = (a, b) => {
+                    if (a.bossingIdx !== b.bossingIdx) return a.bossingIdx - b.bossingIdx;
+                    if (b.burstVal !== a.burstVal) return b.burstVal - a.burstVal;
+                    return b.power - a.power;
+                };
+
+                const POOL_ORDER = ["Elysion", "Missilis", "Tetra", "Pilgrim/Over-spec"];
+
+                const cardsHtml = POOL_ORDER.map(mfr => {
+                    const picks = pools[mfr].sort(sortFn).slice(0, 5);
+                    const rows = picks.length === 0
+                        ? `<tr><td colspan="4" style="color:#64748b;text-align:center;padding:.75rem">No eligible Nikkes</td></tr>`
+                        : picks.map((p, i) => {
+                            const treasureBadge = p.lbBoosted
+                                ? ` <span style="color:#60a5fa;font-size:11px;vertical-align:middle">★ Treasure</span>`
+                                : '';
+                            const lbCell = p.lb > 0
+                                ? `${p.lb}/3`
+                                : `<span style="color:#64748b">—</span>`;
+                            const coresCell = p.cores > 0
+                                ? `${p.cores}/7`
+                                : `<span style="color:#64748b">—</span>`;
+                            return `
+                                <tr>
+                                    <td style="color:#64748b;width:1.5rem">${i + 1}</td>
+                                    <td>${p.name}${treasureBadge}</td>
+                                    <td style="color:#64748b">${lbCell}</td>
+                                    <td style="color:#64748b">${coresCell}</td>
+                                </tr>`;
+                        }).join('');
+                    return `
+                        <div style="flex:1 1 380px;min-width:0">
+                            <div style="font-size:15px;font-weight:600;color:#f1f5f9;margin-bottom:.5rem;padding-bottom:.25rem;border-bottom:1px solid #1e2535">${mfr}</div>
+                            <table class="attr-table" style="width:100%;table-layout:fixed">
+                                <colgroup>
+                                    <col style="width:2rem">
+                                    <col>
+                                    <col style="width:3.5rem">
+                                    <col style="width:4rem">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>LB</th>
+                                        <th>Cores</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>`;
+                }).join('');
+
+                el.innerHTML = `
+                    <div style="max-width:960px">
+                        <div class="section-label">Wishlist Recommendations</div>
+                        <div class="info-note" style="margin-bottom:1.5rem">
+                            Recommended 5 Nikkes per manufacturer wishlist slot, ranked by bossing rating then burst tier then power.
+                            Overspec and Pilgrim Nikkes share one pool. Nikkes with 7 cores are excluded. Treasure units below LB 2 are treated as one bossing tier higher.
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:1.5rem">
+                            ${cardsHtml}
+                        </div>
+                    </div>`;
+            }
+
+            // ============================================================
             //  TAB SWITCHING & INIT
             // ============================================================
 
             function switchTab(tab, event) {
-                const tabBtnOrderSwitch = ["overview", "gear", "raids", "priority", "weights", "cubes"];
+                const tabBtnOrderSwitch = ["overview", "gear", "raids", "priority", "weights", "cubes", "wishlist"];
                 document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
                 document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
                 if (event) {
@@ -4837,6 +5023,7 @@
                 else if (tab === "raids") renderRaids();
                 else if (tab === "weights") renderWeights();
                 else if (tab === "cubes") renderCubes();
+                else if (tab === "wishlist") renderWishlist();
             }
 
             function goToGearNikke(nikkeId) {
@@ -4889,6 +5076,7 @@
                 renderRaids();
                 renderWeights();
                 renderCubes();
+                renderWishlist();
             }
 
             load();
@@ -4973,7 +5161,7 @@
                     // No data yet — always show the guide on load
                     showTutorial();
                     // Auto-switch to Nikkes tab
-                    const tabBtnOrder = ["overview", "gear", "raids", "priority", "weights", "cubes"];
+                    const tabBtnOrder = ["overview", "gear", "raids", "priority", "weights", "cubes", "wishlist"];
                     const gearIdx = tabBtnOrder.indexOf("gear");
                     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
                     document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
@@ -4992,7 +5180,7 @@
                 const initTab = new URLSearchParams(window.location.search).get("tab");
                 if (initTab && document.getElementById(initTab)) {
                     // Map section IDs to tab button indices (roster has no button)
-                    const tabBtnOrder = ["overview", "gear", "raids", "priority", "weights", "cubes"];
+                    const tabBtnOrder = ["overview", "gear", "raids", "priority", "weights", "cubes", "wishlist"];
                     const btnIdx = tabBtnOrder.indexOf(initTab);
                     if (btnIdx >= 0) {
                         document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));

@@ -286,6 +286,7 @@ const NIKKE_DATABASE = [
         weapon: "SMG",
         rarity: "SR",
         manufacturer: "Elysion",
+        seasonal: true,
         class: "Defender",
         build: {
             bossing: "F",
@@ -354,6 +355,7 @@ const NIKKE_DATABASE = [
         slug: "sparkling-summer-anis",
         rarity: "SSR",
         manufacturer: "Tetra",
+        seasonal: true,
         class: "Supporter",
         build: {
             bossing: "S",
@@ -389,6 +391,7 @@ const NIKKE_DATABASE = [
         weapon: "RL",
         rarity: "SSR",
         manufacturer: "Tetra",
+        overspec: true,
         class: "Defender",
         build: {
             bossing: "SSS",
@@ -426,6 +429,7 @@ const NIKKE_DATABASE = [
         slug: "miracle-fairy-anne",
         rarity: "SSR",
         manufacturer: "Missilis",
+        seasonal: true,
         class: "Supporter",
         build: {
             bossing: "D",
@@ -629,6 +633,7 @@ const NIKKE_DATABASE = [
         weapon: "AR",
         rarity: "SSR",
         manufacturer: "Elysion",
+        seasonal: true,
         class: "Supporter",
         build: {
             bossing: "C",
@@ -790,6 +795,7 @@ const NIKKE_DATABASE = [
         weapon: "SR",
         rarity: "SSR",
         manufacturer: "Elysion",
+        seasonal: true,
         class: "Supporter",
         build: {
             bossing: "S",
@@ -846,6 +852,7 @@ const NIKKE_DATABASE = [
         weapon: "SMG",
         rarity: "SSR",
         manufacturer: "Pilgrim",
+        seasonal: true,
         class: "Supporter",
         build: {
             bossing: "B",
@@ -1190,6 +1197,7 @@ const NIKKE_DATABASE = [
         weapon: "MG",
         rarity: "SSR",
         manufacturer: "Elysion",
+        seasonal: true,
         class: "Attacker",
         build: {
             bossing: "SS",
@@ -1280,6 +1288,7 @@ const NIKKE_DATABASE = [
         weapon: "SR",
         rarity: "SSR",
         manufacturer: "Pilgrim",
+        seasonal: true,
         class: "Attacker",
         build: {
             bossing: "SS",
@@ -1459,6 +1468,7 @@ const NIKKE_DATABASE = [
         weapon: "RL",
         rarity: "SSR",
         manufacturer: "Missilis",
+        seasonal: true,
         class: "Attacker",
         build: {
             bossing: "S",
@@ -1876,6 +1886,7 @@ const NIKKE_DATABASE = [
         weapon: "MG",
         rarity: "SSR",
         manufacturer: "Elysion",
+        seasonal: true,
         class: "Attacker",
         build: {
             bossing: "A",
@@ -2008,6 +2019,7 @@ const NIKKE_DATABASE = [
         slug: "aqua-marine-helm",
         rarity: "SSR",
         manufacturer: "Elysion",
+        seasonal: true,
         class: "Attacker",
         build: {
             bossing: "A",
@@ -2186,6 +2198,7 @@ const NIKKE_DATABASE = [
         weapon: "SG",
         rarity: "SSR",
         manufacturer: "Missilis",
+        seasonal: true,
         class: "Defender",
         build: {
             bossing: "F",
@@ -2447,6 +2460,7 @@ const NIKKE_DATABASE = [
         weapon: "SG",
         rarity: "SSR",
         manufacturer: "Tetra",
+        seasonal: true,
         class: "Attacker",
         build: {
             bossing: "S",
@@ -2506,6 +2520,7 @@ const NIKKE_DATABASE = [
         weapon: "SR",
         rarity: "SSR",
         manufacturer: "Elysion",
+        seasonal: true,
         class: "Defender",
         build: {
             bossing: "S",
@@ -2649,6 +2664,7 @@ const NIKKE_DATABASE = [
         slug: "bay-goddess-mary",
         rarity: "SSR",
         manufacturer: "Tetra",
+        seasonal: true,
         class: "Supporter",
         build: {
             bossing: "C",
@@ -2776,6 +2792,7 @@ const NIKKE_DATABASE = [
         weapon: "SMG",
         rarity: "SSR",
         manufacturer: "Tetra",
+        seasonal: true,
         class: "Supporter",
         build: {
             bossing: "B",
@@ -2811,6 +2828,7 @@ const NIKKE_DATABASE = [
         weapon: "SR",
         rarity: "SSR",
         manufacturer: "Missilis",
+        overspec: true,
         class: "Attacker",
         build: {
             bossing: "SS",
@@ -3054,6 +3072,7 @@ const NIKKE_DATABASE = [
         weapon: "AR",
         rarity: "SSR",
         manufacturer: "Missilis",
+        seasonal: true,
         class: "Defender",
         build: {
             bossing: "E",
@@ -3179,6 +3198,7 @@ const NIKKE_DATABASE = [
         slug: "blue-ocean-neon",
         rarity: "SSR",
         manufacturer: "Elysion",
+        seasonal: true,
         class: "Attacker",
         build: {
             bossing: "E",
@@ -3203,6 +3223,7 @@ const NIKKE_DATABASE = [
         weapon: "AR",
         rarity: "SSR",
         manufacturer: "Missilis",
+        overspec: true,
         class: "Attacker",
         build: {
             bossing: "SS",
@@ -3761,11 +3782,12 @@ const NIKKE_DATABASE = [
     {
         id: 16,
         name: "Rapi: Red Hood",
-        burst: "I",
+        burst: "III",
         element: "Fire",
-        weapon: "SR",
+        weapon: "MG",
         rarity: "SSR",
         manufacturer: "Elysion",
+        overspec: true,
         class: "Attacker",
         build: {
             bossing: "SS",
@@ -3903,6 +3925,7 @@ const NIKKE_DATABASE = [
         weapon: "SMG",
         rarity: "SSR",
         manufacturer: "Tetra",
+        seasonal: true,
         class: "Defender",
         build: {
             bossing: "F",
@@ -4034,6 +4057,7 @@ const NIKKE_DATABASE = [
         weapon: "SG",
         rarity: "SSR",
         manufacturer: "Tetra",
+        seasonal: true,
         class: "Supporter",
         build: {
             bossing: "S",
@@ -4136,6 +4160,7 @@ const NIKKE_DATABASE = [
         slug: "winter-shopper-rupee",
         rarity: "SSR",
         manufacturer: "Tetra",
+        seasonal: true,
         class: "Defender",
         build: {
             bossing: "E",
@@ -4195,6 +4220,7 @@ const NIKKE_DATABASE = [
         weapon: "SG",
         rarity: "SSR",
         manufacturer: "Tetra",
+        seasonal: true,
         class: "Attacker",
         build: {
             bossing: "B",
@@ -4417,6 +4443,7 @@ const NIKKE_DATABASE = [
         slug: "innocent-dayss-snow-white",
         rarity: "SSR",
         manufacturer: "Pilgrim",
+        seasonal: true,
         class: "Attacker",
         build: {
             bossing: "C",
