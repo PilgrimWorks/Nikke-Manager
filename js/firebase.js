@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  FIREBASE — Auth & Cloud Sync
 // ============================================================
 
@@ -111,7 +111,7 @@ auth.onAuthStateChanged(async (user) => {
                     Object.assign(state, cloudData);
                     delete state._updatedAt;
                     migrateState();
-                    state.selGear = state.nikkes.length ? state.nikkes[0].id : null;
+                    { const _lastG = localStorage.getItem("nikke_selGear"); const _sorted = sortNikkesBySidebar(state.nikkes); state.selGear = (_lastG && state.nikkes.find(n => n.id === _lastG)) ? _lastG : (_sorted.length ? _sorted[0].id : null); }
                     state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                     state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                     save();
@@ -124,7 +124,7 @@ auth.onAuthStateChanged(async (user) => {
                 Object.assign(state, cloudData);
                 delete state._updatedAt;
                 migrateState();
-                state.selGear = state.nikkes.length ? state.nikkes[0].id : null;
+                { const _lastG = localStorage.getItem("nikke_selGear"); const _sorted = sortNikkesBySidebar(state.nikkes); state.selGear = (_lastG && state.nikkes.find(n => n.id === _lastG)) ? _lastG : (_sorted.length ? _sorted[0].id : null); }
                 state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                 state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                 save();
@@ -143,7 +143,7 @@ auth.onAuthStateChanged(async (user) => {
                     Object.assign(state, cloudData);
                     delete state._updatedAt;
                     migrateState();
-                    state.selGear = state.nikkes.length ? state.nikkes[0].id : null;
+                    { const _lastG = localStorage.getItem("nikke_selGear"); const _sorted = sortNikkesBySidebar(state.nikkes); state.selGear = (_lastG && state.nikkes.find(n => n.id === _lastG)) ? _lastG : (_sorted.length ? _sorted[0].id : null); }
                     state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                     state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                     save();
@@ -244,8 +244,21 @@ function load() {
         if (d) state = JSON.parse(d);
     } catch (e) {}
     migrateState();
-    // Don't persist selected Nikke across reloads — default to first
-    state.selGear = state.nikkes.length ? state.nikkes[0].id : null;
+    // Restore last selected Nikke if still valid, otherwise pick first in sorted display list
+    const lastGear = localStorage.getItem("nikke_selGear");
+    if (lastGear && state.nikkes.find(n => n.id === lastGear)) {
+        state.selGear = lastGear;
+    } else {
+        const sorted = sortNikkesBySidebar(state.nikkes);
+        state.selGear = sorted.length ? sorted[0].id : null;
+    }
+    const lastPrio = localStorage.getItem("nikke_selPrio");
+    if (lastPrio && state.nikkes.find(n => n.id === lastPrio)) {
+        state.selPrio = lastPrio;
+    } else {
+        const sorted = sortNikkesBySidebar(state.nikkes);
+        state.selPrio = sorted.length ? sorted[0].id : null;
+    }
     // Default to latest raid (last in array = displayed first in sidebar)
     state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
     state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;

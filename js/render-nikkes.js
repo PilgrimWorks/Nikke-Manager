@@ -214,6 +214,7 @@ function addNikkeFromGear() {
     const nikke = mkNikke(entry.name, entry.burst1, entry.burst2, entry.burst3, entry.element);
     state.nikkes.push(nikke);
     state.selGear = nikke.id;
+    try { localStorage.setItem("nikke_selGear", nikke.id); } catch(e) {}
     save();
     render();
 }
@@ -229,6 +230,7 @@ function addCustomNikkeFromGear() {
     nikke.custom = true;
     state.nikkes.push(nikke);
     state.selGear = nikke.id;
+    try { localStorage.setItem("nikke_selGear", nikke.id); } catch(e) {}
     if (!state.customWeapons) state.customWeapons = {};
     state.customWeapons[name] = weapon;
     save();
@@ -257,6 +259,7 @@ function setGearWeaponFilter(val) {
 function selGearNikke(id) {
     if (state.selGear === id) return;
     state.selGear = id;
+    try { localStorage.setItem("nikke_selGear", id); } catch(e) {}
     // Just update active class without re-rendering sidebar
     document.querySelectorAll("#gear .nikke-list .nikke-item").forEach((el) => {
         const isActive = el.getAttribute("onclick")?.includes(id);

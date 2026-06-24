@@ -122,7 +122,7 @@ function remainingStatPool(usedStats) {
 function goodStatFraction(pool, nikke) {
   return nikke.priorities
     .filter(p => p.tier === 'Essential' || p.tier === 'Ideal')
-    .reduce((sum, p) => sum + (pool[p.line] || 0), 0);
+    .reduce((sum, p) => sum + (pool[p.line] || pool[normStat(p.line)] || pool[STAT_ALIASES_REV[p.line]] || 0), 0);
 }
 
 /*
@@ -298,16 +298,35 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
 //  LINE CLASSIFICATION
 // ============================================================
 
+// Normalize stat names to handle the abbreviated vs full name inconsistency.
+// Gear lines may use "Elemental Dmg" while priorities/math use "Elemental Damage", etc.
+const STAT_ALIASES = {
+  'Elemental Damage': 'Elemental Dmg',
+  'Critical Damage': 'Critical Dmg',
+  'Charge Damage': 'Charge Dmg',
+};
+const STAT_ALIASES_REV = {
+  'Elemental Dmg': 'Elemental Damage',
+  'Critical Dmg': 'Critical Damage',
+  'Charge Dmg': 'Charge Damage',
+};
+function normStat(s) {
+  // Normalize to the short form used in ALL_LINES
+  return STAT_ALIASES[s] || s;
+}
+
 function classifyLine(stat, nikke) {
   if (!stat) return null;
   if (ALWAYS_TRASH.has(stat)) return 'trash';
-  const p = nikke.priorities.find(p => p.line === stat);
+  const normalized = normStat(stat);
+  const p = nikke.priorities.find(p => normStat(p.line) === normalized);
   if (!p) return 'unset';
   return p.tier.toLowerCase(); // 'essential', 'ideal', 'passable'
 }
 
 function getTargetTier(stat, nikke) {
-  const p = nikke.priorities.find(p => p.line === stat);
+  const normalized = normStat(stat);
+  const p = nikke.priorities.find(p => normStat(p.line) === normalized);
   return p ? parseInt(p.targetTier) || 11 : 11;
 }
 
@@ -459,6 +478,11 @@ function getVerdict(nikke, slot) {
         if (fl.length) optASteps.push(`Then Change Effects for a 2nd good line — ~${fishRocksA} rocks`);
       }
 
+      // Only offer Option B if there are actual trash/passable lines to sacrifice.
+      // If the only "sacrificeable" lines are good lines below target, Option B is a trap —
+      // you'd be giving up good stats for a random chance at the same or worse.
+      const hasTrueTrashToSacrifice = sacUnlocked.length > 0;
+
       const optBSteps = [...lockSteps];
       const sacrificing = [...sacUnlocked, ...toReset]
         .filter((l, i, a) => a.findIndex(x => x.idx === l.idx) === i);
@@ -512,7 +536,21 @@ function getVerdict(nikke, slot) {
       const gainBDps = ceGainB.netDps > 0 ? ceGainB.netDps : 0;
       const effA = (resetRocks + fishRocksA) > 0 ? gainAWeighted / (resetRocks + fishRocksA) : 0;
       const effB = fishRocksB > 0 ? gainBDps / fishRocksB : 0;
-      const recommendA = effA >= effB;
+      // Never recommend Option B if we'd only be sacrificing good lines (no trash to give up)
+      const recommendA = !hasTrueTrashToSacrifice || effA >= effB;
+
+      // If no trash lines exist, only show Option A (Option B would sacrifice good lines pointlessly)
+      if (!hasTrueTrashToSacrifice) {
+        return {
+          label: goodLines.length >= 2
+            ? `${goodLines.length} good lines — value(s) below target`
+            : `1 good line — fix value or fish for better`,
+          cls: 'v-ok',
+          options: [
+            { title: 'Option A — Reset Attributes to fix value(s)', steps: optASteps, rocks: resetRocks + fishRocksA, recommended: true, gain: gainALabel, dpsGain: gainAWeighted },
+          ],
+        };
+      }
 
       return {
         label: goodLines.length >= 2

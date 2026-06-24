@@ -29,6 +29,7 @@ function switchTab(tab, event) {
 
 function goToGearNikke(nikkeId) {
     state.selGear = nikkeId;
+    try { localStorage.setItem("nikke_selGear", nikkeId); } catch(e) {}
     // Switch to gear tab
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
     document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
@@ -44,6 +45,7 @@ function goToGearNikke(nikkeId) {
 
 function goToGearSlot(nikkeId, slot) {
     state.selGear = nikkeId;
+    try { localStorage.setItem("nikke_selGear", nikkeId); } catch(e) {}
     // Switch to gear tab
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
     document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
