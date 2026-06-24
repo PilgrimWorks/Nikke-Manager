@@ -60,8 +60,7 @@ function renderGear() {
       ${nikkeIcon(n.name, 34)}<div>${n.name}<div class="nikke-item-sub">${done}/4 slots done</div></div>
     </div>`;
             })
-            .join("") ||
-        '<div style="font-size:14px;color:#475569;padding:6px">No Nikkes match filter</div>';
+            .join("") || '<div style="font-size:14px;color:#475569;padding:6px">No Nikkes match filter</div>';
 
     // Build filter options from fixed game constants
     const elemOpts = NIKKE_ELEMENTS.map(
@@ -71,10 +70,7 @@ function renderGear() {
         (m) => `<option value="${m}" ${state.gearManufacturerFilter === m ? "selected" : ""}>${m}</option>`,
     ).join("");
     const weaponOpts = Object.keys(NIKKE_WEAPONS)
-        .map(
-            (code) =>
-                `<option value="${code}" ${state.gearWeaponFilter === code ? "selected" : ""}>${code}</option>`,
-        )
+        .map((code) => `<option value="${code}" ${state.gearWeaponFilter === code ? "selected" : ""}>${code}</option>`)
         .join("");
     const sortDir = state.gearSidebarSortDir || "desc";
     const sortBy = state.gearSidebarSort || "power";
@@ -144,10 +140,10 @@ function renderGear() {
 <select class="form-input" id="gear-custom-burst" style="font-size:12px;padding:2px 4px"><option value="I">BI</option><option value="II">BII</option><option value="III" selected>BIII</option></select>
 <select class="form-input" id="gear-custom-element" style="font-size:12px;padding:2px 4px"><option value="Fire">Fire</option><option value="Water">Water</option><option value="Wind">Wind</option><option value="Electric">Elec</option><option value="Iron">Iron</option></select>
 <select class="form-input" id="gear-custom-weapon" style="font-size:12px;padding:2px 4px">${Object.entries(
-    NIKKE_WEAPONS,
-)
-    .map(([c, n]) => `<option value="${c}">${n}</option>`)
-    .join("")}</select>
+            NIKKE_WEAPONS,
+        )
+            .map(([c, n]) => `<option value="${c}">${n}</option>`)
+            .join("")}</select>
           </div>
           <div class="btn-row" style="margin-top:4px"><button class="btn btn-primary" onclick="addCustomNikkeFromGear()" style="font-size:13px;padding:3px 8px">Add Custom</button></div>
         </div>
@@ -203,9 +199,7 @@ function filterGearNikkeList() {
     const q = document.getElementById("gear-nn-search").value.toLowerCase();
     const sel = document.getElementById("gear-nn-select");
     const addedNames = new Set(state.nikkes.map((n) => n.name));
-    const filtered = NIKKE_DATABASE.filter(
-        (n) => !addedNames.has(n.name) && n.name.toLowerCase().includes(q),
-    );
+    const filtered = NIKKE_DATABASE.filter((n) => !addedNames.has(n.name) && n.name.toLowerCase().includes(q));
     sel.innerHTML = filtered
         .map((n) => `<option value="${n.name}">${n.name} · ${n.element} · ${burstDisplay(n)}</option>`)
         .join("");
@@ -310,7 +304,7 @@ function renderGearMain(nikke) {
     <div class="attr-summary">
       <div class="attr-summary-title">Attribute totals</div>
       <table class="attr-table">
-        <thead><tr><th>Stat</th><th>Total</th><th>Target Tier</th><th>Prydwen Min</th></tr></thead>
+        <thead><tr><th>Stat</th><th>Total</th><th>Target Tier</th><th>Minimum</th></tr></thead>
         <tbody>${attrRows}</tbody>
       </table>
     </div>`
@@ -360,14 +354,15 @@ function renderGearMain(nikke) {
                         : "";
                 return `<div class="line-box" style="${line.locked ? "border-color:#166534;background:#052e16" : ""}">
         <div class="line-header">
-          <span class="line-label">Line ${i + 1}</span>
-          <span class="line-chance ${LINE_CHANCE_CSS[i]}">${LINE_CHANCE_LABELS[i]}</span>
+          <span class="line-label">Line ${i + 1} - ${LINE_CHANCE_LABELS[i]}</span>
+          ${prioText ? `<span class="prio-tag ${prioCls}">${prioText}</span>` : ""}
         </div>
-        <div style="display:flex;align-items:center;gap:4px">
+        <div class="line-selects">
           <select onchange="updateStat('${nikke.id}','${slot}',${i},this.value)" onkeydown="gearSelectKeydown(event,'${nikke.id}','${slot}',${i})" data-gear-select="${nikke.id}-${slot}-${i}" tabindex="${i * 2 + 1}" style="flex:1;min-width:0">
 <option value="">None</option>${opts}
           </select>
-          <select class="value-input"
+          <div class="line-value-row">
+            <select class="value-input"
 data-gear-val="${nikke.id}-${slot}-${i}"
 ${!line.stat ? "disabled" : ""}
 tabindex="${i * 2 + 2}"
@@ -375,13 +370,13 @@ onchange="updateVal('${nikke.id}','${slot}',${i},this.value)"
 style="width:64px;flex-shrink:0">
 <option value="">—</option>
 ${tierOpts}
-          </select>
-          ${unit ? `<span class="value-unit">${unit}</span>` : ""}
-          ${tb ? `<span class="tier-badge ${tb.cls}">${tb.label}</span>` : ""}
+            </select>
+            ${unit ? `<span class="value-unit">${unit}</span>` : ""}
+            ${tb ? `<span class="tier-badge ${tb.cls}">${tb.label}</span>` : ""}
+          </div>
         </div>
         ${line.stat && line.val && !aboveMin ? `<div class="warn-text">⚠ Below min ${MIN_VAL[line.stat]}%</div>` : ""}
         ${line.stat && line.val && aboveMin && !atTarget && isGoodLine(cls) ? `<div class="below-text">Below target T${targetTier}</div>` : ""}
-        <div class="line-prio-bar ${prioCls}">${prioText}</div>
         <button class="lock-btn ${line.locked ? "locked" : ""}"
           onclick="toggleLock('${nikke.id}','${slot}',${i})"
           ${!line.stat ? "disabled" : ""} tabindex="-1">
@@ -393,33 +388,27 @@ ${tierOpts}
 
         let verdictHtml = "";
         if (v) {
-            // Calculate this slot's priority rank across all nikkes
-            const slotRank = getSlotRank(nikke.id, slot);
-            const rankBadge = slotRank > 0 ? `<span class="rank-badge">#${slotRank}</span>` : "";
-
             if (v.options) {
                 const rec = v.options.find((o) => o.recommended) || v.options[0];
                 const recName = rec.title.includes("Reset") ? "Reset" : "Change Effects";
-                const summary = `${rankBadge}${v.label} — ${recName} ~${rec.rocks} rocks · ${rec.gain}`;
+                const summary = `${v.label} — ${recName} ~${rec.rocks} rocks · ${rec.gain}`;
                 verdictHtml = `<details class="verdict ${v.cls}">
           <summary class="verdict-title">${summary}</summary>
           ${v.options
-  .map(
-      (opt) => `
+              .map(
+                  (opt) => `
 <div class="verdict-option" style="${opt.recommended ? "border-left:3px solid currentColor" : ""}">
   <div class="verdict-option-title">${opt.title}${opt.recommended ? '<span class="recommended-badge">Recommended</span>' : ""}</div>
   <div class="verdict-steps">${opt.steps.map((s, si) => `<div class="verdict-step"><span class="step-num">${si + 1}.</span><span>${s}</span></div>`).join("")}</div>
   <span class="rock-est">~${opt.rocks} rocks · ${opt.gain}</span>
 </div>`,
-  )
-  .join("")}
+              )
+              .join("")}
         </details>`;
             } else {
                 const gainText = v.gain ? ` · ${v.gain}` : "";
                 const summary =
-                    v.rocks > 0
-                        ? `${rankBadge}${v.label} — ~${v.rocks} rocks${gainText}`
-                        : `${rankBadge}${v.label}`;
+                    v.rocks > 0 ? `${v.label} — ~${v.rocks} rocks${gainText}` : `${v.label}`;
                 verdictHtml = `<details class="verdict ${v.cls}">
           <summary class="verdict-title">${summary}</summary>
           <div class="verdict-steps">${(v.steps || []).map((s, i) => `<div class="verdict-step"><span class="step-num">${i + 1}.</span><span>${s}</span></div>`).join("")}</div>
@@ -459,11 +448,7 @@ ${tierOpts}
             const label = `${name} - Lv.${lv}`;
             return `<option value="${tid}" ${nikke.cube && String(nikke.cube.tid) === tid ? "selected" : ""}>${label}</option>`;
         })
-        .concat(
-            hasUntracked
-                ? [`<option value="__add_cube__" style="color:#60a5fa">+ Add another cube</option>`]
-                : [],
-        )
+        .concat(hasUntracked ? [`<option value="__add_cube__" style="color:#60a5fa">+ Add another cube</option>`] : [])
         .join("");
     const equippedDollDb = nikke.doll ? COLLECTION_DOLLS.find((d) => d.id === nikke.doll.tid) : null;
     const isTreasureDoll = equippedDollDb != null && equippedDollDb.treasure != null;
@@ -536,7 +521,7 @@ ${nikke.doll && !isTreasureDoll ? statStepperHtml(nikke.id, "doll", nikke.doll.l
           ${metaLine}
         </div>
       </div>
-      <label class="elemental-toggle" title="Include Elemental Damage in gain calculations">
+      <label class="elemental-toggle" title="Include Elemental Dmg in gain calculations">
         <input type="checkbox" onchange="toggleElementalBoss(this.checked)" ${state.elementalBoss ? "checked" : ""} style="accent-color:#3b82f6"/>
         <span>Elemental boss</span>
       </label>

@@ -13,26 +13,26 @@
 // Weapon-specific adjustments:
 //   Max Ammo: SR/RL = 0.30, AR/SG = 0.25, SMG/MG = 0.20 (first line value)
 //   Charge Speed: SR/RL = 0.6, others = 0 (no charge mechanic)
-//   Charge Damage: SR/RL = 0.5, others = 0
+//   Charge Dmg: SR/RL = 0.5, others = 0
 //   Hit Rate: SG = 0.5 (tightens pellet spread), AR/SMG/MG = 0.2 (moderate), SR/RL = 0 (pinpoint accuracy)
 // Diminishing returns for Max Ammo:
 //   1st line = 100% of weight, 2nd = 15%, 3rd+ = 5%
 
 const STAT_DMG_WEIGHT_BASE = {
   'ATK': 1.0,
-  'Elemental Damage': 1.0,
+  'Elemental Dmg': 1.0,
   'Critical Rate': 0.5,
-  'Critical Damage': 0.35,
+  'Critical Dmg': 0.35,
   'Hit Rate': 0,
   'Max Ammo': 0.25,
   'Charge Speed': 0,
-  'Charge Damage': 0,
+  'Charge Dmg': 0,
   'DEF': 0,
 };
 
 const STAT_DMG_WEIGHT_WEAPON = {
-  'SR':  { 'Max Ammo': 0.30, 'Charge Speed': 0.6, 'Charge Damage': 0.5, 'Hit Rate': 0 },
-  'RL':  { 'Max Ammo': 0.30, 'Charge Speed': 0.6, 'Charge Damage': 0.5, 'Hit Rate': 0 },
+  'SR':  { 'Max Ammo': 0.30, 'Charge Speed': 0.6, 'Charge Dmg': 0.5, 'Hit Rate': 0 },
+  'RL':  { 'Max Ammo': 0.30, 'Charge Speed': 0.6, 'Charge Dmg': 0.5, 'Hit Rate': 0 },
   'AR':  { 'Max Ammo': 0.25, 'Hit Rate': 0.2 },
   'SMG': { 'Max Ammo': 0.20, 'Hit Rate': 0.2 },
   'MG':  { 'Max Ammo': 0.20, 'Hit Rate': 0.2 },

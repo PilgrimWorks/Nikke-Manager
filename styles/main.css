@@ -378,6 +378,7 @@ body {
     gap: 8px;
 }
 .line-box {
+    container-type: inline-size;
     border: 1px solid #1e2535;
     border-radius: 8px;
     padding: 8px;
@@ -385,6 +386,20 @@ body {
     display: flex;
     flex-direction: column;
     gap: 5px;
+}
+@container (max-width: 240px) {
+    .line-selects {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .line-value-row {
+        width: 100%;
+    }
+    .line-value-row .value-input {
+        flex: 1 !important;
+        width: auto !important;
+        min-width: 0;
+    }
 }
 .line-header {
     display: flex;
@@ -431,6 +446,17 @@ body {
 .line-box select:focus {
     outline: none;
     border-color: #3b82f6;
+}
+.line-selects {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.line-value-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
 }
 .value-row {
     display: flex;
@@ -642,7 +668,7 @@ select.value-input:focus {
 .verdict-title {
     font-weight: 700;
     font-size: 15px;
-    margin-bottom: 7px;
+    margin-bottom: 0;
     cursor: pointer;
     list-style: none;
     display: flex;
@@ -656,6 +682,9 @@ select.value-input:focus {
 }
 details[open] > .verdict-title::before {
     transform: rotate(90deg);
+}
+details[open] > .verdict-title {
+    margin-bottom: 7px;
 }
 .verdict-title::-webkit-details-marker {
     display: none;
@@ -1798,6 +1827,7 @@ details[open] > .verdict-title::before {
     .add-nikke-btn {
         width: 100%;
     }
+
 }
 
 /* ── Cubes table: Equipped By wraps below on mobile ── */

@@ -58,7 +58,7 @@ function renderWeights() {
     </tr>`;
     }).join("");
 
-    const weaponStats = ["Max Ammo", "Charge Speed", "Charge Damage", "Hit Rate"];
+    const weaponStats = ["Max Ammo", "Charge Speed", "Charge Dmg", "Hit Rate"];
     const weaponRows = WEAPONS.map((w) => {
         const cells = weaponStats
             .map((stat) => {
@@ -115,7 +115,7 @@ function renderWeights() {
         These override the base weight for specific weapon types. Leave blank to use the base weight.
       </div>
       <table class="attr-table">
-        <tr><th>Weapon</th><th>Max Ammo</th><th>Charge Speed</th><th>Charge Damage</th><th>Hit Rate</th></tr>
+        <tr><th>Weapon</th><th>Max Ammo</th><th>Charge Speed</th><th>Charge Dmg</th><th>Hit Rate</th></tr>
         ${weaponRows}
       </table>
 

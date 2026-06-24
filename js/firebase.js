@@ -368,15 +368,18 @@ function _applyScraperImport(scraperData, opts) {
 
     const STAT_MAP = {
         ATK: "ATK",
-        "Element DMG": "Elemental Damage",
-        "Elemental Damage": "Elemental Damage",
+        "Element DMG": "Elemental Dmg",
+        "Elemental Damage": "Elemental Dmg",
+        "Elemental Dmg": "Elemental Dmg",
         "Max Ammo": "Max Ammo",
         "Charge Speed": "Charge Speed",
-        "Charge DMG": "Charge Damage",
-        "Charge Damage": "Charge Damage",
+        "Charge DMG": "Charge Dmg",
+        "Charge Damage": "Charge Dmg",
+        "Charge Dmg": "Charge Dmg",
         "Critical Rate": "Critical Rate",
-        "Critical DMG": "Critical Damage",
-        "Critical Damage": "Critical Damage",
+        "Critical DMG": "Critical Dmg",
+        "Critical Damage": "Critical Dmg",
+        "Critical Dmg": "Critical Dmg",
         "Hit Rate": "Hit Rate",
         DEF: "DEF",
     };
@@ -519,17 +522,12 @@ function _applyScraperImport(scraperData, opts) {
     save();
     render();
 
-    const noGearNote = addedNoGear ? ` · ${addedNoGear} added (no gear yet)` : "";
-    const summary = `${added} added · ${updated} updated${noGearNote}`;
+    const totalAdded = added + addedNoGear;
+    const summary = `${totalAdded} added · ${updated} updated`;
     if (silent) {
         _showExtImportToast("Extension import complete — " + summary);
     } else {
-        const noGearLine = addedNoGear
-            ? `\n• ${addedNoGear} Nikke(s) added to roster (no gear data yet)`
-            : "";
-        alert(
-            `Import complete!\n\n• ${added} Nikke(s) added with gear\n• ${updated} Nikke(s) updated${noGearLine}`,
-        );
+        alert(`Import complete!\n\n• ${totalAdded} Nikke(s) added\n• ${updated} Nikke(s) updated`);
     }
 }
 

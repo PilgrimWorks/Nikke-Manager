@@ -5,14 +5,14 @@
 
 // Stats whose values are expressed as percentages
 const IS_PCT = new Set([
-  'ATK', 'Elemental Damage', 'Charge Speed', 'Charge Damage',
-  'Critical Rate', 'Critical Damage', 'Hit Rate', 'DEF'
+  'ATK', 'Elemental Dmg', 'Charge Speed', 'Charge Dmg',
+  'Critical Rate', 'Critical Dmg', 'Hit Rate', 'DEF'
 ]);
 
 // Prydwen minimum acceptable values per single line
 // (based on community guides — lines below this are considered weak rolls)
 const MIN_VAL = {
-  'Elemental Damage': 19.35,
+  'Elemental Dmg': 19.35,
   'Max Ammo':         52.50,
   'ATK':               9.70,
   'Charge Speed':      4.04,
@@ -22,14 +22,14 @@ const MIN_VAL = {
 // Exact % values per tier (T1–T15) for each stat
 // Source: in-game probability table
 const TIER_TABLE = {
-  'Elemental Damage': [9.54,10.94,12.34,13.75,15.15,16.55,17.95,19.35,20.75,22.15,23.56,24.96,26.36,27.76,29.16],
+  'Elemental Dmg': [9.54,10.94,12.34,13.75,15.15,16.55,17.95,19.35,20.75,22.15,23.56,24.96,26.36,27.76,29.16],
   'Hit Rate':         [4.77,5.47,6.18,6.88,7.59,8.29,9.00,9.70,10.40,11.11,11.81,12.52,13.22,13.93,14.63],
   'Max Ammo':         [27.84,31.95,36.06,40.17,44.28,48.39,52.50,56.60,60.71,64.82,68.93,73.04,77.15,81.26,85.37],
   'ATK':              [4.77,5.47,6.18,6.88,7.59,8.29,9.00,9.70,10.40,11.11,11.81,12.52,13.22,13.93,14.63],
-  'Charge Damage':    [4.77,5.47,6.18,6.88,7.59,8.29,9.00,9.70,10.40,11.11,11.81,12.52,13.22,13.93,14.63],
+  'Charge Dmg':    [4.77,5.47,6.18,6.88,7.59,8.29,9.00,9.70,10.40,11.11,11.81,12.52,13.22,13.93,14.63],
   'Charge Speed':     [1.98,2.28,2.57,2.86,3.16,3.45,3.75,4.04,4.33,4.63,4.92,5.21,5.51,5.80,6.09],
   'Critical Rate':    [2.30,2.64,2.98,3.32,3.66,4.00,4.35,4.69,5.03,5.37,5.71,6.05,6.39,6.73,7.07],
-  'Critical Damage':  [6.64,7.62,8.60,9.58,10.56,11.54,12.52,13.50,14.48,15.46,16.44,17.42,18.40,19.38,20.36],
+  'Critical Dmg':  [6.64,7.62,8.60,9.58,10.56,11.54,12.52,13.50,14.48,15.46,16.44,17.42,18.40,19.38,20.36],
   'DEF':              [4.77,5.47,6.18,6.88,7.59,8.29,9.00,9.70,10.40,11.11,11.81,12.52,13.22,13.93,14.63],
 };
 
@@ -47,9 +47,9 @@ const LINE_CHANCE_CSS    = ['lc-100', 'lc-50', 'lc-30'];
 // Base % chance for each stat to appear on a line (sums to 100)
 // When a stat is already on the piece, the pool renormalizes across remaining stats
 const STAT_BASE_CHANCE = {
-  'ATK': 10, 'Elemental Damage': 10, 'Max Ammo': 12,
-  'Charge Speed': 12, 'Charge Damage': 12, 'Critical Rate': 12,
-  'Critical Damage': 10, 'Hit Rate': 12, 'DEF': 10,
+  'ATK': 10, 'Elemental Dmg': 10, 'Max Ammo': 12,
+  'Charge Speed': 12, 'Charge Dmg': 12, 'Critical Rate': 12,
+  'Critical Dmg': 10, 'Hit Rate': 12, 'DEF': 10,
 };
 
 
@@ -88,8 +88,8 @@ function getTier(stat, val) {
  */
 function tierBadgeInfo(tier) {
   if (!tier) return null;
-  if (tier >= 15) return { label: 'T15★', cls: 'tb-elite' };
-  if (tier >= 12) return { label: `T${tier}◆`, cls: 'tb-high' };
+  if (tier >= 15) return { label: 'T15', cls: 'tb-elite' };
+  if (tier >= 12) return { label: `T${tier}`, cls: 'tb-high' };
   if (tier >= 6)  return { label: `T${tier}`,  cls: 'tb-mid'  };
   return { label: `T${tier}`, cls: 'tb-low' };
 }
@@ -202,7 +202,7 @@ function expectedValAnyTier(stat) {
  * Expected value gain from Reset Attributes on a line.
  */
 function resetGain(stat, currentVal, targetTier) {
-  if (stat === 'Elemental Damage' && !state.elementalBoss) return 0;
+  if (stat === 'Elemental Dmg' && !state.elementalBoss) return 0;
   const expected = expectedValAtTarget(stat, targetTier);
   const current = parseFloat(currentVal) || 0;
   return Math.max(0, expected - current);
@@ -213,7 +213,7 @@ function resetGain(stat, currentVal, targetTier) {
  * Uses the weighted average across all good stats in the pool,
  * assuming the new line will land at the average tier (weighted by TIER_PROB).
  * targetTier is the minimum acceptable tier for the nikke's priorities.
- * Excludes Elemental Damage from gain calculation if elementalBoss is off.
+ * Excludes Elemental Dmg from gain calculation if elementalBoss is off.
  */
 function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
   const goodPrios = nikke.priorities.filter(p => p.tier === 'Essential' || p.tier === 'Ideal');
@@ -249,7 +249,7 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
       const avgAppear = sacrificedLines.reduce((s, sl) => s + (LINE_APPEAR[sl.idx !== undefined ? sl.idx : 0] || 0.6), 0) / numSacLines;
       const pComeBack = 1 - Math.pow(1 - comebackFrac * avgAppear, numSacLines);
       let effectiveLoss = currentVal - (pComeBack * evIfBack);
-      if (l.stat === 'Elemental Damage' && !state.elementalBoss) effectiveLoss = 0;
+      if (l.stat === 'Elemental Dmg' && !state.elementalBoss) effectiveLoss = 0;
       if (effectiveLoss > 0) {
         const statWeight = getStatDmgWeight(l.stat, nikke.name, nikke) || 0.01;
         totalLoss += effectiveLoss * statWeight;
@@ -277,7 +277,7 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
     const existing = currentLines.find(l => l.stat === p.line);
     const current = (existing && !sacrificedStats.has(p.line)) ? (parseFloat(existing.val) || 0) : 0;
     let gain = Math.max(0, ev - current);
-    if (p.line === 'Elemental Damage' && !state.elementalBoss) gain = 0;
+    if (p.line === 'Elemental Dmg' && !state.elementalBoss) gain = 0;
     const dmgW = getStatDmgWeight(p.line, nikke.name, nikke) || 0.01;
     gains.push({ stat: p.line, gain, weight: w, dmgW });
     totalPoolWeight += w;
@@ -406,16 +406,20 @@ function getVerdict(nikke, slot) {
   const allGoodAtTarget = goodLines.length >= 2 && goodBelowTgt.length === 0 && !goodLines.some(l => l.stat && !l.val);
   if (allGoodAtTarget) {
     const steps = [];
-    goodLines.filter(l => !l.locked).sort((a, b) => b.idx - a.idx)
-      .forEach(l => steps.push(`Lock ${lineName(l)}`));
-    const sacUnlocked = ann.filter(l => l.isSac && l.stat && !l.locked);
-    if (sacUnlocked.length && goodLines.length < 3) {
-      const postLocked = lockedCount + goodLines.filter(l => !l.locked).length;
-      const gf = goodFrac(goodLines.filter(l => !l.locked).map(l => l.stat));
-      const fr = estChangeEffectsRocks(sacUnlocked.map(l => ({ appear: l.appear })), gf, postLocked);
-      steps.push(`Optional: Change Effects on ${sacUnlocked.map(l => `Line ${l.idx + 1}`).join(', ')} for a 3rd good line — ~${fr} rocks`);
+    if (goodLines.length === 3) {
+      steps.push('This gear is ideal — all 3 lines are at target. No changes needed.');
+    } else {
+      goodLines.filter(l => !l.locked).sort((a, b) => b.idx - a.idx)
+        .forEach(l => steps.push(`Lock ${lineName(l)}`));
+      const sacUnlocked = ann.filter(l => l.isSac && l.stat && !l.locked);
+      if (sacUnlocked.length) {
+        const postLocked = lockedCount + goodLines.filter(l => !l.locked).length;
+        const gf = goodFrac(goodLines.filter(l => !l.locked).map(l => l.stat));
+        const fr = estChangeEffectsRocks(sacUnlocked.map(l => ({ appear: l.appear })), gf, postLocked);
+        steps.push(`Optional: Change Effects on ${sacUnlocked.map(l => `Line ${l.idx + 1}`).join(', ')} for a 3rd good line — ~${fr} rocks`);
+      }
+      if (!steps.length) steps.push('This piece is complete — no action needed.');
     }
-    if (!steps.length) steps.push('This piece is complete — no action needed.');
     return { label: `Keep — ${goodLines.length} good line${goodLines.length > 1 ? 's' : ''} at target`, steps, cls: 'v-keep', rocks: 0 };
   }
 

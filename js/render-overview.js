@@ -83,7 +83,7 @@ function buildRockEffView() {
     nk.forEach((n) => {
         if (!n.priorities.length) return;
         if (raidNikkeIds && !raidNikkeIds.has(n.id)) return; // filter by raid
-        // If raid has an element weakness, only count Elemental Damage for matching Nikkes
+        // If raid has an element weakness, only count Elemental Dmg for matching Nikkes
         if (selRaid && selRaid.element && n.element !== selRaid.element) {
             state.elementalBoss = false;
         } else {
@@ -190,7 +190,7 @@ function buildRockEffView() {
         ${selRaid ? `<col style="width:10%"><col style="width:12%">` : ""}
         <col style="width:${selRaid ? "14%" : "15%"}">
       </colgroup>
-      <tr><th>#</th><th>Nikke</th><th>Slot</th><th>Rocks</th><th>Gain</th>${selRaid ? `<th class="sort-header" onclick="setRankSort('dmg')">DMG${sortArrow("dmg")}</th><th class="sort-header" onclick="setRankSort('dmgGain')">DMG Gain${sortArrow("dmgGain")}</th>` : ""}<th class="sort-header" onclick="setRankSort('efficiency')">Efficiency${sortArrow("efficiency")}</th></tr>
+      <tr><th>Prio.</th><th>Nikke</th><th>Slot</th><th>Rocks</th><th>Gain</th>${selRaid ? `<th class="sort-header" onclick="setRankSort('dmg')">DMG${sortArrow("dmg")}</th><th class="sort-header" onclick="setRankSort('dmgGain')">DMG Gain${sortArrow("dmgGain")}</th>` : ""}<th class="sort-header" onclick="setRankSort('efficiency')">Efficiency${sortArrow("efficiency")}</th></tr>
       ${top10.map((r, i) => renderRow(r, i)).join("")}
       ${toggleBtn}
       ${next10Rows}
@@ -201,7 +201,7 @@ function buildRockEffView() {
     const html = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
       <input id="overview-search" class="form-input" placeholder="Search Nikke..." value="${_overviewSearch.replace(/"/g, "&quot;")}" oninput="filterOverviewList()" style="font-size:13px;padding:4px 8px;width:160px"/>
-      <label class="elemental-toggle" title="Include Elemental Damage in gain calculations" style="margin-left:auto">
+      <label class="elemental-toggle" title="Include Elemental Dmg in gain calculations" style="margin-left:auto">
         <input type="checkbox" id="elemental-chk" onchange="toggleElementalBoss(this.checked)" ${state.elementalBoss ? "checked" : ""} style="accent-color:#3b82f6"/>
         <span>Elemental boss</span>
       </label>
@@ -246,13 +246,39 @@ function buildEquipmentView() {
         if (!defs.length) continue;
         rows.push({ n, defs, priority: overload.priority });
     }
-    // Sort by overload priority then bossing power
+    // Sort by:
+    //   1. Overload priority (Meta → Very High → High → Medium → Low → Very Low)
+    //   2. Bossing tier (stronger first)
+    //   3. Burst level (3 and All tied at 0; 2 and 1 tied at 1)
+    //   4. Class (Attacker first, then Supporter, then Defender)
+    //   5. Power (higher first)
     const prioOrder = { Meta: 0, "Very High": 1, High: 2, Medium: 3, Low: 4, "Very Low": 5 };
+    const classOrder = { Attacker: 0, Supporter: 1, Defender: 2 };
+    const burstRank = (name) => {
+        const db = NIKKE_DB_MAP.get(name);
+        if (!db) return 1;
+        // Burst 3 and All (burst3 true) rank equal to each other; burst 1 and 2 rank lower
+        return db.burst3 ? 0 : 1;
+    };
     rows.sort((a, b) => {
+        // 1. Overload priority
         const pa = prioOrder[a.priority] ?? 6;
         const pb = prioOrder[b.priority] ?? 6;
         if (pa !== pb) return pa - pb;
-        return bossingPowerCmp(a, b);
+        // 2. Bossing tier
+        const bd = bossingIdxOf(a.n.name) - bossingIdxOf(b.n.name);
+        if (bd) return bd;
+        // 3. Burst level (3/All first, then 2/1)
+        const burstD = burstRank(a.n.name) - burstRank(b.n.name);
+        if (burstD) return burstD;
+        // 4. Class (Attacker, Supporter, Defender)
+        const dba = NIKKE_DB_MAP.get(a.n.name);
+        const dbb = NIKKE_DB_MAP.get(b.n.name);
+        const ca = classOrder[dba && dba.class] ?? 3;
+        const cb = classOrder[dbb && dbb.class] ?? 3;
+        if (ca !== cb) return ca - cb;
+        // 5. Power
+        return (b.n.power ?? 0) - (a.n.power ?? 0);
     });
     const prioColor = (p) => {
         if (p === "Meta" || p === "Very High") return "#4ade80";
@@ -265,19 +291,19 @@ function buildEquipmentView() {
             (r, i) => `${ovRowOpen(r.n.id, r.n.name)}
         <td style="color:#475569">${i + 1}</td>
         ${ovNameCell(r.n.name)}
-        ${ovTierCell(bossingTierOf(r.n.name))}
         <td style="color:${prioColor(r.priority)};font-weight:500">${r.priority}</td>
         <td style="color:#f59e0b;font-weight:500">${r.defs.map((d) => `<span class="${d.tier === "Ideal" ? "prio-ideal" : "prio-passable"}" style="font-size:12px;padding:1px 5px;border-radius:3px;margin-right:4px">${d.name} ${d.cur}/${d.rec}</span>`).join("")}</td>
       </tr>`,
         )
         .join("");
     const html = rows.length
-        ? `<div class="section-label" style="margin-top:1rem">Overload gear below Prydwen recommendation <span style="font-size:12px;color:#475569;font-weight:400">(current / recommended lines)</span></div>
-    <table class="attr-table" style="width:100%">
-      <tr><th>#</th><th>Nikke</th><th>Bossing</th><th>OL Priority</th><th>Lines below rec</th></tr>
+        ? `<div class="section-label" style="margin-top:1rem">Overload gear recommendations<span style="font-size:12px;color:#475569;font-weight:400"> (current / recommended lines)</span></div>
+    <table class="attr-table" style="width:100%;table-layout:fixed">
+      <colgroup><col style="width:5%"><col style="width:30%"><col style="width:15%"><col style="width:50%"></colgroup>
+      <tr><th>Prio.</th><th>Nikke</th><th>OL Priority</th><th>Lines below rec</th></tr>
       ${body}
     </table>`
-        : `<div class="section-label" style="margin-top:1rem">Overload gear below Prydwen recommendation</div>${ovEmpty("All Nikke overload gear lines meet Prydwen recommendations.")}`;
+        : `<div class="section-label" style="margin-top:1rem">Overload gear recommendations</div>${ovEmpty("All Nikke overload gear lines meet recommendations.")}`;
     return { count: rows.length, html };
 }
 
@@ -322,24 +348,37 @@ function buildSkillsView() {
             if (rec[k] != null && cur[k] < rec[k]) defs.push(`${lbl} ${cur[k]}→${rec[k]}`);
         });
         if (!defs.length) continue;
-        rows.push({ n, defs });
+        const skillPriority = (db.build.skill && db.build.skill.priority) || null;
+        rows.push({ n, defs, priority: skillPriority });
     }
-    rows.sort(bossingPowerCmp);
+    // Sort by:
+    //   1. Skill priority (Meta → High → Medium → Low → Very Low → unset)
+    //   2. Bossing tier (stronger first)
+    //   3. Power (higher first)
+    const skillPrioOrder = { Meta: 0, High: 1, Medium: 2, Low: 3, "Very Low": 4 };
+    rows.sort((a, b) => {
+        const pa = skillPrioOrder[a.priority] ?? 5;
+        const pb = skillPrioOrder[b.priority] ?? 5;
+        if (pa !== pb) return pa - pb;
+        const bd = bossingIdxOf(a.n.name) - bossingIdxOf(b.n.name);
+        if (bd) return bd;
+        return (b.n.power ?? 0) - (a.n.power ?? 0);
+    });
     const body = rows
         .map(
             (r, i) => `${ovRowOpen(r.n.id, r.n.name)}
         <td style="color:#475569">${i + 1}</td>
         ${ovNameCell(r.n.name)}
-        ${ovTierCell(bossingTierOf(r.n.name))}
         ${ovPowerCell(r.n.power)}
         <td style="color:#f59e0b;font-weight:500">${r.defs.join("&nbsp;&nbsp;&nbsp;")}</td>
       </tr>`,
         )
         .join("");
     const html = rows.length
-        ? `<div class="section-label" style="margin-top:1rem">Skills below recommended <span style="font-size:12px;color:#475569;font-weight:400">(current → recommended)</span></div>
-    <table class="attr-table" style="width:100%">
-      <tr><th>#</th><th>Nikke</th><th>Bossing</th><th>Power</th><th>Skills below rec</th></tr>
+        ? `<div class="section-label" style="margin-top:1rem">Skill recommendedations<span style="font-size:12px;color:#475569;font-weight:400"> (current → recommended)</span></div>
+    <table class="attr-table" style="width:100%;table-layout:fixed">
+      <colgroup><col style="width:5%"><col style="width:30%"><col style="width:12%"><col style="width:53%"></colgroup>
+      <tr><th>Prio.</th><th>Nikke</th><th>Power</th><th>Skills below rec</th></tr>
       ${body}
     </table>`
         : `<div class="section-label" style="margin-top:1rem">Skills below recommended</div>${ovEmpty("All Nikke skills meet the recommended levels.")}`;
@@ -373,9 +412,11 @@ function buildDollsView() {
         }
         if (done) continue;
         const boosted = isTreasure && rawIdx < 999 && effIdx < rawIdx;
-        rows.push({ n, recDoll, isTreasure, effIdx, boosted });
+        const pvePriority = db.collection?.pvePriority ?? Infinity;
+        rows.push({ n, recDoll, isTreasure, effIdx, boosted, pvePriority });
     }
     rows.sort((a, b) => {
+        if (a.pvePriority !== b.pvePriority) return a.pvePriority - b.pvePriority;
         if (a.effIdx !== b.effIdx) return a.effIdx - b.effIdx;
         return (b.n.power ?? 0) - (a.n.power ?? 0);
     });
@@ -397,8 +438,7 @@ function buildDollsView() {
         .map(
             (r, i) => `${ovRowOpen(r.n.id, r.n.name)}
         <td style="color:#475569">${i + 1}</td>
-        ${ovNameCell(r.n.name)}
-        ${tierCell(r)}
+        <td style="font-weight:500"><div style="display:flex;align-items:center;gap:6px">${nikkeIcon(r.n.name, 22)}<span>${r.n.name}</span>${r.isTreasure ? `<span style="color:#60a5fa;font-size:11px" title="Has treasure doll">★</span>` : ""}</div></td>
         ${ovPowerCell(r.n.power)}
         <td style="color:#94a3b8">${curDollLabel(r.n)}</td>
         <td style="color:#4ade80">${recDollLabel(r)}</td>
@@ -406,9 +446,10 @@ function buildDollsView() {
         )
         .join("");
     const html = rows.length
-        ? `<div class="section-label" style="margin-top:1rem">Doll recommendations <span style="font-size:12px;color:#475569;font-weight:400">(bossing ≥ S; ★ = treasure boost)</span></div>
-    <table class="attr-table" style="width:100%">
-      <tr><th>#</th><th>Nikke</th><th>Bossing</th><th>Power</th><th>Current doll</th><th>Recommended</th></tr>
+        ? `<div class="section-label" style="margin-top:1rem">Doll recommendations<span style="font-size:12px;color:#475569;font-weight:400"> (★ = treasure boost)</span></div>
+    <table class="attr-table" style="width:100%;table-layout:fixed">
+      <colgroup><col style="width:5%"><col style="width:30%"><col style="width:12%"><col style="width:27%"><col style="width:26%"></colgroup>
+      <tr><th>Prio.</th><th>Nikke</th><th>Power</th><th>Current doll</th><th>Recommended</th></tr>
       ${body}
     </table>`
         : `<div class="section-label" style="margin-top:1rem">Doll recommendations</div>${ovEmpty("Every bossing ≥ S Nikke has its recommended doll.")}`;
@@ -434,19 +475,19 @@ function buildBondView() {
             (r, i) => `${ovRowOpen(r.n.id, r.n.name)}
         <td style="color:#475569">${i + 1}</td>
         ${ovNameCell(r.n.name)}
-        ${ovTierCell(bossingTierOf(r.n.name))}
         ${ovPowerCell(r.n.power)}
         <td><span style="color:#f59e0b;font-weight:600">${r.cur}</span><span style="color:#475569"> / ${r.max}</span></td>
       </tr>`,
         )
         .join("");
     const html = rows.length
-        ? `<div class="section-label" style="margin-top:1rem">Bond below max <span style="font-size:12px;color:#475569;font-weight:400">(current / max for limit break)</span></div>
-    <table class="attr-table" style="width:100%">
-      <tr><th>#</th><th>Nikke</th><th>Bossing</th><th>Power</th><th>Bond</th></tr>
+        ? `<div class="section-label" style="margin-top:1rem">Bond recommendations<span style="font-size:12px;color:#475569;font-weight:400"> (current / max for limit break)</span></div>
+    <table class="attr-table" style="width:100%;table-layout:fixed">
+      <colgroup><col style="width:5%"><col style="width:30%"><col style="width:12%"><col style="width:53%"></colgroup>
+      <tr><th>Prio.</th><th>Nikke</th><th>Power</th><th>Bond</th></tr>
       ${body}
     </table>`
-        : `<div class="section-label" style="margin-top:1rem">Bond below max</div>${ovEmpty("Every Nikke's bond is at max for its limit break.")}`;
+        : `<div class="section-label" style="margin-top:1rem">Bond recommendations</div>${ovEmpty("Every Nikke's bond is at max for its limit break.")}`;
     return { count: rows.length, html };
 }
 
@@ -478,9 +519,13 @@ function renderOverview() {
         <option value="">All Elements</option>
         ${NIKKE_ELEMENTS.map((e) => `<option value="${e}" ${_overviewElement === e ? "selected" : ""}>${e}</option>`).join("")}
       </select>
-      ${state.raids.length ? `<select class="form-input" style="font-size:13px;padding:4px 8px;width:auto" onchange="setOverviewRaid(this.value)">
+      ${
+          state.raids.length
+              ? `<select class="form-input" style="font-size:13px;padding:4px 8px;width:auto" onchange="setOverviewRaid(this.value)">
         <option value="">All Solo Raid Teams</option>${raidOpts}
-      </select>` : ""}
+      </select>`
+              : ""
+      }
     </div>`
         : "";
     el.innerHTML = `
