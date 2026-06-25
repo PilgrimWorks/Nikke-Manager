@@ -51,6 +51,7 @@ Open the app at https://pilgrimworks.github.io/Nikke-Manager
 
 The **Nikke Manager** Chrome extension reads your gear data directly from [blablalink.com](https://www.blablalink.com) (which mirrors your in-game account) and imports everything into the app automatically — no manual data entry needed.
 
+**Chrome Web Store:** [Nikke Manager Extension](https://chromewebstore.google.com/detail/nikke-manager/lkmibckbphaagkihbdmncaffedkkcmjp)  
 **Extension repo:** [github.com/PilgrimWorks/Nikke-Manager-Extension](https://github.com/PilgrimWorks/Nikke-Manager-Extension)
 
 **Requirements:**
@@ -58,24 +59,18 @@ The **Nikke Manager** Chrome extension reads your gear data directly from [blabl
 - A [blablalink.com](https://www.blablalink.com) account linked to your NIKKE game
 - Google Chrome (or any Chromium-based browser)
 
-**Installation (unpacked):**
+**Installation:**
 
-1. Download the extension from the [GitHub repo](https://github.com/PilgrimWorks/Nikke-Manager-Extension)
-2. Open Chrome and go to `chrome://extensions`
-3. Enable **Developer mode** (toggle in the top-right corner)
-4. Click **Load unpacked** and select the extension folder
-5. The Nikke Manager icon will appear in your toolbar
-
-> Chrome may show a warning about developer mode extensions on browser startup — click **Cancel** to dismiss it. This is normal for manually loaded extensions.
+Install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/nikke-manager/lkmibckbphaagkihbdmncaffedkkcmjp). The Nikke Manager icon will appear in your toolbar.
 
 **Usage:**
 
 1. Log in to [blablalink.com](https://www.blablalink.com) in Chrome
 2. Click the **Nikke Manager** icon in your toolbar
-3. Click **Fetch Data** and wait around 10 seconds
+3. Click **Import Data** and wait around 10 seconds
 4. The extension automatically opens the Nikke Manager and imports your data
 
-If you are not logged in to blablalink, a login button will appear — click it, log in, then click **Fetch Data** again.
+If you are not logged in to blablalink, a login button will appear — click it, log in, then click **Import Data** again.
 
 The extension popup also has a **Download Data** button to save your fetched data as a file — useful as a backup or for importing manually.
 
