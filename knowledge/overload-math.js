@@ -428,19 +428,39 @@ function getVerdict(nikke, slot) {
     const steps = [];
     if (goodLines.length === 3) {
       steps.push('This gear is ideal — all 3 lines are at target. No changes needed.');
+      return { label: `Complete — all 3 good lines at target`, steps, cls: 'v-keep', rocks: 0 };
     } else {
       goodLines.filter(l => !l.locked).sort((a, b) => b.idx - a.idx)
         .forEach(l => steps.push(`Lock ${lineName(l)}`));
       const sacUnlocked = ann.filter(l => l.isSac && l.stat && !l.locked);
-      if (sacUnlocked.length) {
+      const emptyUnlocked = ann.filter(l => !l.stat && !l.locked);
+      const fishableLines = [...sacUnlocked, ...emptyUnlocked];
+      if (fishableLines.length) {
         const postLocked = lockedCount + goodLines.filter(l => !l.locked).length;
         const gf = goodFrac(goodLines.filter(l => !l.locked).map(l => l.stat));
-        const fr = estChangeEffectsRocks(sacUnlocked.map(l => ({ appear: l.appear })), gf, postLocked);
-        steps.push(`Optional: Change Effects on ${sacUnlocked.map(l => `Line ${l.idx + 1}`).join(', ')} for a 3rd good line — ~${fr} rocks`);
+        const fl = fishableLines.map(l => ({ appear: l.appear }));
+        const fr = estChangeEffectsRocks(fl, gf, postLocked);
+        const poolCE = remainingStatPool(new Set([...usedStats, ...goodLines.filter(l => !l.locked).map(l => l.stat)]));
+        const ceGain = changeEffectsGain(nikke, poolCE, lines, sacUnlocked);
+        let ceGainLabel = '';
+        if (ceGain.net > 0 || ceGain.netDps > 0) {
+          const perStat = (ceGain.gains || [])
+            .filter(g => g.gain > 0)
+            .map(g => `${g.stat} +${g.gain.toFixed(2)}%`);
+          ceGainLabel = perStat.length ? perStat.join(' or ') : `net +${ceGain.net.toFixed(2)}%`;
+        } else if (ceGain.gain > 0) {
+          ceGainLabel = `${ceGain.stat} +${ceGain.gain.toFixed(2)}%`;
+        }
+        const fishLineLabels = fishableLines.map(l => `Line ${l.idx + 1}`).join(', ');
+        steps.push(`Change Effects on ${fishLineLabels} — ${rocksPerRoll(postLocked)} rocks/roll`);
+        steps.push(`P(${goodStatNames}) per line: ${(gf * 100).toFixed(1)}%`);
+        steps.push(`Expected ~${fr} rocks for a 3rd good line`);
+        const ceGainDps = ceGain.netDps > 0 ? ceGain.netDps : (ceGain.net > 0 ? ceGain.net : 0);
+        return { label: `${goodLines.length} good lines at target — fish for 3rd`, steps, cls: 'v-ok', rocks: fr, gain: ceGainLabel, dpsGain: ceGainDps };
       }
       if (!steps.length) steps.push('This piece is complete — no action needed.');
+      return { label: `Keep — ${goodLines.length} good lines at target`, steps, cls: 'v-keep', rocks: 0 };
     }
-    return { label: `Keep — ${goodLines.length} good line${goodLines.length > 1 ? 's' : ''} at target`, steps, cls: 'v-keep', rocks: 0 };
   }
 
   // ── CASE 2: At least 1 good line exists ──────────────────
