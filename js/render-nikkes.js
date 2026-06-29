@@ -123,7 +123,7 @@ function renderGear() {
     </div>
   </div>`;
 
-    const sidebarKey = `${state.gearElementFilter}|${state.gearBurstFilter}|${state.gearManufacturerFilter}|${state.gearWeaponFilter}|${sortBy}|${sortDir}|${filtered.map((n) => n.id + dotStatus(n, "Helmet") + dotStatus(n, "Chest") + dotStatus(n, "Gloves") + dotStatus(n, "Boots")).join(",")}|${state.selGear}`;
+    const sidebarKey = `${state.gearElementFilter}|${state.gearBurstFilter}|${state.gearManufacturerFilter}|${state.gearWeaponFilter}|${sortBy}|${sortDir}|${filtered.map((n) => n.id + dotStatus(n, "Helmet") + dotStatus(n, "Torso") + dotStatus(n, "Arms") + dotStatus(n, "Legs")).join(",")}|${state.selGear}`;
 
     if (sidebarKey !== _gearSidebarCache || !el.innerHTML) {
         _gearSidebarCache = sidebarKey;

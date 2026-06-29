@@ -351,10 +351,11 @@ function renderRaidMain(raid) {
                     }
                 }
 
-                // Gear Level recommendation — separate columns for Helmet, Chest, Gloves
-                const gearSlots = ["Helmet", "Chest", "Gloves"];
+                // Gear Level recommendation — separate columns for Helmet, Torso, Arms
+                const gearSlots = ["Helmet", "Torso", "Arms"];
                 const gearCells = gearSlots.map((slot) => {
-                    const g = n.gear[slot];
+                    const g = n.gear && n.gear[slot];
+                    if (!g) return '<span style="color:#475569">—</span>';
                     const tier = g.tier || 0;
                     const lv = g.lv || 0;
                     if (tier >= 10 && lv >= 5) {
@@ -389,7 +390,7 @@ function renderRaidMain(raid) {
             bodyHtml = `
       <div class="info-note" style="margin-bottom:10px">Showing recommendations for all Nikkes assigned to teams. Click a row to open in Gear Tracker.</div>
       <table class="attr-table" style="width:100%">
-        <tr><th>#</th><th>Tm</th><th>Nikke</th><th class="sort-header" style="text-align:right" onclick="setRaidRecSort('damage')">Damage${sortArrow("damage")}</th><th class="sort-header" style="text-align:right" onclick="setRaidRecSort('potential')">Potential${sortArrow("potential")}</th><th class="sort-header" style="text-align:right" onclick="setRaidRecSort('rockeff')">Rock Eff${sortArrow("rockeff")}</th><th style="text-align:center">S1</th><th style="text-align:center">S2</th><th style="text-align:center">Burst</th><th style="text-align:center">Dolls</th><th style="text-align:center">Bond</th><th style="text-align:center">Helm</th><th style="text-align:center">Chest</th><th style="text-align:center">Gloves</th></tr>
+        <tr><th>#</th><th>Tm</th><th>Nikke</th><th class="sort-header" style="text-align:right" onclick="setRaidRecSort('damage')">Damage${sortArrow("damage")}</th><th class="sort-header" style="text-align:right" onclick="setRaidRecSort('potential')">Potential${sortArrow("potential")}</th><th class="sort-header" style="text-align:right" onclick="setRaidRecSort('rockeff')">Rock Eff${sortArrow("rockeff")}</th><th style="text-align:center">S1</th><th style="text-align:center">S2</th><th style="text-align:center">Burst</th><th style="text-align:center">Dolls</th><th style="text-align:center">Bond</th><th style="text-align:center">Helm</th><th style="text-align:center">Torso</th><th style="text-align:center">Arms</th></tr>
         ${rows}
       </table>`;
         } else {

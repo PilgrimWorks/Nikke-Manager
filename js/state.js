@@ -18,4 +18,9 @@ let state = {
     gearWeaponFilter: "",
     gearSidebarSort: "power",
     gearSidebarSortDir: "desc",
+    // Teams tab (independent of Solo Raids / state.raids)
+    teamRaids: [],
+    selTeamRaid: null,
+    teamRaidView: "teams",
+    teamRaidGap: null,
 };

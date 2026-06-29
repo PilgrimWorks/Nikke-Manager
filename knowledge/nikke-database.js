@@ -3,16 +3,16 @@
 //  Single source of truth for all Nikke game entity data.
 // ============================================================
 
-const SLOTS = ["Helmet", "Chest", "Gloves", "Boots"];
+const SLOTS = ["Helmet", "Torso", "Arms", "Legs"];
 
 // Base stats provided by each gear slot when leveled, with relative weight.
 // Source: nikke.gg/equipment — arrows indicate relative stat magnitude.
-// Helmet: ATK▲▲▲, HP▲  |  Chest: ATK▲, HP▲▲▲  |  Gloves: ATK▲▲, DEF▲  |  Boots: HP▲▲, DEF▲▲
+// Helmet: ATK▲▲▲, HP▲  |  Torso: ATK▲, HP▲▲▲  |  Arms: ATK▲▲, DEF▲  |  Legs: HP▲▲, DEF▲▲
 const GEAR_SLOT_STATS = {
     Helmet: { ATK: 3, HP: 1 },
-    Chest:  { ATK: 1, HP: 3 },
-    Gloves: { ATK: 2, DEF: 1 },
-    Boots:  { HP: 2, DEF: 2 },
+    Torso: { ATK: 1, HP: 3 },
+    Arms: { ATK: 2, DEF: 1 },
+    Legs: { HP: 2, DEF: 2 },
 };
 
 const NIKKE_ELEMENTS = ["Fire", "Water", "Wind", "Electric", "Iron"];
@@ -5729,6 +5729,49 @@ const NIKKE_DATABASE = [
 
 const NIKKE_DB_MAP = new Map(NIKKE_DATABASE.map((n) => [n.name, n]));
 
+// Solo Raid boss data — source: enikk.app/soloraid, scraped 2026-06-29
+// element/weakness follow the NIKKE element chart: Fire<Water<Wind<Fire, Electric<Iron<Electric
+const SOLO_RAID_BOSSES = [
+    { season: 1, name: "Mother Whale", element: "Iron", weakness: "Electric" },
+    { season: 2, name: "Black Smith", element: "Fire", weakness: "Water" },
+    { season: 3, name: "Harvester", element: "Fire", weakness: "Water" },
+    { season: 4, name: "Alteisen", element: "Iron", weakness: "Electric" },
+    { season: 5, name: "9810811510911663", element: "Wind", weakness: "Fire" },
+    { season: 6, name: "Modernia", element: "Water", weakness: "Wind" },
+    { season: 7, name: "Ultra", element: "Electric", weakness: "Iron" },
+    { season: 8, name: "Chatterbox", element: "Fire", weakness: "Water" },
+    { season: 9, name: "Material H", element: "Water", weakness: "Wind" },
+    { season: 10, name: "Crystal Chamber", element: "Iron", weakness: "Electric" },
+    { season: 11, name: "Storm Bringer", element: "Wind", weakness: "Fire" },
+    { season: 12, name: "Nihilister", element: "Fire", weakness: "Water" },
+    { season: 13, name: "Indivilia", element: "Electric", weakness: "Iron" },
+    { season: 14, name: "Grave Digger", element: "Electric", weakness: "Iron" },
+    { season: 15, name: "Golden Kraken", element: "Water", weakness: "Wind" },
+    { season: 16, name: "Mirror Container", element: "Iron", weakness: "Electric" },
+    { season: 17, name: "Massive Object", element: "Wind", weakness: "Fire" },
+    { season: 18, name: "Land Eater", element: "Fire", weakness: "Water" },
+    { season: 19, name: "Behemoth", element: "Iron", weakness: "Electric" },
+    { season: 20, name: "White Ice Dragon", element: "Iron", weakness: "Electric" },
+    { season: 21, name: "Modernia", element: "Wind", weakness: "Fire" },
+    { season: 22, name: "Material H", element: "Fire", weakness: "Water" },
+    { season: 23, name: "Massive Object Q", element: "Water", weakness: "Wind" },
+    { season: 24, name: "Black Snake", element: "Fire", weakness: "Water" },
+    { season: 25, name: "Gluttony", element: "Wind", weakness: "Fire" },
+    { season: 26, name: "Providence", element: "Electric", weakness: "Iron" },
+    { season: 27, name: "Hologram Kraken", element: "Fire", weakness: "Water" },
+    { season: 28, name: "Ziz", element: "Wind", weakness: "Fire" },
+    { season: 29, name: "Mother Whale", element: "Electric", weakness: "Iron" },
+    { season: 30, name: "The Merciless Judge", element: "Iron", weakness: "Electric" },
+    { season: 31, name: "Queen 001", element: "Water", weakness: "Wind" },
+    { season: 32, name: "Alteisen", element: "Wind", weakness: "Fire" },
+    { season: 33, name: "Only One", element: "Fire", weakness: "Water" },
+    { season: 34, name: "Altruia", element: "Electric", weakness: "Iron" },
+    { season: 35, name: "Crystal Chamber", element: "Wind", weakness: "Fire" },
+    { season: 36, name: "Egovista", element: "Iron", weakness: "Electric" },
+    { season: 37, name: "Ultra", element: "Fire", weakness: "Water" },
+    { season: 38, name: "Annihilio", element: "Water", weakness: "Wind" },
+];
+
 // All possible overload stats
 const ALL_LINES = [
     "ATK",
@@ -5776,7 +5819,7 @@ function manufacturerIcon(manufacturer) {
     return `<img src="assets/manufacturers/${manufacturer.toLowerCase()}.webp" alt="${manufacturer}" style="width:20px;height:20px;vertical-align:middle;border-radius:3px;object-fit:contain">`;
 }
 
-// slot: "Helmet", "Chest", "Gloves", or "Boots"
+// slot: "Helmet", "Torso", "Arms", or "Legs"
 function equipmentIcon(slot) {
     if (!slot) return "";
     return `<img src="assets/equipment/${slot.toLowerCase()}.webp" alt="${slot}" style="width:20px;height:20px;vertical-align:middle;border-radius:3px;object-fit:contain">`;

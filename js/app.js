@@ -3,7 +3,7 @@
 // ============================================================
 
 function switchTab(tab, event) {
-    const tabBtnOrderSwitch = ["overview", "gear", "raids", "cubes", "wishlist", "weights"];
+    const tabBtnOrderSwitch = ["overview", "gear", "raids", "teams", "cubes", "wishlist", "weights"];
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
     document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
     if (event) {
@@ -21,6 +21,7 @@ function switchTab(tab, event) {
     else if (tab === "roster") renderRoster();
     else if (tab === "gear") renderGear();
     else if (tab === "raids") renderRaids();
+    else if (tab === "teams") renderTeams();
     else if (tab === "weights") renderWeights();
     else if (tab === "cubes") renderCubes();
     else if (tab === "wishlist") renderWishlist();
@@ -79,6 +80,7 @@ function render() {
     renderRoster();
     renderGear();
     renderRaids();
+    renderTeams();
     renderWeights();
     renderCubes();
     renderWishlist();
@@ -219,7 +221,7 @@ const _isNewUser = (function handleNewUser() {
         // No data yet — always show the guide on load
         showTutorial();
         // Auto-switch to Nikkes tab
-        const tabBtnOrder = ["overview", "gear", "raids", "cubes", "wishlist", "weights"];
+        const tabBtnOrder = ["overview", "gear", "raids", "teams", "cubes", "wishlist", "weights"];
         const gearIdx = tabBtnOrder.indexOf("gear");
         document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
         document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
@@ -238,7 +240,7 @@ if (!_isNewUser) {
     const initTab = new URLSearchParams(window.location.search).get("tab");
     if (initTab && document.getElementById(initTab)) {
         // Map section IDs to tab button indices (roster has no button)
-        const tabBtnOrder = ["overview", "gear", "raids", "cubes", "wishlist", "weights"];
+        const tabBtnOrder = ["overview", "gear", "raids", "teams", "cubes", "wishlist", "weights"];
         const btnIdx = tabBtnOrder.indexOf(initTab);
         if (btnIdx >= 0) {
             document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));

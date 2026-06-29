@@ -68,7 +68,7 @@ function renderWeights() {
                         ? STAT_DMG_WEIGHT_WEAPON[w][stat]
                         : "—";
                 const custom = isWeaponCustom(w, stat) ? ' style="color:#fbbf24"' : "";
-                return `<td${custom}><input type="number" step="0.01" min="0" max="5" class="value-input" style="width:65px"
+                return `<td data-label="${stat}"${custom}><input type="number" step="0.01" min="0" max="5" class="value-input" style="width:65px"
         value="${val}" placeholder="${defaultVal === "—" ? "" : defaultVal}"
         onchange="updateWeaponWeight('${w}','${stat}', this.value)"></td>`;
             })
@@ -114,7 +114,7 @@ function renderWeights() {
       <div class="info-note" style="margin-bottom:.7rem">
         These override the base weight for specific weapon types. Leave blank to use the base weight.
       </div>
-      <table class="attr-table">
+      <table class="attr-table weapon-table">
         <tr><th>Weapon</th><th>Max Ammo</th><th>Charge Speed</th><th>Charge Dmg</th><th>Hit Rate</th></tr>
         ${weaponRows}
       </table>
@@ -124,7 +124,7 @@ function renderWeights() {
         The first Max Ammo line is highly valuable (reduces reload frequency significantly).
         Additional lines have sharply diminishing returns. The multiplier below is applied to the base Max Ammo weight.
       </div>
-      <table class="attr-table">
+      <table class="attr-table diminish-table">
         <tr><th>Line #</th><th>Multiplier</th><th>Default</th><th>Effect</th></tr>
         ${diminishRows}
       </table>

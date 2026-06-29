@@ -20,7 +20,7 @@
   ----------
   state.nikkes[]
     └── id, name, burst, element
-    └── gear { Helmet, Chest, Gloves, Boots }
+    └── gear { Helmet, Torso, Arms, Legs }
           └── lines[3] { stat, val, locked }
     └── priorities[]
           └── { line, tier, count, targetTier }
@@ -119,6 +119,7 @@
                 <button class="tab active" onclick="switchTab('overview', event)">Overview</button>
                 <button class="tab" onclick="switchTab('gear', event)">Nikkes</button>
                 <button class="tab" onclick="switchTab('raids', event)">Solo Raids</button>
+                <button class="tab" onclick="switchTab('teams', event)">Teams</button>
                 <button class="tab" onclick="switchTab('cubes', event)">Cubes</button>
                 <button class="tab" onclick="switchTab('wishlist', event)">Wishlist</button>
                 <button class="tab" onclick="switchTab('weights', event)">Weights</button>
@@ -128,6 +129,7 @@
             <div id="roster" class="section"></div>
             <div id="gear" class="section"></div>
             <div id="raids" class="section"></div>
+            <div id="teams" class="section"></div>
             <div id="weights" class="section"></div>
             <div id="cubes" class="section"></div>
             <div id="wishlist" class="section"></div>
@@ -290,6 +292,7 @@
         <script src="js/render-nikkes.js"></script>
         <script src="js/render-priority.js"></script>
         <script src="js/render-raids.js"></script>
+        <script src="js/render-teams.js"></script>
         <script src="js/render-weights.js"></script>
         <script src="js/render-cubes.js"></script>
         <script src="js/render-wishlist.js"></script>

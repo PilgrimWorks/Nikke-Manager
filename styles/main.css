@@ -1918,6 +1918,12 @@ details[open] > .verdict-title {
     table.attr-table {
         min-width: 480px;
     }
+    /* Cubes & Weights reflow to fit — they must NOT inherit the wide-table
+       min-width (they have no horizontal-scroll wrapper). */
+    #cubes table.attr-table,
+    #weights table.attr-table {
+        min-width: 0;
+    }
 
     /* Raid team chips: wrap on mobile */
     .raid-team-drop {
@@ -2063,6 +2069,11 @@ details[open] > .verdict-title {
     .cube-table tr:last-child {
         border-bottom: none;
     }
+    /* Cells carry no divider of their own — only the row (tr) divides one cube
+       from the next, so the Equipped By list reads as part of the cube above. */
+    .cube-table td {
+        border-bottom: none;
+    }
     /* Header row: hide the Equipped By th since it moves inline */
     .cube-table tr:first-child th:last-child {
         display: none;
@@ -2093,6 +2104,73 @@ details[open] > .verdict-title {
         grid-column: 1 / -1;
         grid-row: 2;
         padding-top: 0;
+    }
+}
+
+/* ── Weights tab: reflow to fit on mobile ── */
+@media (max-width: 768px) {
+    /* Diminishing-returns table: drop the verbose "Effect" column (it's
+       explanatory text already covered by the info-note above, and its
+       nowrap is a width driver). Keep Line # / Multiplier / Default. */
+    #weights .diminish-table th:nth-child(4),
+    #weights .diminish-table td:nth-child(4) {
+        display: none;
+    }
+
+    /* Roomier tap targets for the number fields. */
+    #weights input[type="number"].value-input {
+        padding: 6px 4px;
+    }
+}
+
+@media (max-width: 520px) {
+    /* Weapon Overrides: reflow each row into a labeled card. The 5-column
+       table (wide "Charge Speed"/"Charge Dmg" headers) won't fit otherwise. */
+    #weights .weapon-table,
+    #weights .weapon-table tbody {
+        display: block;
+        width: 100%;
+    }
+    /* Header row labels move into each card via data-label::before. */
+    #weights .weapon-table tr:first-child {
+        display: none;
+    }
+    #weights .weapon-table tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        border: 1px solid #1e2535;
+        border-radius: 8px;
+        background: #151c2b;
+    }
+    /* Weapon name: full-width card header. */
+    #weights .weapon-table td:first-child {
+        grid-column: 1 / -1;
+        border-bottom: 1px solid #1e2535;
+        padding-bottom: 6px;
+        margin-bottom: 2px;
+        white-space: normal;
+        overflow: visible;
+    }
+    /* Stat cells: label above input. */
+    #weights .weapon-table td {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        border-bottom: none;
+        white-space: normal;
+        overflow: visible;
+    }
+    #weights .weapon-table td[data-label]::before {
+        content: attr(data-label);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        color: #475569;
+    }
+    #weights .weapon-table td .value-input {
+        width: 100% !important;
     }
 }
 
@@ -2146,12 +2224,15 @@ details[open] > .verdict-title {
 .nikke-stats-edit input[type="number"]::-webkit-outer-spin-button,
 .nikke-stats-edit input[type="number"]::-webkit-inner-spin-button,
 .stepper input[type="number"]::-webkit-outer-spin-button,
-.stepper input[type="number"]::-webkit-inner-spin-button {
+.stepper input[type="number"]::-webkit-inner-spin-button,
+#weights input[type="number"]::-webkit-outer-spin-button,
+#weights input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 .nikke-stats-edit input[type="number"],
-.stepper input[type="number"] {
+.stepper input[type="number"],
+#weights input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
 }
@@ -2247,4 +2328,416 @@ details[open] > .verdict-title {
 .stepper .stepper-input:disabled {
     opacity: 0.3;
     cursor: not-allowed;
+}
+
+/* ============================================================
+   TEAMS TAB  (independent of .raid-* — do not merge)
+   ============================================================ */
+.team-main-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.team-raid-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+.team-view-toggle {
+    display: inline-flex;
+    background: #11151d;
+    border: 1px solid #2d3f5e;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.team-view-toggle button {
+    font-family: inherit;
+    font-size: 12.5px;
+    padding: 5px 12px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: #8b96a8;
+}
+.team-view-toggle button.active {
+    background: #3b82f6;
+    color: #0a0c12;
+    font-weight: 600;
+}
+.team-lanes {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+.team-lane {
+    background: #151c2b;
+    border: 1px solid #1e2535;
+    border-radius: 8px;
+    padding: 8px;
+}
+.team-lane-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    min-height: 28px;
+}
+.team-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f1f5f9;
+    white-space: nowrap;
+}
+.team-total {
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.team-label-input {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f1f5f9;
+    background: #0f172a;
+    border: 1px solid #3b82f6;
+    border-radius: 4px;
+    padding: 1px 6px;
+    outline: none;
+    width: 120px;
+}
+.team-slots {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+}
+.team-slot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    position: relative;
+    background: #1a2235;
+    border: 1px solid #2d3f5e;
+    border-radius: 8px;
+    color: #e2e8f0;
+    min-height: 62px;
+    min-width: 0;
+    overflow: hidden;
+}
+.team-slot-empty {
+    border-style: dashed;
+    background: #0f172a;
+    justify-content: center;
+    cursor: pointer;
+}
+.team-slot-empty:hover {
+    border-color: #60a5fa;
+    background: #0f1a2e;
+}
+.team-slot-add-btn {
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: none;
+    color: #64748b;
+    font-size: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+}
+.team-slot-add-btn:hover {
+    color: #60a5fa;
+}
+.team-slot-filled {
+    background: #1a2235;
+    cursor: pointer;
+}
+.team-slot-filled:hover {
+    background: #1e2d45;
+    border-color: #3d5a80;
+}
+.team-slot-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.team-slot-name {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #e7ecf3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.team-slot-dmg-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+.team-slot-dmg-input {
+    width: 52px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 1px 3px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #2d3748;
+    border-radius: 0;
+    color: #5d6779;
+    outline: none;
+    font-family: inherit;
+}
+.team-slot-dmg-input:focus {
+    border-bottom-color: #3b82f6;
+}
+.team-slot-dmg-suffix {
+    font-size: 11px;
+    color: #475569;
+    white-space: nowrap;
+}
+.team-slot-remove {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+.team-slot-remove:hover {
+    background: #7f1d1d;
+    border-color: #f87171;
+    color: #fca5a5;
+}
+.team-slot-picker-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.team-slot-picker-overlay.show {
+    display: flex;
+}
+.team-slot-picker-modal {
+    background: #151c2b;
+    border: 1px solid #2d3f5e;
+    border-radius: 12px;
+    padding: 16px;
+    width: 340px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+.team-slot-picker-list {
+    overflow-y: auto;
+    max-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.team-slot-picker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #e2e8f0;
+}
+.team-slot-picker-item:hover {
+    background: #1e3a5f;
+}
+.team-readiness-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+.team-readiness-card {
+    background: #151c2b;
+    border: 1px solid #1e2535;
+    border-radius: 8px;
+    padding: 12px 14px;
+}
+.team-readiness-header {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-bottom: 11px;
+}
+.team-readiness-bar {
+    flex: 1;
+    height: 7px;
+    background: #0e1219;
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 220px;
+}
+.team-readiness-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.2s;
+}
+.team-readiness-pct {
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.team-elem-warning {
+    font-size: 12px;
+    color: #fbbf24;
+    padding: 3px 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.team-gap-chips {
+    display: flex;
+    gap: 2px;
+    margin-top: 10px;
+    border-bottom: 1px solid #1e2535;
+}
+.team-gap-chip {
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    padding: 6px 14px;
+    border: none;
+    background: none;
+    color: #64748b;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    transition: color 0.15s;
+}
+.team-gap-chip:hover {
+    color: #94a3b8;
+}
+.team-gap-chip.active {
+    color: #f1f5f9;
+    font-weight: 500;
+    border-bottom: 2px solid #3b82f6;
+}
+.team-gap-chip.empty {
+    color: #3a4455;
+    cursor: default;
+}
+.team-gap-count {
+    font-weight: 700;
+}
+.team-gap-list {
+    margin-top: 12px;
+    border-top: 1px solid #1b212d;
+    padding-top: 11px;
+}
+.team-gap-list-label {
+    font-size: 11px;
+    color: #5d6779;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+}
+.team-gap-item {
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #0e1219;
+    border: 1px solid #1b212d;
+    border-radius: 9px;
+    padding: 8px 11px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: border-color 0.12s;
+}
+.team-gap-item:hover {
+    border-color: #2d3f5e;
+}
+.team-gap-item-name {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #e7ecf3;
+}
+.team-gap-item-detail {
+    font-size: 12.5px;
+    color: #8b96a8;
+    margin-left: auto;
+    text-align: right;
+}
+
+/* New Roster mode selector (Teams tab create form) */
+.roster-mode-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.roster-mode-toggle button {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 10px;
+    border: 1px solid #2d3f5e;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #11151d;
+    color: #8b96a8;
+    text-align: center;
+}
+.roster-mode-toggle button.active {
+    background: #3b82f6;
+    color: #0a0c12;
+    font-weight: 600;
+    border-color: #3b82f6;
+}
+
+/* Campaign per-team delete button (Teams tab) */
+.team-del-btn {
+    flex-shrink: 0;
+    font-size: 13px;
+    line-height: 1;
+    padding: 4px 8px;
+    border: 1px solid #5b2330;
+    border-radius: 5px;
+    background: #2a1116;
+    color: #f87171;
+    cursor: pointer;
+}
+.team-del-btn:hover {
+    background: #3a1620;
+}
+
+/* Roster mode label shown next to the roster name (Teams tab) */
+.roster-mode-badge {
+    font-size: 12px;
+    font-weight: 600;
+    color: #8b96a8;
+    background: #11151d;
+    border: 1px solid #2d3f5e;
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin-left: 6px;
+    vertical-align: middle;
 }

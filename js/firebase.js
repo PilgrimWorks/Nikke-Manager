@@ -175,6 +175,10 @@ auth.onAuthStateChanged(async (user) => {
             gearSidebarSort: "power",
             gearSidebarSortDir: "desc",
             cubeLevels: {},
+            teamRaids: [],
+            selTeamRaid: null,
+            teamRaidView: "teams",
+            teamRaidGap: null,
         };
         try {
             localStorage.removeItem("nikke_v8");
@@ -265,6 +269,9 @@ function load() {
     state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
     // Always default Solo Raids view to Recommendations on reload
     state.raidViewMode = "recommend";
+    // Teams tab: default to latest team-raid, collapse any expanded gap
+    state.selTeamRaid = state.teamRaids.length ? state.teamRaids[state.teamRaids.length - 1].id : null;
+    state.teamRaidGap = null;
     // Save to localStorage only (auth listener handles cloud sync)
     try {
         localStorage.setItem("nikke_v8", JSON.stringify(state));
@@ -282,10 +289,34 @@ function migrateState() {
     if (state.gearSidebarSortDir === undefined) state.gearSidebarSortDir = "desc";
     if (state.overviewElementFilter === undefined) state.overviewElementFilter = "";
     if (!state.raids) state.raids = [];
+    if (!state.teamRaids) state.teamRaids = [];
+    // Backfill roster mode/teamCount: pre-mode rosters were all 5-team Solo Raids.
+    state.teamRaids.forEach((r) => {
+        if (!r.mode) r.mode = "solo";
+        if (!r.teamCount || r.teamCount < 1) {
+            r.teamCount = r.mode === "campaign" ? 1 : r.mode === "union" ? 3 : 5;
+        }
+    });
+    if (state.selTeamRaid === undefined) state.selTeamRaid = null;
+    if (state.teamRaidView === undefined) state.teamRaidView = "teams";
+    if (state.teamRaidGap === undefined) state.teamRaidGap = null;
     if (state.selRaid === undefined) state.selRaid = null;
     if (state.selRaidEdit === undefined) state.selRaidEdit = null;
     if (state.rankSortAsc === undefined) state.rankSortAsc = false;
     if (state.skillTarget === undefined) state.skillTarget = "rec";
+    // Migrate old slot names (Chest→Torso, Gloves→Arms, Boots→Legs)
+    const SLOT_RENAMES = { Chest: "Torso", Gloves: "Arms", Boots: "Legs" };
+    state.nikkes.forEach((n) => {
+        if (n.gear) {
+            for (const [oldName, newName] of Object.entries(SLOT_RENAMES)) {
+                if (n.gear[oldName] && !n.gear[newName]) {
+                    n.gear[newName] = n.gear[oldName];
+                    delete n.gear[oldName];
+                }
+            }
+        }
+    });
+
     state.nikkes.forEach((n) => {
         n.id = n.id.replace(".", "");
         if (!n.element) {
@@ -407,9 +438,9 @@ function _applyScraperImport(scraperData, opts) {
 
     const SLOT_MAP = {
         Helmet: "Helmet",
-        Chest: "Chest",
-        Gloves: "Gloves",
-        "Combat Boots": "Boots",
+        Chest: "Torso",
+        Gloves: "Arms",
+        "Combat Boots": "Legs",
     };
 
     const NAME_OVERRIDES = {
