@@ -347,6 +347,16 @@ function isGoodLine(cls) {
   return cls === 'essential' || cls === 'ideal';
 }
 
+// Format a list of stat names for prose: "ATK", "ATK or Elemental Dmg",
+// "ATK, Crit Dmg or Elemental Dmg". Used in the plain-English reroll steps.
+function statsOrLabel(names) {
+  const arr = [...new Set((names || []).filter(Boolean))];
+  if (!arr.length) return 'a good stat';
+  if (arr.length === 1) return arr[0];
+  if (arr.length === 2) return `${arr[0]} or ${arr[1]}`;
+  return `${arr.slice(0, -1).join(', ')} or ${arr[arr.length - 1]}`;
+}
+
 
 // ============================================================
 //  VERDICT ENGINE
@@ -381,6 +391,11 @@ function getVerdict(nikke, slot) {
     }, 0);
     return {
       label: `Ready to roll — ~${fishRocks} rocks for ${goodStatNames}`,
+      action: 'Start rolling',
+      simpleSteps: [
+        'Roll effects on this piece with Overload',
+        `Change Effects any line until an ${statsOrLabel(goodPrios.map(p => p.line))} line appears`,
+      ],
       steps: [
         `Use Overload to start rolling effects on this gear`,
         `${(pGood * 100).toFixed(0)}% chance per roll to hit ${goodStatNames} (1 rock/roll)`,
@@ -416,9 +431,10 @@ function getVerdict(nikke, slot) {
   }
 
   // Helper: list of good stat names for display
-  const goodStatNames = nikke.priorities
+  const goodPrioNames = nikke.priorities
     .filter(p => p.tier === 'Essential' || p.tier === 'Ideal')
-    .map(p => p.line).join('/') || 'good stats';
+    .map(p => p.line);
+  const goodStatNames = goodPrioNames.join('/') || 'good stats';
 
   const lineName = l => `Line ${l.idx + 1} (${LINE_CHANCE_LABELS[l.idx]}) — ${l.stat}`;
 
@@ -428,16 +444,19 @@ function getVerdict(nikke, slot) {
     const steps = [];
     if (goodLines.length === 3) {
       steps.push('This gear is ideal — all 3 lines are at target. No changes needed.');
-      return { label: `Complete — all 3 good lines at target`, steps, cls: 'v-keep', rocks: 0 };
+      return { label: `Complete — all 3 good lines at target`, action: 'Done · all 3 lines ideal', steps, cls: 'v-keep', rocks: 0 };
     } else {
       goodLines.filter(l => !l.locked).sort((a, b) => b.idx - a.idx)
         .forEach(l => steps.push(`Lock ${lineName(l)}`));
       const sacUnlocked = ann.filter(l => l.isSac && l.stat && !l.locked);
       const emptyUnlocked = ann.filter(l => !l.stat && !l.locked);
       const fishableLines = [...sacUnlocked, ...emptyUnlocked];
-      if (fishableLines.length) {
-        const postLocked = lockedCount + goodLines.filter(l => !l.locked).length;
-        const gf = goodFrac(goodLines.filter(l => !l.locked).map(l => l.stat));
+      const postLocked = lockedCount + goodLines.filter(l => !l.locked).length;
+      const gfThird = goodFrac(goodLines.filter(l => !l.locked).map(l => l.stat));
+      // Only worth fishing for a 3rd good line if a 3rd good stat can actually appear.
+      // (e.g. a Nikke whose only good priorities are both already landed → nothing to fish for)
+      if (fishableLines.length && gfThird > 0) {
+        const gf = gfThird;
         const fl = fishableLines.map(l => ({ appear: l.appear }));
         const fr = estChangeEffectsRocks(fl, gf, postLocked);
         const poolCE = remainingStatPool(new Set([...usedStats, ...goodLines.filter(l => !l.locked).map(l => l.stat)]));
@@ -456,10 +475,23 @@ function getVerdict(nikke, slot) {
         steps.push(`P(${goodStatNames}) per line: ${(gf * 100).toFixed(1)}%`);
         steps.push(`Expected ~${fr} rocks for a 3rd good line`);
         const ceGainDps = ceGain.netDps > 0 ? ceGain.netDps : (ceGain.net > 0 ? ceGain.net : 0);
-        return { label: `${goodLines.length} good lines at target — fish for 3rd`, steps, cls: 'v-ok', rocks: fr, gain: ceGainLabel, dpsGain: ceGainDps };
+        return {
+          label: `${goodLines.length} good lines at target — roll for 3rd`,
+          action: 'Lock 2 + roll for 3rd',
+          simpleSteps: [
+            (() => {
+              const toLock = goodLines.filter(l => !l.locked);
+              return toLock.length
+                ? `Lock ${toLock.map(l => `${l.stat} (Line ${l.idx + 1})`).join(' & ')}`
+                : 'Keep both good lines locked';
+            })(),
+            `Change Effects the remaining line${fishableLines.length > 1 ? 's' : ''} until a 3rd ${statsOrLabel(goodPrioNames)} line rolls`,
+          ],
+          steps, cls: 'v-ok', rocks: fr, gain: ceGainLabel, dpsGain: ceGainDps,
+        };
       }
       if (!steps.length) steps.push('This piece is complete — no action needed.');
-      return { label: `Keep — ${goodLines.length} good lines at target`, steps, cls: 'v-keep', rocks: 0 };
+      return { label: `Keep — ${goodLines.length} good lines at target`, action: `Keep · ${goodLines.length} good lines`, steps, cls: 'v-keep', rocks: 0 };
     }
   }
 
@@ -560,15 +592,48 @@ function getVerdict(nikke, slot) {
       // Never recommend Option B if we'd only be sacrificing good lines (no trash to give up)
       const recommendA = !hasTrueTrashToSacrifice || effA >= effB;
 
-      // If no trash lines exist, only show Option A (Option B would sacrifice good lines pointlessly)
-      if (!hasTrueTrashToSacrifice) {
+      // Plain-English steps for the simplified view (math stays in `steps`, shown under "Show odds")
+      const ordinal = n => (n <= 1 ? 'another' : n === 2 ? 'a 2nd' : n === 3 ? 'a 3rd' : `a ${n}th`);
+      // Good lines that survive Option B (the below-target ones get sacrificed)
+      const keptGoodB = goodLines.length - toReset.length;
+      const lockLabel = lockNow.length
+        ? `Lock ${lockNow.map(l => `${l.stat} (Line ${l.idx + 1})`).join(' & ')}`
+        : null;
+      // When the first step is a lock, fold it into the title (matches "Lock line N + …")
+      const lockPrefix = lockNow.length === 0
+        ? ''
+        : lockNow.length === 1
+          ? `Lock line ${lockNow[0].idx + 1} + `
+          : `Lock ${lockNow.length} + `;
+      const resetActionTitle = `${lockPrefix}Reset to fix ${statsOrLabel(toReset.map(l => l.stat))}`;
+      const sacrificeActionTitle = `${lockPrefix}Sacrifice & reroll`;
+      const simpleA = [
+        ...(lockLabel ? [lockLabel] : []),
+        toReset.length === 1
+          ? `Reset Attributes until ${toReset[0].stat} reaches T${toReset[0].targetTier}+ (now T${toReset[0].tier || '?'}, ${toReset[0].val}%)`
+          : `Reset Attributes until each below-target line reaches its target tier`,
+        ...(goodLines.length < 2 && fishRocksA > 0
+          ? [`Then Change Effects for a 2nd ${statsOrLabel(goodPrioNames)} line`]
+          : []),
+      ];
+      const simpleB = [
+        ...(lockLabel ? [lockLabel] : []),
+        `Change Effects the trash/passable lines until ${ordinal(keptGoodB + 1)} ${statsOrLabel(goodPrioNames)} line rolls`,
+        ...toReset.map(l => `⚠ gives up ${l.stat} T${l.tier || '?'}`),
+      ];
+      const containerAction = `Fix ${statsOrLabel(toReset.map(l => l.stat))} value${toReset.length > 1 ? 's' : ''} or reroll`;
+
+      // Only show Option A when Option B is pointless: no trash to sacrifice, or B is
+      // impossible (999 sentinel = no new good stat can appear, e.g. both good stats already present).
+      if (!hasTrueTrashToSacrifice || fishRocksB >= 999) {
         return {
           label: goodLines.length >= 2
             ? `${goodLines.length} good lines — value(s) below target`
-            : `1 good line — fix value or fish for better`,
+            : `1 good line — fix value or roll for better`,
+          action: resetActionTitle,
           cls: 'v-ok',
           options: [
-            { title: 'Option A — Reset Attributes to fix value(s)', steps: optASteps, rocks: resetRocks + fishRocksA, recommended: true, gain: gainALabel, dpsGain: gainAWeighted },
+            { title: 'Option A — Reset Attributes to fix value(s)', action: resetActionTitle, simpleSteps: simpleA, steps: optASteps, rocks: resetRocks + fishRocksA, recommended: true, gain: gainALabel, dpsGain: gainAWeighted },
           ],
         };
       }
@@ -576,11 +641,12 @@ function getVerdict(nikke, slot) {
       return {
         label: goodLines.length >= 2
           ? `${goodLines.length} good lines — value(s) below target`
-          : `1 good line — fix value or fish for better`,
+          : `1 good line — fix value or roll for better`,
+        action: containerAction,
         cls: 'v-ok',
         options: [
-          { title: 'Option A — Reset Attributes to fix value(s)', steps: optASteps, rocks: resetRocks + fishRocksA, recommended: recommendA, gain: gainALabel, dpsGain: gainAWeighted },
-          { title: 'Option B — Sacrifice & Change Effects',        steps: optBSteps, rocks: fishRocksB,             recommended: !recommendA, gain: gainBLabel, dpsGain: gainBDps },
+          { title: 'Option A — Reset Attributes to fix value(s)', action: resetActionTitle,     simpleSteps: simpleA, steps: optASteps, rocks: resetRocks + fishRocksA, recommended: recommendA, gain: gainALabel, dpsGain: gainAWeighted },
+          { title: 'Option B — Sacrifice & Change Effects',        action: sacrificeActionTitle, simpleSteps: simpleB, steps: optBSteps, rocks: fishRocksB,             recommended: !recommendA, gain: gainBLabel, dpsGain: gainBDps },
         ],
       };
     }
@@ -616,8 +682,22 @@ function getVerdict(nikke, slot) {
         .filter(p => (p.tier === 'Essential' || p.tier === 'Ideal') && !existingGoodStats.has(p.line) && !usedStats.has(p.line))
         .map(p => p.line);
       const targetStatLabel = missingGoodStats.length ? missingGoodStats.join('/') : goodStatNames;
+      const targetStatOr = statsOrLabel(missingGoodStats.length ? missingGoodStats : goodPrioNames);
       const ceGainDps = ceGain.netDps > 0 ? ceGain.netDps : (ceGain.net > 0 ? ceGain.net : 0);
-      return { label: `1 good line — fish for ${targetStatLabel}`, steps, cls: 'v-ok', rocks: fishRocks, gain: ceGainLabel, dpsGain: ceGainDps };
+      const lockLine = lockNow[0] || goodLines[0];
+      const otherCount = fishLines.length;
+      const otherPhrase = otherCount === 0
+        ? 'the remaining lines'
+        : `the other ${otherCount === 1 ? 'line' : otherCount === 2 ? 'two lines' : `${otherCount} lines`}`;
+      return {
+        label: `1 good line — roll for ${targetStatLabel}`,
+        action: lockLine ? `Lock line ${lockLine.idx + 1} + Change Effects` : 'Change Effects',
+        simpleSteps: [
+          ...(lockNow.length ? [`Lock ${lockLine.stat} (Line ${lockLine.idx + 1})`] : []),
+          `Change Effects ${otherPhrase} until a 2nd ${targetStatOr} line rolls`,
+        ],
+        steps, cls: 'v-ok', rocks: fishRocks, gain: ceGainLabel, dpsGain: ceGainDps,
+      };
     }
   }
 
@@ -637,6 +717,10 @@ function getVerdict(nikke, slot) {
   }
   return {
     label: 'No Essential/Ideal lines — Change Effects freely',
+    action: 'Reroll freely',
+    simpleSteps: [
+      `Change Effects any line until an ${statsOrLabel(goodPrioNames)} line rolls — no locks needed`,
+    ],
     steps: [
       `No locks needed — ${rocksPerRoll(lockedCount)} rock/roll`,
       `Priority: Line 3 (30%) → Line 2 (50%) → Line 1 (100%) last`,

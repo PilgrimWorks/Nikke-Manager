@@ -90,8 +90,10 @@ function renderGear() {
         filtered
             .map((n) => {
                 // One dot per gear slot, coloured by that slot's gear status (done/partial/warn/none)
-                const dots = SLOTS.map((s) => `<span class="${dotStatus(n, s)}" title="${s}"></span>`).join("");
-                return `<div class="nikke-item ${state.selGear === n.id ? "active" : ""}" data-name="${n.name.toLowerCase()}" onclick="selGearNikke('${n.id}')" style="display:flex;align-items:center;gap:8px">
+                const dots = SLOTS.map(
+                    (s) => `<span class="${dotStatus(n, s)}" title="${s}" data-slot="${s}"></span>`,
+                ).join("");
+                return `<div class="nikke-item ${state.selGear === n.id ? "active" : ""}" data-id="${n.id}" data-name="${n.name.toLowerCase()}" onclick="selGearNikke('${n.id}')" style="display:flex;align-items:center;gap:8px">
       ${nikkeIcon(n.name, 34)}<div style="min-width:0"><div>${n.name}</div><div class="nikke-item-sub" style="display:flex;align-items:center;gap:6px"><span class="gear-dots-mini">${dots}</span>${elemIcon(n.element, 14)}</div></div>
     </div>`;
             })
@@ -208,6 +210,17 @@ function renderGear() {
         const n = state.nikkes.find((x) => x.id === state.selGear);
         if (n) renderGearMain(n);
     }
+}
+
+// Surgically refresh just the 4 gear dots for one Nikke in the sidebar list,
+// without re-rendering any other list item. Used after editing gear lines.
+function updateGearDots(nikke) {
+    const dotsEl = document.querySelector(`#gear .nikke-item[data-id="${nikke.id}"] .gear-dots-mini`);
+    if (!dotsEl) return;
+    SLOTS.forEach((s) => {
+        const dot = dotsEl.querySelector(`[data-slot="${s}"]`);
+        if (dot) dot.className = dotStatus(nikke, s);
+    });
 }
 
 function setGearBurstFilter(val) {
@@ -408,7 +421,7 @@ function renderGearMain(nikke) {
         ? `
     <div class="attr-summary">
       <div class="at-head">
-        <span class="attr-summary-title">Attribute totals</span>
+        <span class="attr-summary-title">Attribute Totals</span>
       </div>
       <div class="at-colhead">
         <span>Stat</span><span>Lines</span><span>Total</span><span>Target</span><span>Status</span>
@@ -446,9 +459,16 @@ function renderGearMain(nikke) {
                               ? "Trash"
                               : "";
                 const prioCls = prioText ? `prio-${cls}` : "";
-                const opts = ALL_LINES.map(
-                    (l) => `<option value="${l}" ${line.stat === l ? "selected" : ""}>${l}</option>`,
-                ).join("");
+                // A stat can't appear twice on the same piece — hide stats already used on the other lines
+                const usedOnOtherLines = new Set(
+                    gear.lines
+                        .filter((_, li) => li !== i)
+                        .map((ln) => ln.stat)
+                        .filter(Boolean),
+                );
+                const opts = ALL_LINES.filter((l) => l === line.stat || !usedOnOtherLines.has(l))
+                    .map((l) => `<option value="${l}" ${line.stat === l ? "selected" : ""}>${l}</option>`)
+                    .join("");
                 const unit = line.stat && IS_PCT.has(line.stat) ? "%" : "";
                 const normalVal = line.val ? parseFloat(String(line.val).replace("%", "")).toFixed(2) : "";
                 const tierOpts =
@@ -496,37 +516,70 @@ ${tierOpts}
 
         let verdictHtml = "";
         if (v) {
-            if (v.options) {
-                const rec = v.options.find((o) => o.recommended) || v.options[0];
-                const recName = rec.title.includes("Reset") ? "Reset" : "Change Effects";
-                const summary = `${v.label} — ${recName} ~${rec.rocks} rocks · ${rec.gain}`;
+            // Plain numbered instruction list
+            const stepList = (steps) =>
+                steps && steps.length
+                    ? `<div class="verdict-steps">${steps
+                          .map(
+                              (s, i) =>
+                                  `<div class="verdict-step"><span class="step-num">${i + 1}.</span><span>${s}</span></div>`,
+                          )
+                          .join("")}</div>`
+                    : "";
+            // Damage suffix for the option rows, e.g. " · +4.4% dmg"
+            const dmgTxt = (g) => (g && g > 0 ? ` · +${g.toFixed(1)}% dmg` : "");
+            // Rocks + dmg estimate for the card title — no em-dash, standard weight (not bold)
+            const costTxt = (rocks, g) => {
+                let inner = "";
+                if (rocks > 0) inner = `~${rocks} rocks${dmgTxt(g)}`;
+                else if (g && g > 0) inner = `+${g.toFixed(1)}% dmg`;
+                return inner ? ` <span class="verdict-cost">${inner}</span>` : "";
+            };
+
+            if (v.options && v.options.length === 1) {
+                // Single surviving option → render like a plain verdict
+                const opt = v.options[0];
+                const title = v.action || opt.action || v.label;
+                const summary = `${title}${costTxt(opt.rocks, opt.dpsGain)}`;
                 verdictHtml = `<details class="verdict ${v.cls}">
           <summary class="verdict-title">${summary}</summary>
-          ${v.options
-              .map(
-                  (opt) => `
+          ${stepList(opt.simpleSteps && opt.simpleSteps.length ? opt.simpleSteps : opt.steps)}
+        </details>`;
+            } else if (v.options) {
+                const title = v.action || v.label;
+                const summary = `${title}`;
+                const optionsBody = v.options
+                    .map(
+                        (opt) => `
 <div class="verdict-option" style="${opt.recommended ? "border-left:3px solid currentColor" : ""}">
-  <div class="verdict-option-title">${opt.title}${opt.recommended ? '<span class="recommended-badge">Recommended</span>' : ""}</div>
-  <div class="verdict-steps">${opt.steps.map((s, si) => `<div class="verdict-step"><span class="step-num">${si + 1}.</span><span>${s}</span></div>`).join("")}</div>
-  <span class="rock-est">~${opt.rocks} rocks · ${opt.gain}</span>
+  <div class="verdict-option-title">${opt.recommended ? "★ " : ""}${opt.action || opt.title}<span class="rock-est">${opt.rocks > 0 ? `~${opt.rocks} rocks` : ""}${dmgTxt(opt.dpsGain)}</span>${opt.recommended ? '<span class="recommended-badge">Recommended</span>' : ""}</div>
+  ${stepList(opt.simpleSteps && opt.simpleSteps.length ? opt.simpleSteps : opt.steps)}
 </div>`,
-              )
-              .join("")}
+                    )
+                    .join("");
+                verdictHtml = `<details class="verdict ${v.cls}">
+          <summary class="verdict-title">${summary}</summary>
+          ${optionsBody}
         </details>`;
             } else {
-                const gainText = v.gain ? ` · ${v.gain}` : "";
-                const summary = v.rocks > 0 ? `${v.label} — ~${v.rocks} rocks${gainText}` : `${v.label}`;
-                verdictHtml = `<details class="verdict ${v.cls}">
+                const title = v.action || v.label;
+                const simple = v.simpleSteps && v.simpleSteps.length ? v.simpleSteps : null;
+                const summary = `${title}${costTxt(v.rocks, v.dpsGain)}`;
+                if (!simple) {
+                    // "Done" / "Keep" states: summary only, no expander
+                    verdictHtml = `<div class="verdict ${v.cls} verdict-static"><span class="verdict-title">${summary}</span></div>`;
+                } else {
+                    verdictHtml = `<details class="verdict ${v.cls}">
           <summary class="verdict-title">${summary}</summary>
-          <div class="verdict-steps">${(v.steps || []).map((s, i) => `<div class="verdict-step"><span class="step-num">${i + 1}.</span><span>${s}</span></div>`).join("")}</div>
-          ${v.rocks > 0 ? `<span class="rock-est">~${v.rocks} rocks${gainText}</span>` : ""}
+          ${stepList(simple)}
         </details>`;
+                }
             }
         }
 
         const tierLvLabel =
             gear.tier || gear.lv
-                ? `<span style="font-size:13px;color:#94a3b8;font-weight:400">T${gear.tier} Lv${gear.lv}</span>`
+                ? `<span style="font-size:13px;color:#94a3b8;font-weight:400">· Tier ${gear.tier} Lv${gear.lv}</span>`
                 : "";
         return `<div class="slot-card">
       <div class="slot-header"><div style="display:flex;align-items:center;gap:6px"><span class="slot-tag">${slot}</span>${tierLvLabel}</div><div style="display:flex;align-items:center;gap:6px">${badge}</div></div>
@@ -830,13 +883,23 @@ function updateNikkeAccessoryLv(nid, which, val) {
 
 function updateStat(nid, slot, i, val) {
     const n = state.nikkes.find((x) => x.id === nid);
-    n.gear[slot].lines[i].stat = val;
+    const line = n.gear[slot].lines[i];
+    const prevStat = line.stat;
+    const prevVal = line.val;
+    line.stat = val;
     if (!val) {
-        n.gear[slot].lines[i].val = "";
-        n.gear[slot].lines[i].locked = false;
+        line.val = "";
+        line.locked = false;
+    } else if (prevStat && prevStat !== val && prevVal && TIER_TABLE[val]) {
+        // Stat changed: keep the same tier, load that tier's % value for the new stat
+        const tier = getTier(prevStat, prevVal);
+        if (tier && TIER_TABLE[val][tier - 1] !== undefined) {
+            line.val = TIER_TABLE[val][tier - 1].toFixed(2);
+        }
     }
     save();
     renderGearMain(n);
+    updateGearDots(n); // patch just this Nikke's 4 sidebar dots, nothing else in the list
     renderOverview();
     // Auto-focus the value input for this line after selecting a stat
     if (val) {
@@ -882,6 +945,7 @@ function updateVal(nid, slot, i, val) {
     n.gear[slot].lines[i].val = val.trim();
     save();
     renderGearMain(n);
+    updateGearDots(n); // patch just this Nikke's 4 sidebar dots, nothing else in the list
     renderOverview();
     // Auto-focus the next line's stat select (if there is one and it's empty)
     const nextIdx = i + 1;
@@ -899,6 +963,7 @@ function toggleLock(nid, slot, i) {
     l.locked = !l.locked;
     save();
     renderGearMain(n);
+    updateGearDots(n); // patch just this Nikke's 4 sidebar dots, nothing else in the list
 }
 
 // ============================================================

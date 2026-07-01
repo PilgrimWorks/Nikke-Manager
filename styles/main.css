@@ -453,14 +453,9 @@ body {
     margin-bottom: 10px;
 }
 .slot-tag {
-    font-size: 13px;
-    background: #1a2235;
-    color: #94a3b8;
-    padding: 2px 9px;
-    border-radius: 5px;
-    border: 1px solid #2d3f5e;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-size: 15px;
+    color: #f8fafc;
+    font-weight: 700;
 }
 .lines-grid {
     display: grid;
@@ -824,6 +819,26 @@ details[open] > .verdict-title {
     border-radius: 4px;
     margin-left: 6px;
     vertical-align: middle;
+}
+/* rock/dmg estimate on the card title — standard weight, not bold */
+.verdict-cost {
+    font-weight: 400;
+    opacity: 0.9;
+}
+/* rock/dmg pill shown inline within an option title */
+.verdict-option-title .rock-est {
+    margin-top: 0;
+    margin-left: 8px;
+    font-weight: 400;
+    opacity: 0.85;
+}
+/* Static verdict (Done / Keep): summary only, no expander marker */
+.verdict-static .verdict-title {
+    cursor: default;
+    margin-bottom: 0;
+}
+.verdict-static .verdict-title::before {
+    display: none;
 }
 
 /* ── Attribute summary table ── */
@@ -2612,8 +2627,8 @@ details[open] > .verdict-title {
     border: none;
     border-bottom: 1px solid #2d3748;
     border-radius: 0;
-    color: #5d6779;
-    text-align: center;
+    color: #f1f5f9;
+    text-align: right;
     outline: none;
     font-family: inherit;
 }
@@ -2840,6 +2855,27 @@ details[open] > .verdict-title {
     color: #8b96a8;
     margin-left: auto;
     text-align: right;
+}
+.team-gear-sort-btn {
+    font-family: inherit;
+    font-size: 11px;
+    color: #64748b;
+    background: none;
+    border: 1px solid #1e2535;
+    border-radius: 5px;
+    padding: 2px 7px;
+    cursor: pointer;
+    min-width: 36px;
+    text-align: center;
+    transition: color 0.12s, border-color 0.12s;
+}
+.team-gear-sort-btn:hover {
+    color: #f1f5f9;
+    border-color: #2a3448;
+}
+.team-gear-sort-btn.active {
+    color: #e2e8f0;
+    border-color: #2a3448;
 }
 
 /* New Roster mode selector (Teams tab create form) */

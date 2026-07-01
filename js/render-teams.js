@@ -81,7 +81,7 @@ function renderTeams() {
             .map((r) => {
                 const modeLabel = TEAM_MODES[r.mode] ? TEAM_MODES[r.mode].label : "Solo Raid";
                 return `<div class="nikke-item ${state.selTeamRaid === r.id ? "active" : ""}" onclick="selTeamRaid('${r.id}')">
-      ${r.name}
+      <span id="roster-name-${r.id}">${r.name}</span>
       <div class="nikke-item-sub">${modeLabel}</div>
     </div>`;
             })
@@ -286,11 +286,20 @@ function startEditRaidName(raidId) {
 function commitRaidName(input, raidId) {
     const raid = state.teamRaids.find((r) => r.id === raidId);
     if (!raid) return;
+    // Swap the inline editor back to the static title span (no panel rebuild).
+    const restoreTitle = () => {
+        const span = document.createElement("span");
+        span.className = "team-raid-title";
+        span.id = "raid-title-" + raidId;
+        span.textContent = raid.name;
+        input.replaceWith(span);
+    };
     if (input.dataset.cancel === "1") {
-        renderTeamRaidMain(raid);
+        restoreTitle();
         return;
     }
-    if (raid.mode === "solo") {
+    const isSolo = raid.mode === "solo";
+    if (isSolo) {
         const season = parseInt(input.value);
         const boss = SOLO_RAID_BOSSES.find((b) => b.season === season);
         if (boss) {
@@ -302,7 +311,29 @@ function commitRaidName(input, raidId) {
         if (val) raid.name = val;
     }
     save();
-    renderTeams();
+    restoreTitle();
+    // The roster name also appears in the sidebar list.
+    const sideName = document.getElementById("roster-name-" + raidId);
+    if (sideName) sideName.textContent = raid.name;
+    if (isSolo) {
+        // A boss change alters the weakness subtitle plus every team's coverage
+        // warning and readiness (Eff/Potential) — refresh those in place. Slot
+        // cards, totals and dmg bars don't depend on the boss, so they're left
+        // untouched (no icon flicker).
+        const boss = raid.bossSeason != null ? SOLO_RAID_BOSSES.find((b) => b.season === raid.bossSeason) : null;
+        const subtitleEl = document.getElementById("raid-subtitle-" + raidId);
+        if (subtitleEl) {
+            const modeLabel = TEAM_MODES[raid.mode] ? TEAM_MODES[raid.mode].label : "Solo Raid";
+            const weaknessHtml = boss ? ` · ${elemIcon(boss.weakness, 16)} ${boss.weakness} Weak` : "";
+            subtitleEl.innerHTML = `${modeLabel}${weaknessHtml}`;
+        }
+        _raidLaneMetrics(raid).teamNums.forEach((tnum) => {
+            const members = raid.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === tnum);
+            const warnEl = document.getElementById(`team-warnings-${raid.id}-${tnum}`);
+            if (warnEl) warnEl.innerHTML = _teamWarningsHtml(raid, tnum, members);
+            _reconcileTeamReadiness(raid, tnum);
+        });
+    }
 }
 
 // ── Main panel (header + active view) ────────────────────────
@@ -315,7 +346,7 @@ function renderTeamRaidMain(raid) {
             ? SOLO_RAID_BOSSES.find((b) => b.season === raid.bossSeason)
             : null;
     const weaknessHtml = boss ? ` · ${elemIcon(boss.weakness, 16)} ${boss.weakness} Weak` : "";
-    const raidSubtitle = `<div style="font-size:16px;color:#94a3b8;margin-top:3px;line-height:1.3;display:flex;align-items:center;gap:4px">${modeLabel}${weaknessHtml}</div>`;
+    const raidSubtitle = `<div id="raid-subtitle-${raid.id}" style="font-size:16px;color:#94a3b8;margin-top:3px;line-height:1.3;display:flex;align-items:center;gap:4px">${modeLabel}${weaknessHtml}</div>`;
     const totalDmg = raid.entries.reduce((s, e) => s + (e.damage || 0), 0);
 
     const bodyHtml = renderTeamSlots(raid);
@@ -330,7 +361,7 @@ function renderTeamRaidMain(raid) {
         <button class="btn-sm" onclick="startEditRaidName('${raid.id}')" title="Edit raid" style="font-size:12px;padding:2px 6px;min-width:auto;margin-top:4px">✎</button>
       </div>
       <div style="display:flex;align-items:center;gap:12px">
-        <span style="font-size:13px;color:#64748b">Total <strong style="color:#f1f5f9">${totalDmg ? totalDmg.toLocaleString() + "M" : "—"}</strong></span>
+        <span id="raid-total-${raid.id}" style="font-size:13px;color:#64748b">Total <strong style="color:#f1f5f9">${totalDmg ? totalDmg.toLocaleString() + "m" : "—"}</strong></span>
         <button class="del-btn" onclick="deleteTeamRaid('${raid.id}')" title="Delete raid">✕ Delete</button>
       </div>
     </div>
@@ -353,18 +384,10 @@ function _raidLaneMetrics(raid) {
     return { teamNums, teams, teamTotals, maxTeam, maxEntry };
 }
 
-function _buildTeamLaneHtml(raid, tnum, members, total, maxTeam, maxEntry, isCampaign) {
-    const teamColor = (pct) => (pct >= 80 ? "#4ade80" : pct >= 50 ? "#60a5fa" : pct >= 25 ? "#fbbf24" : "#f87171");
-    const pct = (total / maxTeam) * 100;
-    const tColor = total === 0 ? "#64748b" : teamColor(pct);
-    const slots = [];
-    for (let i = 0; i < 5; i++) {
-        slots.push(renderTeamSlot(raid, tnum, i, members[i] || null, maxEntry));
-    }
-    const delTeamBtn =
-        isCampaign && tnum > 1
-            ? `<button class="team-del-btn" onclick="deleteCampaignTeam('${raid.id}',${tnum})" title="Delete team">✕</button>`
-            : "";
+// Element + burst coverage warnings for a team lane header. Depends only on the
+// team's composition, so it can be recomputed in place when a nikke is added or
+// removed without rebuilding the slot cards.
+function _teamWarningsHtml(raid, tnum, members) {
     const teamWeakness = raid.mode === "union" ? getTeamWeakness(raid, tnum) : null;
     let elemWarningHtml = "";
     if (raid.mode === "solo" && raid.bossSeason != null) {
@@ -414,14 +437,30 @@ function _buildTeamLaneHtml(raid, tnum, members, total, maxTeam, maxEntry, isCam
         if (b3 < 2 + reB3) missing.push("Burst III");
         if (missing.length) burstWarningHtml = `<div class="team-elem-warning">⚠ Missing ${missing.join(" · ")}</div>`;
     }
+    return elemWarningHtml + burstWarningHtml;
+}
+
+function _buildTeamLaneHtml(raid, tnum, members, total, maxTeam, maxEntry, isCampaign) {
+    const teamColor = (pct) => (pct >= 80 ? "#4ade80" : pct >= 50 ? "#60a5fa" : pct >= 25 ? "#fbbf24" : "#f87171");
+    const pct = (total / maxTeam) * 100;
+    const tColor = total === 0 ? "#64748b" : teamColor(pct);
+    const slots = [];
+    for (let i = 0; i < 5; i++) {
+        slots.push(renderTeamSlot(raid, tnum, i, members[i] || null, maxEntry));
+    }
+    const delTeamBtn =
+        isCampaign && tnum > 1
+            ? `<button class="team-del-btn" onclick="deleteCampaignTeam('${raid.id}',${tnum})" title="Delete team">✕</button>`
+            : "";
     const readinessHtml = renderTeamReadinessInline(raid, tnum, members);
     return `<div class="team-lane" id="team-lane-${raid.id}-${tnum}">
     <div class="team-lane-header">
       <div class="team-name-group" id="team-name-group-${raid.id}-${tnum}">${renderTeamNameGroupStatic(raid, tnum)}</div>
-      ${elemWarningHtml}${burstWarningHtml}
-      <span class="team-total" style="color:${tColor};margin-left:auto">${total ? total.toLocaleString() + "M" : ""}</span>
+      <span class="team-warnings" id="team-warnings-${raid.id}-${tnum}" style="display:contents">${_teamWarningsHtml(raid, tnum, members)}</span>
+      <span class="team-total" id="team-total-${raid.id}-${tnum}" style="color:${tColor};margin-left:auto">${total ? total.toLocaleString() + "m" : ""}</span>
       ${delTeamBtn}
     </div>
+    <div id="team-dmgbar-${raid.id}-${tnum}">${renderTeamDmgBar(raid, tnum, members)}</div>
     <div class="team-slots">${slots.join("")}</div>
     ${readinessHtml}
   </div>`;
@@ -461,14 +500,28 @@ function _rerenderTeamLane(raid, tnum) {
     );
 }
 
-function _rerenderTeamReadiness(raid, tnum) {
-    const el = document.getElementById(`team-readiness-${raid.id}-${tnum}`);
-    if (!el) {
-        renderTeamRaidMain(raid);
-        return;
-    }
+// Rebuild a team's readiness section from the canonical renderer, then transplant
+// the already-loaded icon nodes from the previous rows into the matching new rows
+// (keyed by nikkeId) so their <img> elements are moved, not recreated. This lets
+// rows be added/removed/reordered and values change (when a nikke is added or
+// removed) without the surviving rows' icons flickering.
+function _reconcileTeamReadiness(raid, tnum) {
+    const liveEl = document.getElementById(`team-readiness-${raid.id}-${tnum}`);
+    if (!liveEl) { renderTeamRaidMain(raid); return; }
     const members = raid.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === tnum);
-    el.outerHTML = renderTeamReadinessInline(raid, tnum, members);
+    const fresh = _htmlToNode(renderTeamReadinessInline(raid, tnum, members));
+    if (!fresh) { liveEl.replaceChildren(); return; }
+    const oldIcons = new Map();
+    liveEl.querySelectorAll(".team-gap-item[data-nikke-id]").forEach((row) => {
+        if (row.firstElementChild && !oldIcons.has(row.dataset.nikkeId)) {
+            oldIcons.set(row.dataset.nikkeId, row.firstElementChild);
+        }
+    });
+    fresh.querySelectorAll(".team-gap-item[data-nikke-id]").forEach((row) => {
+        const oldIcon = oldIcons.get(row.dataset.nikkeId);
+        if (oldIcon && row.firstElementChild) row.replaceChild(oldIcon, row.firstElementChild);
+    });
+    liveEl.replaceChildren(...fresh.childNodes);
 }
 
 function renderTeamSlot(raid, teamNum, slotIdx, entry, maxEntry) {
@@ -483,29 +536,19 @@ function renderTeamSlot(raid, teamNum, slotIdx, entry, maxEntry) {
     const bd = n ? burstDisplay(n) : "";
     const burstNum = bd === "All" ? "All" : bd === "III" ? 3 : bd === "II" ? 2 : bd === "I" ? 1 : null;
     const burst = burstNum ? burstIcon(burstNum) : "";
-    const pct = maxEntry > 0 ? ((entry.damage || 0) / maxEntry) * 100 : 0;
-    const dmgColor = !entry.damage
-        ? "#5d6779"
-        : pct >= 80
-          ? "#4ade80"
-          : pct >= 50
-            ? "#60a5fa"
-            : pct >= 25
-              ? "#fbbf24"
-              : "#f87171";
-    return `<div class="team-slot team-slot-filled" onclick="openTeamSlotPickerEdit('${raid.id}',${teamNum},${entry.origIdx})" title="Change Nikke">
+    return `<div class="team-slot team-slot-filled" data-nikke-id="${entry.nikkeId}" onclick="openTeamSlotPickerEdit('${raid.id}',${teamNum},${entry.origIdx})" title="Change Nikke">
       ${n ? nikkeIcon(name, 34) : ""}
       <div class="team-slot-info">
         <span class="team-slot-name">${name}</span>
         ${elem || burst ? `<div style="display:flex;align-items:center;gap:2px;margin-top:1px">${elem}${burst}</div>` : ""}
         <div class="team-slot-dmg-row">
-          <input class="team-slot-dmg-input" type="text" inputmode="numeric" value="${entry.damage || 0}" style="color:${dmgColor}"
+          <input class="team-slot-dmg-input" type="text" inputmode="numeric" value="${(entry.damage || 0).toLocaleString()}"
                  onclick="event.stopPropagation()"
-                 onfocus="if(this.value==='0')this.value=''"
+                 onfocus="this.value=this.value.replace(/,/g,'');if(this.value==='0')this.value=''"
                  oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                  onblur="commitTeamDmgInput(this,'${raid.id}',${entry.origIdx})"
                  onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape'){this.dataset.cancel='1';this.blur();}"/>
-          <span class="team-slot-dmg-suffix">M Dmg</span>
+          <span class="team-slot-dmg-suffix">m Dmg</span>
         </div>
       </div>
     </div>`;
@@ -619,7 +662,9 @@ function pickTeamSlotNikke(nikkeId) {
     }
     save();
     closeTeamSlotPicker();
-    _rerenderTeamLane(raid, team);
+    // Add appends / swap replaces in place — neither shifts other entries' index,
+    // so only this team's lane needs updating, and icons of unchanged slots stay.
+    _updateTeamLaneComposition(raid, team);
 }
 
 function removeTeamSlot(raidId, entryIdx) {
@@ -628,61 +673,150 @@ function removeTeamSlot(raidId, entryIdx) {
     const tnum = raid.entries[entryIdx]?.team;
     raid.entries.splice(entryIdx, 1);
     save();
-    if (tnum) _rerenderTeamLane(raid, tnum);
-    else renderTeamRaidMain(raid);
+    if (!tnum) { renderTeamRaidMain(raid); return; }
+    // The splice shifted the index of every later entry, so re-sync the slot
+    // handlers on the OTHER lanes too (icon-preserving); only the changed team's
+    // warnings/bar/readiness/totals need rebuilding.
+    const { teamNums } = _raidLaneMetrics(raid);
+    teamNums.forEach((t) => { if (t !== tnum) _resyncTeamSlotIdx(raid, t); });
+    _updateTeamLaneComposition(raid, tnum);
 }
 
-// ── Inline damage editing ────────────────────────────────────
-function startEditTeamDmg(span, raidId, entryIdx, currentVal) {
-    const input = document.createElement("input");
-    input.className = "team-slot-dmg-input";
-    input.type = "text";
-    input.inputMode = "numeric";
-    input.value = currentVal || "";
-    input.placeholder = "0";
-    input.onblur = () => commitTeamDmg(input, raidId, entryIdx);
-    input.onkeydown = (event) => {
-        if (event.key === "Enter") input.blur();
-        if (event.key === "Escape") {
-            input.dataset.cancel = "1";
-            input.blur();
+// Update every team's total + color (colors are normalised against the raid-wide
+// max, so one team's change can recolour the rest) and the raid total. Pure
+// text/style writes — no icons touched.
+function _updateAllTeamTotals(raid) {
+    const { teamNums, teamTotals, maxTeam } = _raidLaneMetrics(raid);
+    const teamColor = (pct) => (pct >= 80 ? "#4ade80" : pct >= 50 ? "#60a5fa" : pct >= 25 ? "#fbbf24" : "#f87171");
+    teamNums.forEach((tnum, ti) => {
+        const total = teamTotals[ti] || 0;
+        const totalEl = document.getElementById(`team-total-${raid.id}-${tnum}`);
+        if (totalEl) {
+            totalEl.textContent = total ? total.toLocaleString() + "m" : "";
+            totalEl.style.color = total === 0 ? "#64748b" : teamColor((total / maxTeam) * 100);
         }
-    };
-    span.replaceWith(input);
-    input.focus();
-    input.select();
+    });
+    const raidTotal = raid.entries.reduce((s, e) => s + (e.damage || 0), 0);
+    const raidTotalEl = document.getElementById(`raid-total-${raid.id}`);
+    if (raidTotalEl) raidTotalEl.innerHTML = `Total <strong style="color:#f1f5f9">${raidTotal ? raidTotal.toLocaleString() + "m" : "—"}</strong>`;
 }
 
-function commitTeamDmg(input, raidId, entryIdx) {
-    const raid = state.teamRaids.find((r) => r.id === raidId);
-    if (!raid) return;
-    if (input.dataset.cancel === "1") {
-        renderTeamRaidMain(raid);
-        return;
+// Surgically update only the damage-dependent displays without touching nikke
+// icons, names, or warnings (none of which depend on damage). The gear-upgrade
+// bar and the Potential/Eff table are weighted by each nikke's own damage, so
+// only the changed team needs those refreshed.
+function _updateTeamDmgDisplays(raid, changedTeam) {
+    _updateAllTeamTotals(raid);
+    const { teams } = _raidLaneMetrics(raid);
+    const barEl = document.getElementById(`team-dmgbar-${raid.id}-${changedTeam}`);
+    if (barEl) barEl.innerHTML = renderTeamDmgBar(raid, changedTeam, teams[changedTeam] || []);
+    _updateTeamGearVals(raid, changedTeam);
+}
+
+// Parse a single-element HTML string into a detached DOM node.
+function _htmlToNode(html) {
+    const tpl = document.createElement("template");
+    tpl.innerHTML = html.trim();
+    return tpl.content.firstElementChild;
+}
+
+// Rewrite a filled slot's entry-index references (used by the edit picker and
+// the damage input) after a splice shifts raid.entries. Icon/name/damage are
+// unchanged, so the node itself is reused — only these handlers move.
+function _applySlotEntryIdx(slotEl, raidId, teamNum, origIdx) {
+    slotEl.setAttribute("onclick", `openTeamSlotPickerEdit('${raidId}',${teamNum},${origIdx})`);
+    const input = slotEl.querySelector(".team-slot-dmg-input");
+    if (input) input.setAttribute("onblur", `commitTeamDmgInput(this,'${raidId}',${origIdx})`);
+}
+
+// Lightweight handler resync for a lane whose composition did NOT change but
+// whose entry indices shifted (e.g. a removal in another team spliced the shared
+// entries array). Filled slots render in member order, so the i-th filled slot
+// maps to members[i]. No nodes move, so no icons flicker.
+function _resyncTeamSlotIdx(raid, tnum) {
+    const laneEl = document.getElementById(`team-lane-${raid.id}-${tnum}`);
+    if (!laneEl) return;
+    const { teams } = _raidLaneMetrics(raid);
+    const members = teams[tnum] || [];
+    const filled = laneEl.querySelectorAll(".team-slots .team-slot-filled");
+    members.forEach((entry, i) => {
+        if (filled[i]) _applySlotEntryIdx(filled[i], raid.id, tnum, entry.origIdx);
+    });
+}
+
+// Reconcile a team's 5 slot cards to the current roster by KEY (nikkeId),
+// reusing the existing DOM node for any nikke that is still present so its
+// <img> icon is never recreated (no flicker). Only genuinely new/changed slots
+// build fresh nodes; surviving nikkes whose entry index shifted just get their
+// handlers rewritten in place.
+function _reconcileTeamSlots(raid, tnum) {
+    const laneEl = document.getElementById(`team-lane-${raid.id}-${tnum}`);
+    if (!laneEl) { renderTeamRaidMain(raid); return; }
+    const slotsEl = laneEl.querySelector(".team-slots");
+    if (!slotsEl) { _rerenderTeamLane(raid, tnum); return; }
+    const { teams, maxEntry } = _raidLaneMetrics(raid);
+    const members = teams[tnum] || [];
+    const filledByNikke = new Map();
+    slotsEl.querySelectorAll(".team-slot-filled[data-nikke-id]").forEach((el) => {
+        if (!filledByNikke.has(el.dataset.nikkeId)) filledByNikke.set(el.dataset.nikkeId, el);
+    });
+    const emptyPool = Array.from(slotsEl.querySelectorAll(".team-slot-empty"));
+    const result = [];
+    for (let i = 0; i < 5; i++) {
+        const entry = members[i] || null;
+        if (entry) {
+            const reuse = filledByNikke.get(String(entry.nikkeId));
+            if (reuse) {
+                filledByNikke.delete(String(entry.nikkeId));
+                _applySlotEntryIdx(reuse, raid.id, tnum, entry.origIdx);
+                result.push(reuse);
+            } else {
+                result.push(_htmlToNode(renderTeamSlot(raid, tnum, i, entry, maxEntry)));
+            }
+        } else {
+            const reuse = emptyPool.pop();
+            if (reuse) {
+                reuse.setAttribute("onclick", `openTeamSlotPicker('${raid.id}',${tnum},${i})`);
+                result.push(reuse);
+            } else {
+                result.push(_htmlToNode(renderTeamSlot(raid, tnum, i, null, maxEntry)));
+            }
+        }
     }
-    const val = parseInt((input.value || "").replace(/[^0-9]/g, "")) || 0;
-    if (!raid.entries[entryIdx]) return;
-    raid.entries[entryIdx].damage = val;
-    save();
-    renderTeamRaidMain(raid);
+    // replaceChildren MOVES the reused nodes into place and drops the rest —
+    // surviving icons keep their live <img> element.
+    slotsEl.replaceChildren(...result);
+}
+
+// Refresh the composition-dependent parts of a lane after a nikke is added or
+// removed: the slot cards (icon-preserving), coverage warnings, gear-upgrade
+// bar, readiness gaps, and all team totals/colors.
+function _updateTeamLaneComposition(raid, tnum) {
+    _reconcileTeamSlots(raid, tnum);
+    const members = raid.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === tnum);
+    const warnEl = document.getElementById(`team-warnings-${raid.id}-${tnum}`);
+    if (warnEl) warnEl.innerHTML = _teamWarningsHtml(raid, tnum, members);
+    const barEl = document.getElementById(`team-dmgbar-${raid.id}-${tnum}`);
+    if (barEl) barEl.innerHTML = renderTeamDmgBar(raid, tnum, members);
+    _reconcileTeamReadiness(raid, tnum);
+    _updateAllTeamTotals(raid);
 }
 
 function commitTeamDmgInput(input, raidId, entryIdx) {
     const raid = state.teamRaids.find((r) => r.id === raidId);
     if (input.dataset.cancel === "1") {
         input.dataset.cancel = "";
-        input.value = (raid && raid.entries[entryIdx]?.damage) || 0;
+        input.value = ((raid && raid.entries[entryIdx]?.damage) || 0).toLocaleString();
         return;
     }
     if (!raid || !raid.entries[entryIdx]) return;
     const val = parseInt((input.value || "").replace(/[^0-9]/g, "")) || 0;
-    if (raid.entries[entryIdx].damage === val) {
-        input.value = val || 0;
-        return;
-    }
+    // Blur re-formats with thousands separators (focus strips them for editing).
+    input.value = val.toLocaleString();
+    if (raid.entries[entryIdx].damage === val) return;
     raid.entries[entryIdx].damage = val;
     save();
-    renderTeamRaidMain(raid);
+    _updateTeamDmgDisplays(raid, raid.entries[entryIdx].team);
 }
 
 // ── Team names ───────────────────────────────────────────────
@@ -742,11 +876,18 @@ function startEditTeamName(raidId, teamNum) {
                 r.teamWeakness[teamNum] = weaknessSelect.value || null;
             }
             save();
-            _rerenderTeamLane(r, teamNum);
-        } else {
-            const g = document.getElementById("team-name-group-" + raidId + "-" + teamNum);
-            if (g) g.innerHTML = renderTeamNameGroupStatic(r, teamNum);
+            // Weakness also drives the element-coverage warning; refresh it in
+            // place so the slot cards (and their icons) aren't re-rendered.
+            if (r.mode === "union") {
+                const members = r.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === teamNum);
+                const warnEl = document.getElementById(`team-warnings-${raidId}-${teamNum}`);
+                if (warnEl) warnEl.innerHTML = _teamWarningsHtml(r, teamNum, members);
+            }
         }
+        // Both commit and cancel just swap the inline editor back to the static
+        // name group — no full lane rebuild.
+        const g = document.getElementById("team-name-group-" + raidId + "-" + teamNum);
+        if (g) g.innerHTML = renderTeamNameGroupStatic(r, teamNum);
     }
 
     group.addEventListener("focusout", function onFocusOut(e) {
@@ -771,24 +912,88 @@ function getTeamWeakness(raid, teamNum) {
 }
 
 // ── Inline readiness (rendered below each team's slots) ─────
-function renderTeamReadinessInline(raid, tnum, members) {
-    if (!members.length) return `<div id="team-readiness-${raid.id}-${tnum}"></div>`;
+
+// Per-team readiness gap details. gainPct/potentialM/bestEff are the only
+// damage-dependent fields (updated in place by _updateTeamGearVals); everything
+// else derives from gear/skill/doll/bond state and is unaffected by damage.
+function _computeTeamReadinessDetails(raid, members) {
     const details = { gear: [], skills: [], dolls: [], bond: [] };
+    const boss = raid.mode === "solo" && raid.bossSeason != null
+        ? SOLO_RAID_BOSSES.find((b) => b.season === raid.bossSeason)
+        : null;
     members.forEach((e) => {
         const n = state.nikkes.find((x) => x.id === e.nikkeId);
         if (!n) return;
+        const savedElementalBoss = state.elementalBoss;
+        if (boss && boss.weakness && n.element !== boss.weakness) state.elementalBoss = false;
         const g = getTeamRaidGaps(n);
+        const gainPct = getNikkeTotalGainPct(n);
+        let bestEff = 0, bestSlot = "";
+        if (e.damage) {
+            SLOTS.forEach((slot) => {
+                const sv = getVerdict(n, slot);
+                if (!sv || sv.cls === "v-keep") return;
+                let rocks = 0, dpsGain = 0;
+                if (sv.options) {
+                    const rec = sv.options.find((o) => o.recommended) || sv.options[0];
+                    rocks = rec.rocks;
+                    dpsGain = rec.dpsGain || 0;
+                } else {
+                    rocks = sv.rocks;
+                    dpsGain = sv.dpsGain || 0;
+                }
+                if (rocks > 0 && dpsGain > 0) {
+                    const eff = (dpsGain / 100) * e.damage / rocks;
+                    if (eff > bestEff) { bestEff = eff; bestSlot = slot; }
+                }
+            });
+        }
+        state.elementalBoss = savedElementalBoss;
         const base = { nikkeId: n.id, name: n.name, elem: n.element ? elemIcon(n.element) : "" };
-        if (g.gearCount)
+        if (g.gearCount) {
+            const gearDots = `<span class="gear-dots-mini">${SLOTS.map((s) => `<span class="${dotStatus(n, s)}" title="${s}"></span>`).join("")}</span>`;
             details.gear.push({
                 ...base,
-                detail: `${g.gearCount} slot${g.gearCount > 1 ? "s" : ""} · ${g.badSlots.join(", ")}`,
+                gearDots,
+                gainPct,
+                potentialM: e.damage > 0 && gainPct > 0 ? (gainPct / 100) * e.damage : null,
+                bestEff,
+                bestSlot,
             });
+        }
         if (g.skillGaps.length)
             details.skills.push({ ...base, detail: g.skillGaps.map((s) => `${s.label} ${s.cur}→${s.rec}`).join(", ") });
         if (g.dollGap) details.dolls.push({ ...base, detail: `Needs ${g.dollLabel}` });
         if (g.bondGap) details.bond.push({ ...base, detail: g.bondDetail });
     });
+    return details;
+}
+
+// Sort key for a gear row under the current column selection.
+function _teamGearSortVal(m) {
+    return _teamGearSort.col === "pct" ? (m.gainPct || 0)
+        : _teamGearSort.col === "eff" ? (m.bestEff || 0)
+        : (m.potentialM || 0);
+}
+
+// HTML for the Potential cell — shared by the initial render and the in-place
+// damage update so both paths produce identical markup.
+function _teamGearPotentialHtml(m) {
+    return m.potentialM != null && m.potentialM > 0
+        ? `<span style="color:#f1f5f9;font-weight:600">+${m.potentialM.toFixed(1)}m</span> <span style="font-size:11px;color:#f1f5f9">(+${m.gainPct.toFixed(1)}%)</span>`
+        : m.gainPct > 0
+        ? `<span style="color:#f1f5f9">+${m.gainPct.toFixed(1)}%</span>`
+        : "—";
+}
+
+// Eff cell text for a gear row.
+function _teamGearEffText(m) {
+    return m.bestEff > 0 ? m.bestEff.toFixed(2) + "m/rock" : "—";
+}
+
+function renderTeamReadinessInline(raid, tnum, members) {
+    if (!members.length) return `<div id="team-readiness-${raid.id}-${tnum}"></div>`;
+    const details = _computeTeamReadinessDetails(raid, members);
     const CATS = [
         { key: "gear", label: "Gear" },
         { key: "skills", label: "Skills" },
@@ -813,21 +1018,86 @@ function renderTeamReadinessInline(raid, tnum, members) {
     const list = showCat ? details[showCat] : [];
     let listHtml = "";
     if (showCat && list.length) {
-        const catLabel = CATS.find((c) => c.key === showCat).label;
-        listHtml = `<div class="team-gap-list">
-          <div class="team-gap-list-label">${catLabel} · ${list.length} Nikke${list.length !== 1 ? "s" : ""} lacking</div>
-          ${list
-              .map(
-                  (m) => `<button class="team-gap-item" onclick="goToGearNikke('${m.nikkeId}')">
-            ${nikkeIcon(m.name, 28)}
-            <span class="team-gap-item-name">${m.elem} ${m.name}</span>
-            <span class="team-gap-item-detail">${m.detail}</span>
-          </button>`,
-              )
-              .join("")}
-        </div>`;
+        if (showCat === "gear") {
+            const sorted = [...list].sort((a, b) => {
+                const d = _teamGearSortVal(b) - _teamGearSortVal(a);
+                return _teamGearSort.dir === "desc" ? d : -d;
+            });
+            const arrow = (col) => _teamGearSort.col === col ? (_teamGearSort.dir === "desc" ? " ▼" : " ▲") : "";
+            const DMGW = "120px";
+            const EFFW = "66px";
+            const DOTW = "34px";
+            listHtml = `<div class="team-gap-list">
+              <div style="display:flex;align-items:center;gap:18px;padding:2px 11px 4px">
+                <span style="width:28px;flex-shrink:0"></span>
+                <span style="flex:1"></span>
+                <button class="team-gear-sort-btn${_teamGearSort.col === "dmg" ? " active" : ""}" style="width:${DMGW};flex-shrink:0" onclick="sortTeamGear('dmg','${raid.id}',${tnum})">Potential${arrow("dmg")}</button>
+                <button class="team-gear-sort-btn${_teamGearSort.col === "eff" ? " active" : ""}" style="width:${EFFW};flex-shrink:0" onclick="sortTeamGear('eff','${raid.id}',${tnum})">Eff${arrow("eff")}</button>
+                <span style="width:${DOTW};flex-shrink:0"></span>
+              </div>
+              ${sorted.map((m) => `<button class="team-gap-item" data-nikke-id="${m.nikkeId}" style="gap:18px" onclick="goToGearNikke('${m.nikkeId}')">
+                ${nikkeIcon(m.name, 28)}
+                <span class="team-gap-item-name" style="flex:1;min-width:0">${m.elem} ${m.name}</span>
+                <span class="team-gear-potential" style="width:${DMGW};flex-shrink:0;text-align:right;font-size:12px;color:#f1f5f9">${_teamGearPotentialHtml(m)}</span>
+                <span class="team-gear-eff" style="width:${EFFW};flex-shrink:0;text-align:right;font-size:12px;color:${m.bestEff > 0 ? "#f1f5f9" : "#475569"}" title="${m.bestSlot}">${_teamGearEffText(m)}</span>
+                <span style="width:${DOTW};flex-shrink:0">${m.gearDots}</span>
+              </button>`).join("")}
+            </div>`;
+        } else {
+            listHtml = `<div class="team-gap-list">
+              ${list
+                  .map(
+                      (m) => `<button class="team-gap-item" data-nikke-id="${m.nikkeId}" onclick="goToGearNikke('${m.nikkeId}')">
+                ${nikkeIcon(m.name, 28)}
+                <span class="team-gap-item-name">${m.elem} ${m.name}</span>
+                <span class="team-gap-item-detail">${m.detail}</span>
+              </button>`,
+                  )
+                  .join("")}
+            </div>`;
+        }
     }
     return `<div id="team-readiness-${raid.id}-${tnum}"><div class="team-gap-chips">${chips}</div>${listHtml}</div>`;
+}
+
+// Update the gear tab's damage-weighted Potential/Eff cells and row order in
+// place, reusing the existing icon DOM so nothing flickers. Only the Gear tab
+// has damage-dependent values, so when another tab (or none) is open there is
+// nothing to do. Gear-gap membership is gear-state driven and can't change on a
+// damage edit, so every row is guaranteed to already exist.
+function _updateTeamGearVals(raid, tnum) {
+    if (state.teamRaidGap !== tnum + ":gear") return;
+    const readinessEl = document.getElementById(`team-readiness-${raid.id}-${tnum}`);
+    if (!readinessEl) return;
+    const listEl = readinessEl.querySelector(".team-gap-list");
+    if (!listEl) return;
+    const members = raid.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === tnum);
+    const gear = _computeTeamReadinessDetails(raid, members).gear;
+    const rowByK = new Map();
+    listEl.querySelectorAll(".team-gap-item[data-nikke-id]").forEach((row) => rowByK.set(row.dataset.nikkeId, row));
+    gear.forEach((m) => {
+        const row = rowByK.get(String(m.nikkeId));
+        if (!row) return;
+        const potEl = row.querySelector(".team-gear-potential");
+        if (potEl) potEl.innerHTML = _teamGearPotentialHtml(m);
+        const effEl = row.querySelector(".team-gear-eff");
+        if (effEl) {
+            effEl.textContent = _teamGearEffText(m);
+            effEl.style.color = m.bestEff > 0 ? "#f1f5f9" : "#475569";
+            effEl.title = m.bestSlot || "";
+        }
+    });
+    // Re-sort by moving the existing row nodes (appendChild moves, never clones)
+    // so the nikke icons are preserved and don't reload.
+    [...gear]
+        .sort((a, b) => {
+            const d = _teamGearSortVal(b) - _teamGearSortVal(a);
+            return _teamGearSort.dir === "desc" ? d : -d;
+        })
+        .forEach((m) => {
+            const row = rowByK.get(String(m.nikkeId));
+            if (row) listEl.appendChild(row);
+        });
 }
 
 // ── READINESS VIEW ───────────────────────────────────────────
@@ -894,6 +1164,56 @@ function getTeamRaidGaps(n) {
     };
 }
 
+function calcNikkeGearDmgData(n) {
+    if (typeof DamageCalc === "undefined") return { currentBoostPct: 0, upgradePct: 0 };
+    const currentLines = [];
+    SLOTS.forEach((slot) => {
+        const gear = n.gear && n.gear[slot];
+        if (!gear || !gear.lines) return;
+        gear.lines.forEach((l) => {
+            if (l.stat && l.val) currentLines.push({ stat: l.stat, val: parseFloat(l.val) });
+        });
+    });
+    const context = { weapon: n.weapon || "AR", elementAdvantage: true };
+    const currentAnalysis = DamageCalc.analyzeGearImpact(currentLines, context);
+    const upgradedLines = currentLines.map((l) => {
+        const stat = normStat(l.stat);
+        const prio = (n.priorities || []).find((p) => normStat(p.line) === stat);
+        if (!prio || (prio.tier !== "Essential" && prio.tier !== "Ideal")) return l;
+        const targetTier = parseInt(prio.targetTier) || 11;
+        const curTier = getTier(stat, l.val);
+        if (curTier && curTier >= targetTier) return l;
+        return { stat: l.stat, val: expectedValAtTarget(stat, targetTier) };
+    });
+    const cmp = DamageCalc.compareSetups(currentLines, upgradedLines, context);
+    return {
+        currentBoostPct: currentAnalysis.totalBoostPercent,
+        upgradePct: Math.max(0, cmp.diffPercent),
+    };
+}
+
+function renderTeamDmgBar(raid, tnum, members) {
+    if (!members.length) return "";
+    const data = members.map((e) => {
+        const n = state.nikkes.find((x) => x.id === e.nikkeId);
+        if (!n) return null;
+        return { gainPct: getNikkeTotalGainPct(n), damage: e.damage || 0 };
+    }).filter(Boolean);
+    if (!data.length) return "";
+    const teamTotal = data.reduce((s, d) => s + d.damage, 0);
+    const hasEnteredDamage = teamTotal > 0;
+    let upgradeSummary;
+    if (hasEnteredDamage) {
+        upgradeSummary = data.reduce((s, d) => s + d.gainPct * (d.damage / teamTotal), 0);
+    } else {
+        upgradeSummary = data.reduce((s, d) => s + d.gainPct, 0) / data.length;
+    }
+    if (upgradeSummary < 0.05) return "";
+    return `<div style="display:flex;align-items:center;gap:8px;padding:3px 8px 4px;font-size:12px;color:#64748b">
+        <span>Gear upgrade potential: avg <strong style="color:#4ade80">+${upgradeSummary.toFixed(1)}%</strong></span>
+    </div>`;
+}
+
 function renderTeamReadiness(raid) {
     const count = rosterTeamCount(raid);
     const teamNums = Array.from({ length: count }, (_, i) => i + 1);
@@ -922,7 +1242,7 @@ function renderTeamReadiness(raid) {
                 if (g.gearCount)
                     details.gear.push({
                         ...base,
-                        detail: `${g.gearCount} slot${g.gearCount > 1 ? "s" : ""} · ${g.badSlots.join(", ")}`,
+                        detail: `<span class="gear-dots-mini">${SLOTS.map((s) => `<span class="${dotStatus(n, s)}" title="${s}"></span>`).join("")}</span>`,
                     });
                 if (g.skillGaps.length)
                     details.skills.push({
@@ -957,7 +1277,6 @@ function renderTeamReadiness(raid) {
             if (showCat && list.length) {
                 const catLabel = CATS.find((c) => c.key === showCat).label;
                 listHtml = `<div class="team-gap-list">
-          <div class="team-gap-list-label">${catLabel} · ${list.length} Nikke${list.length !== 1 ? "s" : ""} lacking</div>
           ${list
               .map(
                   (m) => `<button class="team-gap-item" onclick="goToGearNikke('${m.nikkeId}')">
@@ -993,5 +1312,17 @@ function selTeamGap(key) {
     const affected = new Set();
     if (prevKey) affected.add(parseInt(prevKey.split(":")[0]));
     if (state.teamRaidGap) affected.add(parseInt(state.teamRaidGap.split(":")[0]));
-    affected.forEach((tnum) => _rerenderTeamReadiness(raid, tnum));
+    affected.forEach((tnum) => _reconcileTeamReadiness(raid, tnum));
+}
+
+let _teamGearSort = { col: "dmg", dir: "desc" };
+
+function sortTeamGear(col, raidId, tnum) {
+    if (_teamGearSort.col === col) {
+        _teamGearSort.dir = _teamGearSort.dir === "desc" ? "asc" : "desc";
+    } else {
+        _teamGearSort = { col, dir: "desc" };
+    }
+    const raid = state.teamRaids.find((r) => r.id === raidId);
+    if (raid) _reconcileTeamReadiness(raid, tnum);
 }
