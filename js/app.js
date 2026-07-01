@@ -30,7 +30,9 @@ function switchTab(tab, event) {
 function goToGearNikke(nikkeId) {
     state.selGear = nikkeId;
     _gearSubTab = "gear";
-    try { localStorage.setItem("nikke_selGear", nikkeId); } catch(e) {}
+    try {
+        localStorage.setItem("nikke_selGear", nikkeId);
+    } catch (e) {}
     // Switch to gear tab
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
     document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
@@ -47,10 +49,10 @@ function goToGearNikke(nikkeId) {
 function goToGearSlot(nikkeId, slot) {
     state.selGear = nikkeId;
     _gearSubTab = "gear";
-    try { localStorage.setItem("nikke_selGear", nikkeId); } catch(e) {}
-    // Switch to gear tab
-    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-    document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
+    try {
+        localStorage.setItem("nikke_selGear", nikkeId);
+    } catch (e) {}
+    // Switch to gear tab `-=-= `    document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
     document.querySelectorAll(".tab")[1].classList.add("active"); // Nikkes tab
     document.getElementById("gear").classList.add("active");
     renderGear();
@@ -135,27 +137,45 @@ function dismissMyData() {
 }
 
 async function pullCloudData() {
-    if (!currentUser) { alert("You must be signed in to pull cloud data."); return; }
+    if (!currentUser) {
+        alert("You must be signed in to pull cloud data.");
+        return;
+    }
     const cloudData = await loadFromCloud();
     if (!cloudData || !cloudData.nikkes || cloudData.nikkes.length === 0) {
         alert("No cloud data found for your account.");
         return;
     }
-    if (!confirm(`Pull cloud data (${cloudData.nikkes.length} Nikkes)?\n\nThis will replace your current local data (${state.nikkes.length} Nikkes).`)) return;
+    if (
+        !confirm(
+            `Pull cloud data (${cloudData.nikkes.length} Nikkes)?\n\nThis will replace your current local data (${state.nikkes.length} Nikkes).`,
+        )
+    )
+        return;
     Object.assign(state, cloudData);
     delete state._updatedAt;
     migrateState();
     state.selGear = state.nikkes.length ? state.nikkes[0].id : null;
     state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
     state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
-    try { localStorage.setItem("nikke_v8", JSON.stringify(state)); } catch(e) {}
+    try {
+        localStorage.setItem("nikke_v8", JSON.stringify(state));
+    } catch (e) {}
     render();
     dismissMyData();
 }
 
 async function pushToCloud() {
-    if (!currentUser) { alert("You must be signed in to push to cloud."); return; }
-    if (!confirm(`Push local data (${state.nikkes.length} Nikkes) to cloud?\n\nThis will overwrite whatever is currently stored in the cloud.`)) return;
+    if (!currentUser) {
+        alert("You must be signed in to push to cloud.");
+        return;
+    }
+    if (
+        !confirm(
+            `Push local data (${state.nikkes.length} Nikkes) to cloud?\n\nThis will overwrite whatever is currently stored in the cloud.`,
+        )
+    )
+        return;
     await uploadLocalToCloud();
     dismissMyData();
 }
@@ -185,8 +205,12 @@ function clearAllData() {
         gearSidebarSortDir: "desc",
     };
     // Clear independent selection keys so stale IDs don't persist
-    try { localStorage.removeItem("nikke_selGear"); } catch(e) {}
-    try { localStorage.removeItem("nikke_selPrio"); } catch(e) {}
+    try {
+        localStorage.removeItem("nikke_selGear");
+    } catch (e) {}
+    try {
+        localStorage.removeItem("nikke_selPrio");
+    } catch (e) {}
     save();
     render();
     dismissMyData();

@@ -2027,6 +2027,20 @@ details[open] > .verdict-title {
     .lines-grid {
         grid-template-columns: 1fr;
     }
+    /* Gear lines: the line-box is full-width on mobile, so the stat (line)
+       dropdown would hog the row while the value (%) dropdown stays a cramped
+       64px. Give each dropdown an equal half of the row instead. The stat
+       select already carries an inline flex:1, so matching flex:1 on the value
+       row splits the space evenly. */
+    .line-value-row {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .line-value-row .value-input {
+        flex: 1 1 0 !important;
+        width: auto !important;
+        min-width: 0;
+    }
 
     /* Roster grid: single column */
     .roster-grid {

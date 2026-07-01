@@ -161,31 +161,8 @@ function renderGear() {
     if (sidebarKey !== _gearSidebarCache || !el.innerHTML) {
         _gearSidebarCache = sidebarKey;
 
-        // Add Nikke button and form
-        const addedNames = new Set(state.nikkes.map((n) => n.name));
-        const addOptions = NIKKE_DATABASE.filter((n) => !addedNames.has(n.name))
-            .map((n) => `<option value="${n.name}">${n.name} · ${n.element} · ${burstDisplay(n)}</option>`)
-            .join("");
-        const addHtml = `<button class="add-line-btn" onclick="showGearAddForm()" style="margin-top:6px;width:100%">+ Add Nikke</button>
-      <div id="gear-add-form" class="form-panel" style="max-width:100%;margin-top:6px">
-        <div class="form-row"><input class="form-input" id="gear-nn-search" placeholder="Type to filter..." oninput="filterGearNikkeList()" style="font-size:13px;padding:4px 6px"/></div>
-        <div class="form-row"><select id="gear-nn-select" class="form-input" size="6" style="height:auto;overflow-y:auto;font-size:13px">${addOptions}</select></div>
-        <div class="btn-row"><button class="btn" onclick="hideGearAddForm()" style="font-size:13px;padding:3px 8px">Cancel</button><button class="btn btn-primary" onclick="addNikkeFromGear()" style="font-size:13px;padding:3px 8px">Add</button></div>
-        <div style="border-top:1px solid #1e2535;margin-top:8px;padding-top:8px">
-          <div style="font-size:12px;color:#64748b;margin-bottom:4px">Custom (not in DB)</div>
-          <div class="form-row"><input class="form-input" id="gear-custom-name" placeholder="Name" style="font-size:13px;padding:3px 6px"/></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
-<select class="form-input" id="gear-custom-burst" style="font-size:12px;padding:2px 4px"><option value="I">BI</option><option value="II">BII</option><option value="III" selected>BIII</option></select>
-<select class="form-input" id="gear-custom-element" style="font-size:12px;padding:2px 4px"><option value="Fire">Fire</option><option value="Water">Water</option><option value="Wind">Wind</option><option value="Electric">Elec</option><option value="Iron">Iron</option></select>
-<select class="form-input" id="gear-custom-weapon" style="font-size:12px;padding:2px 4px">${Object.entries(
-            NIKKE_WEAPONS,
-        )
-            .map(([c, n]) => `<option value="${c}">${n}</option>`)
-            .join("")}</select>
-          </div>
-          <div class="btn-row" style="margin-top:4px"><button class="btn btn-primary" onclick="addCustomNikkeFromGear()" style="font-size:13px;padding:3px 8px">Add Custom</button></div>
-        </div>
-      </div>`;
+        // Add Nikke button (opens the modal popup built below)
+        const addHtml = `<button class="add-line-btn" onclick="showGearAddForm()" style="margin-top:6px;width:100%">+ Add Nikke</button>`;
 
         const toggleBtn = `<button type="button" class="roster-list-toggle" onclick="toggleNikkeList()" aria-expanded="${!_nikkeListCollapsed}">
           <span class="roster-list-chevron">›</span>
@@ -198,7 +175,7 @@ function renderGear() {
             el.innerHTML = `<div class="two-col">
       <div class="nikke-sidebar${_nikkeListCollapsed ? " nikke-list-collapsed" : ""}" id="gear-sidebar-inner">${toggleBtn}${collapsibleHtml}</div>
       <div id="gear-main">${state.selGear ? "" : '<div class="empty-state">← Select a Nikke</div>'}</div>
-    </div>`;
+    </div>${renderGearAddOverlay()}`;
         } else {
             sidebarEl.innerHTML = toggleBtn + collapsibleHtml;
             sidebarEl.classList.toggle("nikke-list-collapsed", _nikkeListCollapsed);
@@ -242,33 +219,60 @@ function toggleGearSidebarSortDir() {
     renderGear();
 }
 
+// Popup picker for adding a Nikke — styled like the Teams slot picker.
+function renderGearAddOverlay() {
+    return `<div class="team-slot-picker-overlay" id="gear-add-overlay" onclick="if(event.target===this)hideGearAddForm()">
+      <div class="team-slot-picker-modal">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:14px;font-weight:600;color:#f1f5f9">Add a Nikke</span>
+          <button class="del-btn" onclick="hideGearAddForm()" style="font-size:16px">✕</button>
+        </div>
+        <input class="form-input" id="gear-nn-search" placeholder="Search..." oninput="filterGearNikkeList()" style="margin-bottom:8px"/>
+        <div id="gear-nn-list" class="team-slot-picker-list"></div>
+      </div>
+    </div>`;
+}
+
 function showGearAddForm() {
-    const f = document.getElementById("gear-add-form");
-    if (f.classList.contains("show")) {
-        f.classList.remove("show");
-        return;
+    const overlay = document.getElementById("gear-add-overlay");
+    if (!overlay) return;
+    overlay.classList.add("show");
+    const search = document.getElementById("gear-nn-search");
+    if (search) {
+        search.value = "";
+        search.focus();
     }
-    f.classList.add("show");
-    document.getElementById("gear-nn-search").focus();
+    filterGearNikkeList();
 }
 function hideGearAddForm() {
-    document.getElementById("gear-add-form").classList.remove("show");
+    const overlay = document.getElementById("gear-add-overlay");
+    if (overlay) overlay.classList.remove("show");
 }
 
 function filterGearNikkeList() {
-    const q = document.getElementById("gear-nn-search").value.toLowerCase();
-    const sel = document.getElementById("gear-nn-select");
+    const search = document.getElementById("gear-nn-search");
+    const list = document.getElementById("gear-nn-list");
+    if (!list) return;
+    const q = search ? search.value.toLowerCase() : "";
     const addedNames = new Set(state.nikkes.map((n) => n.name));
-    const filtered = NIKKE_DATABASE.filter((n) => !addedNames.has(n.name) && n.name.toLowerCase().includes(q));
-    sel.innerHTML = filtered
-        .map((n) => `<option value="${n.name}">${n.name} · ${n.element} · ${burstDisplay(n)}</option>`)
-        .join("");
+    const available = NIKKE_DATABASE.filter((n) => !addedNames.has(n.name) && n.name.toLowerCase().includes(q));
+    list.innerHTML =
+        available
+            .map((n) => {
+                const elem = n.element ? elemIcon(n.element) : "";
+                const bd = burstDisplay(n);
+                const burstNum = bd === "All" ? "All" : bd === "III" ? 3 : bd === "II" ? 2 : bd === "I" ? 1 : null;
+                const burst = burstNum ? burstIcon(burstNum) : "";
+                return `<div class="team-slot-picker-item" onclick="pickGearAddNikke('${n.name.replace(/'/g, "\\'")}')">
+      ${nikkeIcon(n.name, 28)}
+      <span>${n.name}</span>
+      <span style="display:flex;align-items:center;gap:4px;margin-left:auto">${elem} ${burst}</span>
+    </div>`;
+            })
+            .join("") || '<div style="padding:8px;color:#475569;font-size:13px">No available Nikkes</div>';
 }
 
-function addNikkeFromGear() {
-    const sel = document.getElementById("gear-nn-select");
-    const name = sel.value;
-    if (!name) return;
+function pickGearAddNikke(name) {
     const entry = NIKKE_DATABASE.find((n) => n.name === name);
     if (!entry) return;
     const nikke = mkNikke(entry.name, entry.burst1, entry.burst2, entry.burst3, entry.element);
@@ -277,26 +281,7 @@ function addNikkeFromGear() {
     try {
         localStorage.setItem("nikke_selGear", nikke.id);
     } catch (e) {}
-    save();
-    render();
-}
-
-function addCustomNikkeFromGear() {
-    const name = document.getElementById("gear-custom-name").value.trim();
-    if (!name) return;
-    if (state.nikkes.some((n) => n.name === name)) return;
-    const _burst = document.getElementById("gear-custom-burst").value;
-    const element = document.getElementById("gear-custom-element").value;
-    const weapon = document.getElementById("gear-custom-weapon").value;
-    const nikke = mkNikke(name, _burst === "I", _burst === "II", _burst === "III", element, weapon);
-    nikke.custom = true;
-    state.nikkes.push(nikke);
-    state.selGear = nikke.id;
-    try {
-        localStorage.setItem("nikke_selGear", nikke.id);
-    } catch (e) {}
-    if (!state.customWeapons) state.customWeapons = {};
-    state.customWeapons[name] = weapon;
+    hideGearAddForm();
     save();
     render();
 }
@@ -577,12 +562,14 @@ ${tierOpts}
             }
         }
 
-        const tierLvLabel =
-            gear.tier || gear.lv
-                ? `<span style="font-size:13px;color:#94a3b8;font-weight:400">· Tier ${gear.tier} Lv${gear.lv}</span>`
-                : "";
+        const tierVal = gear.tier && gear.tier > 0 ? gear.tier : null;
+        const lvVal = gear.lv != null ? gear.lv : 0;
+        const tierLvEdit = `<div style="display:flex;align-items:center;gap:8px;margin-left:2px">
+        <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:#64748b;font-weight:400">Tier${gearStepperHtml(nikke.id, slot, "tier", tierVal, 1, 10)}</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:#64748b;font-weight:400">Lv${gearStepperHtml(nikke.id, slot, "lv", lvVal, 0, 5)}</span>
+      </div>`;
         return `<div class="slot-card">
-      <div class="slot-header"><div style="display:flex;align-items:center;gap:6px"><span class="slot-tag">${slot}</span>${tierLvLabel}</div><div style="display:flex;align-items:center;gap:6px">${badge}</div></div>
+      <div class="slot-header"><div style="display:flex;align-items:center;gap:6px"><span class="slot-tag">${slot}</span>${tierLvEdit}</div><div style="display:flex;align-items:center;gap:6px">${badge}</div></div>
       <div class="lines-grid">${lineBoxes}</div>
       ${verdictHtml}
     </div>`;
@@ -652,12 +639,12 @@ ${tierOpts}
       <div class="stats-grid-main">
         <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Power</span>
           <input type="text" inputmode="numeric" style="${fieldInputCss}" placeholder="—" value="${nikke.power != null ? nikke.power : ""}" onchange="updateNikkeStat('${nikke.id}','power',this.value)"/></label>
-        <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Limit Break</span>
-          ${statStepperHtml(nikke.id, "limitBreak", nikke.limitBreak, 0, lbMax, false, undefined, lbMax === 0, null, true)}</label>
-        <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Cores</span>
-          ${statStepperHtml(nikke.id, "cores", nikke.cores, 0, coresMax, false, undefined, coresMax === 0, null, true)}</label>
-        <label style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Bond</span>
-          ${statStepperHtml(nikke.id, "bond", nikke.bond, 0, bondMax, false, undefined, bondMax === 0, bondMax > 0 ? targetColor(nikke.bond, bondMax) : null, true)}</label>
+        <div style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Limit Break</span>
+          ${statStepperHtml(nikke.id, "limitBreak", nikke.limitBreak, 0, lbMax, false, undefined, lbMax === 0, null, true)}</div>
+        <div style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Cores</span>
+          ${statStepperHtml(nikke.id, "cores", nikke.cores, 0, coresMax, false, undefined, coresMax === 0, null, true)}</div>
+        <div style="display:flex;flex-direction:column;gap:3px"><span style="${fieldLabelCss}">Bond</span>
+          ${statStepperHtml(nikke.id, "bond", nikke.bond, 0, bondMax, false, undefined, bondMax === 0, bondMax > 0 ? targetColor(nikke.bond, bondMax) : null, true)}</div>
       </div>
       <div class="stats-grid-skills">
         <span style="${fieldLabelCss}">Skill 1${skillRec ? ` <span style="color:${targetColor(nikke.skill1, skillRec.s1) || "#475569"}">· ${state.skillTarget === "rec" ? "rec" : "max"} ${skillRec.s1}</span>` : ""}</span>
@@ -784,6 +771,50 @@ function statStepperHtml(nid, field, value, min, max, accessory, extraStyle, dis
 ${mid}
 <button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="${stepFn}('${nid}','${field}',1)"${maxDis}>+</button>
           </div>`;
+}
+
+// Compact stepper for a gear piece's tier (1–10) or level (0–5), shown in the slot header.
+function gearStepperHtml(nid, slot, field, value, min, max) {
+    const v = value != null ? value : "";
+    const numVal = value != null ? Number(value) : null;
+    const minDis = numVal != null && numVal <= min ? " disabled" : "";
+    const maxDis = numVal != null && numVal >= max ? " disabled" : "";
+    return `<div class="stepper" style="width:82px">
+<button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="stepGearField('${nid}','${slot}','${field}',-1)"${minDis}>−</button>
+<input class="stepper-input" type="number" inputmode="numeric" min="${min}" max="${max}" step="1" placeholder="—" value="${v}" onchange="updateGearField('${nid}','${slot}','${field}',this.value)"/>
+<button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="stepGearField('${nid}','${slot}','${field}',1)"${maxDis}>+</button>
+          </div>`;
+}
+
+function gearFieldRange(field) {
+    return field === "tier" ? { min: 1, max: 10 } : { min: 0, max: 5 };
+}
+
+function stepGearField(nid, slot, field, delta) {
+    const n = state.nikkes.find((x) => x.id === nid);
+    if (!n || !n.gear || !n.gear[slot]) return;
+    const { min, max } = gearFieldRange(field);
+    const cur = n.gear[slot][field] != null ? n.gear[slot][field] : min;
+    n.gear[slot][field] = Math.max(min, Math.min(max, cur + delta));
+    save();
+    renderGearMain(n);
+}
+
+function updateGearField(nid, slot, field, val) {
+    const n = state.nikkes.find((x) => x.id === nid);
+    if (!n || !n.gear || !n.gear[slot]) return;
+    const { min, max } = gearFieldRange(field);
+    const trimmed = String(val).trim();
+    if (trimmed === "") {
+        // Blank clears back to the unset baseline (tier 0 = "not entered", level 0).
+        n.gear[slot][field] = 0;
+    } else {
+        let num = parseInt(trimmed.replace(/[^0-9]/g, ""), 10);
+        if (isNaN(num)) num = min;
+        n.gear[slot][field] = Math.max(min, Math.min(max, num));
+    }
+    save();
+    renderGearMain(n);
 }
 
 function updateNikkeStat(nid, field, val) {

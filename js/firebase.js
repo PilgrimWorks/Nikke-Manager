@@ -665,6 +665,13 @@ function mkNikke(name, burst1, burst2, burst3, element, weapon) {
         burst3: burst3 || false,
         element,
         weapon: weapon || (NIKKE_DB_MAP.get(name) && NIKKE_DB_MAP.get(name).weapon) || "AR",
+        power: 0,
+        limitBreak: 0,
+        cores: 0,
+        bond: 0,
+        skill1: 1,
+        skill2: 1,
+        skill3: 1,
         gear,
         priorities: dbOverloadToPriorities(name),
     };
