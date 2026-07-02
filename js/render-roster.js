@@ -8,11 +8,17 @@ function renderRoster() {
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((n) => {
             const dots = SLOTS.map((s) => `<div class="dot ${dotStatus(n, s)}" title="${s}"></div>`).join("");
-            const editBtn = n.custom
+            // Imported Nikkes not found in the local database are editable too,
+            // so users can fix the guessed burst/element/weapon.
+            const editable = n.custom || n.unrecognized;
+            const editBtn = editable
                 ? `<button class="edit-btn" onclick="showEditNikke('${n.id}')" title="Edit">✎</button>`
                 : "";
+            const badge = n.unrecognized
+                ? `<span class="nikke-badge" title="Not in database — burst, element and weapon are unknown. Edit to fill them in.">not in DB</span>`
+                : "";
             const burstVal = n.burst1 ? "I" : n.burst2 ? "II" : "III";
-            const editForm = n.custom
+            const editForm = editable
                 ? `
       <div class="edit-inline" id="edit-inline-${n.id}">
         <div class="edit-row-name">
@@ -43,7 +49,7 @@ ${Object.entries(NIKKE_WEAPONS)
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="display:flex;align-items:center;gap:10px;min-width:0">
           ${nikkeIcon(n.name, 44)}
-          <div style="min-width:0"><div class="nikke-name">${n.name}</div><div class="nikke-meta">${n.element || ""} · ${burstDisplay(n)}</div></div>
+          <div style="min-width:0"><div class="nikke-name">${n.name}</div><div class="nikke-meta">${n.element || ""} · ${burstDisplay(n)}${badge}</div></div>
         </div>
         <div style="display:flex;gap:2px">
           ${editBtn}

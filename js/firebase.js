@@ -116,7 +116,16 @@ async function onAuthChanged(user) {
                     Object.assign(state, cloudData);
                     delete state._updatedAt;
                     migrateState();
-                    { const _lastG = localStorage.getItem("nikke_selGear"); const _sorted = sortNikkesBySidebar(state.nikkes); state.selGear = (_lastG && state.nikkes.find(n => n.id === _lastG)) ? _lastG : (_sorted.length ? _sorted[0].id : null); }
+                    {
+                        const _lastG = localStorage.getItem("nikke_selGear");
+                        const _sorted = sortNikkesBySidebar(state.nikkes);
+                        state.selGear =
+                            _lastG && state.nikkes.find((n) => n.id === _lastG)
+                                ? _lastG
+                                : _sorted.length
+                                  ? _sorted[0].id
+                                  : null;
+                    }
                     state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                     state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                     save();
@@ -129,7 +138,16 @@ async function onAuthChanged(user) {
                 Object.assign(state, cloudData);
                 delete state._updatedAt;
                 migrateState();
-                { const _lastG = localStorage.getItem("nikke_selGear"); const _sorted = sortNikkesBySidebar(state.nikkes); state.selGear = (_lastG && state.nikkes.find(n => n.id === _lastG)) ? _lastG : (_sorted.length ? _sorted[0].id : null); }
+                {
+                    const _lastG = localStorage.getItem("nikke_selGear");
+                    const _sorted = sortNikkesBySidebar(state.nikkes);
+                    state.selGear =
+                        _lastG && state.nikkes.find((n) => n.id === _lastG)
+                            ? _lastG
+                            : _sorted.length
+                              ? _sorted[0].id
+                              : null;
+                }
                 state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                 state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                 save();
@@ -148,7 +166,16 @@ async function onAuthChanged(user) {
                     Object.assign(state, cloudData);
                     delete state._updatedAt;
                     migrateState();
-                    { const _lastG = localStorage.getItem("nikke_selGear"); const _sorted = sortNikkesBySidebar(state.nikkes); state.selGear = (_lastG && state.nikkes.find(n => n.id === _lastG)) ? _lastG : (_sorted.length ? _sorted[0].id : null); }
+                    {
+                        const _lastG = localStorage.getItem("nikke_selGear");
+                        const _sorted = sortNikkesBySidebar(state.nikkes);
+                        state.selGear =
+                            _lastG && state.nikkes.find((n) => n.id === _lastG)
+                                ? _lastG
+                                : _sorted.length
+                                  ? _sorted[0].id
+                                  : null;
+                    }
                     state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                     state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                     save();
@@ -264,14 +291,14 @@ function load() {
     migrateState();
     // Restore last selected Nikke if still valid, otherwise pick first in sorted display list
     const lastGear = localStorage.getItem("nikke_selGear");
-    if (lastGear && state.nikkes.find(n => n.id === lastGear)) {
+    if (lastGear && state.nikkes.find((n) => n.id === lastGear)) {
         state.selGear = lastGear;
     } else {
         const sorted = sortNikkesBySidebar(state.nikkes);
         state.selGear = sorted.length ? sorted[0].id : null;
     }
     const lastPrio = localStorage.getItem("nikke_selPrio");
-    if (lastPrio && state.nikkes.find(n => n.id === lastPrio)) {
+    if (lastPrio && state.nikkes.find((n) => n.id === lastPrio)) {
         state.selPrio = lastPrio;
     } else {
         const sorted = sortNikkesBySidebar(state.nikkes);
@@ -338,9 +365,9 @@ function migrateState() {
         }
         if (n.burst1 === undefined) {
             const dbEntry = NIKKE_DATABASE.find((e) => e.name === n.name);
-            n.burst1 = dbEntry ? (dbEntry.burst1 || false) : false;
-            n.burst2 = dbEntry ? (dbEntry.burst2 || false) : false;
-            n.burst3 = dbEntry ? (dbEntry.burst3 || false) : true;
+            n.burst1 = dbEntry ? dbEntry.burst1 || false : false;
+            n.burst2 = dbEntry ? dbEntry.burst2 || false : false;
+            n.burst3 = dbEntry ? dbEntry.burst3 || false : true;
         }
         n.priorities.forEach((p) => {
             if (!p.targetTier) p.targetTier = 11;
@@ -363,7 +390,9 @@ function migrateState() {
         });
     });
     state.nikkes.forEach((n) => {
-        if (!n.weapon) {
+        // Leave unrecognized (not-in-database) Nikkes' weapon genuinely unknown
+        // rather than backfilling a guessed "AR" default.
+        if (!n.weapon && !n.unrecognized) {
             n.weapon =
                 (state.customWeapons && state.customWeapons[n.name]) ||
                 (NIKKE_DB_MAP.get(n.name) && NIKKE_DB_MAP.get(n.name).weapon) ||
@@ -503,7 +532,9 @@ function _applyScraperImport(scraperData, opts) {
 
     let added = 0,
         updated = 0,
-        addedNoGear = 0;
+        addedNoGear = 0,
+        unrecognized = 0;
+    const unrecognizedNames = [];
 
     for (const [gameId, entry] of Object.entries(scraperData)) {
         const hasGear = entry.Helmet || entry.Chest || entry.Gloves || entry["Combat Boots"];
@@ -518,9 +549,21 @@ function _applyScraperImport(scraperData, opts) {
                 resolvedName,
                 dbEntry ? dbEntry.burst1 : false,
                 dbEntry ? dbEntry.burst2 : false,
-                dbEntry ? dbEntry.burst3 : true,
+                dbEntry ? dbEntry.burst3 : false,
                 dbEntry ? dbEntry.element : "",
+                dbEntry ? dbEntry.weapon : "",
             );
+            // Not in the local database — leave burst/element/weapon unknown
+            // (rather than guessing) and flag it so the roster/list can prompt
+            // the user to fill them in manually.
+            if (!dbEntry) {
+                nikke.unrecognized = true;
+                // mkNikke defaults weapon to "AR" when unknown — clear it so the
+                // weapon stays genuinely unknown rather than a wrong guess.
+                nikke.weapon = "";
+                unrecognized++;
+                unrecognizedNames.push(resolvedName);
+            }
             state.nikkes.push(nikke);
             if (hasGear) added++;
             else addedNoGear++;
@@ -574,7 +617,7 @@ function _applyScraperImport(scraperData, opts) {
                     let rawVal = scraperLine.value || "";
                     // Normalize value to 2 decimal places to match TIER_TABLE format
                     if (rawVal) {
-                        const num = parseFloat(String(rawVal).replace('%', ''));
+                        const num = parseFloat(String(rawVal).replace("%", ""));
                         if (!isNaN(num)) rawVal = num.toFixed(2);
                     }
                     nikke.gear[appSlot].lines[i] = {
@@ -594,11 +637,19 @@ function _applyScraperImport(scraperData, opts) {
     render();
 
     const totalAdded = added + addedNoGear;
-    const summary = `${totalAdded} added · ${updated} updated`;
+    let summary = `${totalAdded} added · ${updated} updated`;
+    if (unrecognized) summary += ` · ${unrecognized} not in database`;
     if (silent) {
-        _showExtImportToast("Extension import complete — " + summary);
+        _showExtImportToast("Extension import complete — " + summary, unrecognized > 0);
     } else {
-        alert(`Import complete!\n\n• ${totalAdded} Nikke(s) added\n• ${updated} Nikke(s) updated`);
+        let msg = `Import complete!\n\n• ${totalAdded} Nikke(s) added\n• ${updated} Nikke(s) updated`;
+        if (unrecognized) {
+            msg +=
+                `\n• ${unrecognized} not in database (${unrecognizedNames.join(", ")})` +
+                `\n\nBurst, element and weapon were left unknown — ` +
+                `edit them in the Roster to fill them in.`;
+        }
+        alert(msg);
     }
 }
 
@@ -617,17 +668,22 @@ window.addEventListener("_nikke_ext_pending", () => {
     } catch (_) {}
 });
 
-function _showExtImportToast(msg) {
+function _showExtImportToast(msg, warn) {
     const toast = document.createElement("div");
     toast.textContent = msg;
+    // Amber warning palette when something needs the user's attention
+    // (e.g. Nikkes imported that aren't in the local database), green otherwise.
+    const palette = warn
+        ? { bg: "#2e1e05", border: "#92610a", color: "#fbbf24" }
+        : { bg: "#052e16", border: "#166534", color: "#4ade80" };
     toast.style.cssText = [
         "position:fixed",
         "bottom:20px",
         "right:20px",
         "z-index:9999",
-        "background:#052e16",
-        "border:1px solid #166534",
-        "color:#4ade80",
+        `background:${palette.bg}`,
+        `border:1px solid ${palette.border}`,
+        `color:${palette.color}`,
         "padding:12px 18px",
         "border-radius:8px",
         "font-size:15px",
@@ -637,10 +693,13 @@ function _showExtImportToast(msg) {
         "transition:opacity .5s",
     ].join(";");
     document.body.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => toast.remove(), 500);
-    }, 4000);
+    setTimeout(
+        () => {
+            toast.style.opacity = "0";
+            setTimeout(() => toast.remove(), 500);
+        },
+        warn ? 7000 : 4000,
+    );
 }
 
 function mkNikke(name, burst1, burst2, burst3, element, weapon) {

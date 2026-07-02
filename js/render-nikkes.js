@@ -93,8 +93,11 @@ function renderGear() {
                 const dots = SLOTS.map(
                     (s) => `<span class="${dotStatus(n, s)}" title="${s}" data-slot="${s}"></span>`,
                 ).join("");
+                const badge = n.unrecognized
+                    ? `<span class="nikke-badge" title="Not in database — burst, element and weapon are unknown. Edit in the Roster to fill them in.">not in DB</span>`
+                    : "";
                 return `<div class="nikke-item ${state.selGear === n.id ? "active" : ""}" data-id="${n.id}" data-name="${n.name.toLowerCase()}" onclick="selGearNikke('${n.id}')" style="display:flex;align-items:center;gap:8px">
-      ${nikkeIcon(n.name, 34)}<div style="min-width:0"><div>${n.name}</div><div class="nikke-item-sub" style="display:flex;align-items:center;gap:6px"><span class="gear-dots-mini">${dots}</span>${elemIcon(n.element, 14)}</div></div>
+      ${nikkeIcon(n.name, 34)}<div style="min-width:0"><div>${n.name}${badge}</div><div class="nikke-item-sub" style="display:flex;align-items:center;gap:6px"><span class="gear-dots-mini">${dots}</span>${elemIcon(n.element, 14)}</div></div>
     </div>`;
             })
             .join("") ||

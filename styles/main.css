@@ -245,6 +245,20 @@ body {
     color: #64748b;
     margin-bottom: 9px;
 }
+.nikke-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    vertical-align: middle;
+    color: #fbbf24;
+    background: #2e1e05;
+    border: 1px solid #92610a;
+    border-radius: 4px;
+}
 .gear-dots {
     display: flex;
     gap: 5px;
