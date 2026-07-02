@@ -162,14 +162,12 @@ body {
     font-weight: 400;
 }
 
-/* ── Desktop: size the left sidebar to min(its content, the main panel) ──
-   By default the grid row sizes to the taller column, so a long Nikke/roster
-   list stretches the row well past the main content (the Damage Impact card on
-   Nikkes, the lowest team lane on Teams). Taking the sidebar out of flow leaves
-   only the main panel driving the row height. The sidebar is then height:auto so
-   it shrinks to fit a short list and grows as items are added, capped at
-   max-height:100% (the main panel's height) — at which point the list scrolls
-   internally instead of overrunning the main content.
+/* ── Desktop: lock the left sidebar to the viewport (full-height, sticky) ──
+   The sidebar sticks as the page scrolls, standing as a near-full-screen-height
+   card whose list scrolls internally — so it stays put from the user's
+   perspective. align-self:start stops it stretching to the (much taller) main
+   panel's row height; the explicit height gives it the viewport. Sticky is
+   clipped to .two-col, so it releases naturally once the whole panel scrolls by.
    Scoped to .nikke-sidebar so the Solo Raids screen (which puts .nikke-list
    directly in the grid) is unaffected, and to ≥769px so mobile is untouched. */
 @media (min-width: 769px) {
@@ -191,21 +189,13 @@ body {
         min-height: 640px;
     }
     .two-col > .nikke-sidebar {
-        position: absolute;
-        top: 0;
-        left: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: start;
         width: 210px;
-        /* height:auto → card hugs its content (short when few items); max-height
-           caps it at the main panel's height (.two-col is driven by #gear-main /
-           #team-main since this sidebar is out of flow), where the list scrolls. */
-        height: auto;
-        max-height: 100%;
-    }
-    /* The out-of-flow sidebar no longer claims the first grid cell, so pin the
-       main panel to column 2 (it would otherwise auto-place into the 210px col). */
-    .two-col > #gear-main,
-    .two-col > #team-main {
-        grid-column: 2;
+        /* Full viewport height (small 1rem gap top+bottom). The card is a flex
+           column, so its .nikke-list scrolls internally when items overflow. */
+        height: calc(100vh - 2rem);
     }
     /* The collapsible wrapper sits between the height-capped .nikke-sidebar and
        the scrollable .nikke-list. Make it a flex column that fills the sidebar
@@ -2540,6 +2530,11 @@ details[open] > .verdict-title {
     white-space: nowrap;
     flex-shrink: 0;
 }
+.team-label-input-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
 .team-label-input {
     font-size: 16px;
     font-weight: 700;
@@ -2547,9 +2542,20 @@ details[open] > .verdict-title {
     background: #0f172a;
     border: 1px solid #3b82f6;
     border-radius: 4px;
-    padding: 1px 6px;
+    padding: 1px 46px 1px 6px; /* right room for the character counter */
     outline: none;
-    width: 120px;
+    width: 190px;
+}
+/* Live "current/max" character counter, pinned to the right of the name field. */
+.team-label-counter {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    font-weight: 400;
+    color: #64748b;
+    pointer-events: none;
 }
 .team-slots {
     display: grid;
@@ -2829,10 +2835,68 @@ details[open] > .verdict-title {
 .team-gap-count {
     font-weight: 700;
 }
+/* ── Roster-wide tabs (Teams / Gear / Skills / Dolls / Bond) ── */
+.roster-tab-bar {
+    margin-top: 4px;
+}
+.roster-tab-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    background: #1a2130;
+    border-radius: 999px;
+    padding: 0 7px;
+    margin-left: 2px;
+}
+.roster-tab.active .roster-tab-count {
+    color: #cbd5e1;
+    background: #1e2840;
+}
+/* Per-team pill selector on the gap tabs (Campaign / Tribe Tower). */
+.roster-gap-teamsel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.roster-team-pill {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 4px 12px;
+    border: 1px solid #2a3448;
+    background: #1a2130;
+    color: #94a3b8;
+    border-radius: 999px;
+    cursor: pointer;
+    transition:
+        background 0.1s,
+        color 0.1s,
+        border-color 0.1s;
+}
+.roster-team-pill:hover {
+    color: #f1f5f9;
+    background: #1e2840;
+}
+.roster-team-pill.active {
+    color: #f1f5f9;
+    font-weight: 600;
+    background: #1e3a5f;
+    border-color: #1e3a5f;
+}
+/* Small team-origin tag on each row of a flat roster-wide gap list. */
+.roster-team-badge {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    background: #1a2130;
+    border: 1px solid #2a3448;
+    border-radius: 5px;
+    padding: 1px 6px;
+    line-height: 1.4;
+}
 .team-gap-list {
     margin-top: 12px;
-    border-top: 1px solid #1b212d;
-    padding-top: 11px;
 }
 .team-gap-list-label {
     font-size: 11px;
@@ -2881,7 +2945,9 @@ details[open] > .verdict-title {
     cursor: pointer;
     min-width: 36px;
     text-align: center;
-    transition: color 0.12s, border-color 0.12s;
+    transition:
+        color 0.12s,
+        border-color 0.12s;
 }
 .team-gear-sort-btn:hover {
     color: #f1f5f9;

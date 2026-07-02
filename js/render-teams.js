@@ -10,11 +10,41 @@
 const TEAM_MODES = {
     solo: { label: "Solo Raid", teams: 5, fixed: true },
     union: { label: "Union Raid", teams: 3, fixed: true },
+    tribe: { label: "Tribe Tower", teams: 1, fixed: false },
     campaign: { label: "Campaign", teams: 1, fixed: false },
 };
 function rosterTeamCount(raid) {
     if (raid.teamCount) return raid.teamCount;
     return TEAM_MODES[raid.mode] ? TEAM_MODES[raid.mode].teams : 5;
+}
+// Whether a roster's team count is user-adjustable (Campaign, Tribe Tower).
+function isExpandableRoster(raid) {
+    return !!(raid && TEAM_MODES[raid.mode] && !TEAM_MODES[raid.mode].fixed);
+}
+
+// ── Tribe Tower ──────────────────────────────────────────────
+// A Tribe Tower roster is tied to one manufacturer selection ("tower"). Every
+// team in the roster may only use Nikkes eligible for that tower.
+const TRIBE_TOWERS = [
+    { key: "Elysion", label: "Elysion" },
+    { key: "Missilis", label: "Missilis" },
+    { key: "Tetra", label: "Tetra" },
+    { key: "PilgrimOverspec", label: "Pilgrim/Overspec" },
+];
+function tribeTowerLabel(key) {
+    const t = TRIBE_TOWERS.find((x) => x.key === key);
+    return t ? t.label : key;
+}
+function tribeRosterName(key) {
+    return tribeTowerLabel(key) + " Tower";
+}
+// Eligibility: a manufacturer tower (Elysion/Missilis/Tetra) admits only Nikkes
+// of that manufacturer (its overspec units already qualify). The Pilgrim/Overspec
+// tower additionally admits Pilgrims and any overspec Nikke.
+function nikkeEligibleForTower(nikke, tower) {
+    const db = NIKKE_DB_MAP.get(nikke.name) || {};
+    if (tower === "PilgrimOverspec") return db.manufacturer === "Pilgrim" || db.overspec === true;
+    return db.manufacturer === tower;
 }
 // Selected mode in the "New Roster" create form (reset each time the form opens).
 let _newRosterMode = "solo";
@@ -63,12 +93,18 @@ function setNewRosterMode(mode) {
     if (wrap) wrap.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
     const bossRow = document.getElementById("solo-boss-row");
     if (bossRow) bossRow.style.display = mode === "solo" ? "" : "none";
+    const towerRow = document.getElementById("tribe-tower-row");
+    if (towerRow) towerRow.style.display = mode === "tribe" ? "" : "none";
     const nameRow = document.getElementById("new-roster-name-row");
-    if (nameRow) nameRow.style.display = mode === "solo" ? "none" : "";
+    // Solo and Tribe Tower auto-name from their dropdowns; only Union/Campaign type a name.
+    if (nameRow) nameRow.style.display = mode === "union" || mode === "campaign" ? "" : "none";
     const bossSelect = document.getElementById("solo-boss-select");
     if (bossSelect) bossSelect.value = "";
+    const towerSelect = document.getElementById("tribe-tower-select");
+    if (towerSelect) towerSelect.value = "";
     // Switching mode is a fresh start — drop any stale validation highlights.
     clearRosterFieldError(document.getElementById("solo-boss-select"));
+    clearRosterFieldError(document.getElementById("tribe-tower-select"));
     clearRosterFieldError(document.getElementById("team-raid-name-input"));
 }
 
@@ -96,27 +132,42 @@ function renderTeams() {
       </button>
       <div class="roster-list-collapsible">
         <button class="add-line-btn" onclick="showAddTeamRaidForm()" style="width:100%">+ New Roster</button>
-        <div id="add-team-raid-form" class="form-panel" style="max-width:100%">
-          <div class="form-row" id="new-roster-name-row" style="display:none"><input class="form-input" id="team-raid-name-input" placeholder="Roster name"/></div>
-          <div class="form-row" id="solo-boss-row">
-            <select class="form-input" id="solo-boss-select">
-              <option value="">Select boss</option>
-              ${SOLO_RAID_BOSSES.map((b) => `<option value="${b.season}">S${b.season} · ${b.name}</option>`).join("")}
-            </select>
-          </div>
-          <div class="form-row"><div class="roster-mode-toggle" id="new-roster-mode">
-            <button type="button" class="active" data-mode="solo" onclick="setNewRosterMode('solo')">Solo Raid</button>
-            <button type="button" data-mode="union" onclick="setNewRosterMode('union')">Union Raid</button>
-            <button type="button" data-mode="campaign" onclick="setNewRosterMode('campaign')">Campaign</button>
-          </div></div>
-          <div class="btn-row"><button class="btn" onclick="hideAddTeamRaidForm()" style="font-size:13px;padding:4px 10px">Cancel</button><button class="btn btn-roster-add" onclick="addTeamRaid()" style="font-size:13px;padding:4px 10px">Add</button></div>
-        </div>
         <div class="nikke-list">
           ${raidList}
         </div>
       </div>
     </div>
     <div id="team-main">${state.selTeamRaid ? "" : '<div class="empty-state">← Select or create a roster</div>'}</div>
+  </div>
+  <!-- New Roster overlay: kept OUTSIDE .two-col so the sticky sidebar's stacking
+       context doesn't trap this fixed modal beneath the main panel's cards. -->
+  <div id="add-team-raid-form" class="team-slot-picker-overlay" onclick="if(event.target===this)hideAddTeamRaidForm()">
+    <div class="team-slot-picker-modal" style="width:min(360px, calc(100vw - 32px));overflow-y:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span class="form-panel-title" style="margin-bottom:0">New Roster</span>
+        <button class="del-btn" onclick="hideAddTeamRaidForm()" style="font-size:16px">✕</button>
+      </div>
+      <div class="form-row" id="new-roster-name-row" style="display:none"><input class="form-input" id="team-raid-name-input" placeholder="Roster name"/></div>
+      <div class="form-row" id="solo-boss-row">
+        <select class="form-input" id="solo-boss-select">
+          <option value="">Select boss</option>
+          ${SOLO_RAID_BOSSES.map((b) => `<option value="${b.season}">S${b.season} · ${b.name}</option>`).join("")}
+        </select>
+      </div>
+      <div class="form-row" id="tribe-tower-row" style="display:none">
+        <select class="form-input" id="tribe-tower-select">
+          <option value="">Select tower</option>
+          ${TRIBE_TOWERS.map((t) => `<option value="${t.key}">${t.label}</option>`).join("")}
+        </select>
+      </div>
+      <div class="form-row"><div class="roster-mode-toggle" id="new-roster-mode">
+        <button type="button" class="active" data-mode="solo" onclick="setNewRosterMode('solo')">Solo Raid</button>
+        <button type="button" data-mode="union" onclick="setNewRosterMode('union')">Union Raid</button>
+        <button type="button" data-mode="tribe" onclick="setNewRosterMode('tribe')">Tribe Tower</button>
+        <button type="button" data-mode="campaign" onclick="setNewRosterMode('campaign')">Campaign</button>
+      </div></div>
+      <div class="btn-row"><button class="btn" onclick="hideAddTeamRaidForm()" style="font-size:13px;padding:4px 10px">Cancel</button><button class="btn btn-roster-add" onclick="addTeamRaid()" style="font-size:13px;padding:4px 10px">Add</button></div>
+    </div>
   </div>`;
 
     if (state.selTeamRaid) {
@@ -129,6 +180,7 @@ function renderTeams() {
 function selTeamRaid(id) {
     state.selTeamRaid = id;
     state.teamRaidGap = null;
+    _rosterGapTeam = 1; // gap tabs default to Team 1 for the newly-picked roster
     _rosterListCollapsed = true; // mobile: hide the list so the picked roster's lanes show
     renderTeams();
 }
@@ -157,7 +209,8 @@ function hideAddTeamRaidForm() {
 function addTeamRaid() {
     const mode = _newRosterMode || "solo";
     let name = "",
-        bossSeason = null;
+        bossSeason = null,
+        tower = null;
     if (mode === "solo") {
         const bossSel = document.getElementById("solo-boss-select");
         if (!bossSel || !bossSel.value) {
@@ -172,6 +225,14 @@ function addTeamRaid() {
         }
         name = `S${boss.season} · ${boss.name}`;
         bossSeason = season;
+    } else if (mode === "tribe") {
+        const towerSel = document.getElementById("tribe-tower-select");
+        if (!towerSel || !towerSel.value) {
+            flagRosterFieldError(towerSel);
+            return;
+        }
+        tower = towerSel.value;
+        name = tribeRosterName(tower);
     } else {
         const nameInput = document.getElementById("team-raid-name-input");
         name = (nameInput?.value || "").trim();
@@ -181,7 +242,7 @@ function addTeamRaid() {
         }
     }
     const teamCount = TEAM_MODES[mode] ? TEAM_MODES[mode].teams : 5;
-    const raid = { id: "tr" + Date.now(), name, mode, teamCount, entries: [], teamNames: {}, bossSeason };
+    const raid = { id: "tr" + Date.now(), name, mode, teamCount, entries: [], teamNames: {}, bossSeason, tower };
     state.teamRaids.push(raid);
     state.selTeamRaid = raid.id;
     _rosterListCollapsed = true; // mobile: focus the newly created roster's lanes
@@ -200,42 +261,97 @@ function deleteTeamRaid(id) {
     renderTeams();
 }
 
-function addCampaignTeam(raidId) {
+function addRosterTeam(raidId) {
     const raid = state.teamRaids.find((r) => r.id === raidId);
-    if (!raid || raid.mode !== "campaign") return;
+    if (!isExpandableRoster(raid)) return;
     raid.teamCount = rosterTeamCount(raid) + 1;
     save();
-    renderTeamRaidMain(raid);
+    // Append just the one new (empty) lane instead of re-rendering the whole
+    // panel, so existing lanes' Nikke icons aren't recreated (no flicker).
+    const lanesEl = document.querySelector('#team-tab-panels .roster-tab-panel[data-view="teams"] .team-lanes');
+    if (!lanesEl) {
+        renderTeamRaidMain(raid);
+        return;
+    }
+    const { maxTeam, maxEntry } = _raidLaneMetrics(raid);
+    // A new empty team has 0 damage, so it doesn't change any other lane's total.
+    lanesEl.insertAdjacentHTML("beforeend", _buildTeamLaneHtml(raid, raid.teamCount, [], 0, maxTeam, maxEntry, true));
+    // New team adds a gap-tab pill (but no gaps); refresh the hidden panels + counts.
+    refreshRosterGapPanels(raid);
+    updateRosterTabCounts(raid);
 }
 
-function deleteCampaignTeam(raidId, teamNum) {
+function deleteRosterTeam(raidId, teamNum) {
     const raid = state.teamRaids.find((r) => r.id === raidId);
-    if (!raid || raid.mode !== "campaign" || teamNum <= 1) return;
+    if (!isExpandableRoster(raid) || teamNum <= 1) return;
     if (!confirm("Delete Team " + teamNum + "?")) return;
+    const oldCount = rosterTeamCount(raid);
     // Drop this team's entries, then shift higher teams down to stay contiguous.
     raid.entries = raid.entries.filter((e) => e.team !== teamNum);
     raid.entries.forEach((e) => {
         if (e.team > teamNum) e.team -= 1;
     });
-    // Shift team names the same way.
-    const names = raid.teamNames || {};
-    const newNames = {};
-    Object.keys(names).forEach((k) => {
-        const t = parseInt(k);
-        if (t < teamNum) newNames[t] = names[k];
-        else if (t > teamNum) newNames[t - 1] = names[k];
-    });
-    raid.teamNames = newNames;
-    raid.teamCount = rosterTeamCount(raid) - 1;
+    // Shift the higher teams' names + weaknesses down the same way.
+    const shiftKeys = (obj) => {
+        if (!obj) return obj;
+        const out = {};
+        Object.keys(obj).forEach((k) => {
+            const t = parseInt(k);
+            if (t < teamNum) out[t] = obj[k];
+            else if (t > teamNum) out[t - 1] = obj[k];
+        });
+        return out;
+    };
+    raid.teamNames = shiftKeys(raid.teamNames) || {};
+    if (raid.teamWeakness) raid.teamWeakness = shiftKeys(raid.teamWeakness);
+    raid.teamCount = oldCount - 1;
     save();
-    renderTeamRaidMain(raid);
+
+    // Remove only the deleted lane and relabel the lanes below it in place, so
+    // their slot icons are reused (no reload/flicker) rather than rebuilt.
+    const lanesEl = document.querySelector('#team-tab-panels .roster-tab-panel[data-view="teams"] .team-lanes');
+    if (!lanesEl) {
+        renderTeamRaidMain(raid);
+        return;
+    }
+    const delEl = document.getElementById(`team-lane-${raid.id}-${teamNum}`);
+    if (delEl) delEl.remove();
+    // Ascending order so each renumber targets an id already vacated.
+    for (let oldT = teamNum + 1; oldT <= oldCount; oldT++) _relabelTeamLane(raid, oldT, oldT - 1);
+    _updateAllTeamTotals(raid); // team removal can shift the max, recolouring totals
+    refreshRosterGapPanels(raid);
+    updateRosterTabCounts(raid);
 }
 
-function setTeamRaidView(mode) {
-    state.teamRaidView = mode;
-    state.teamRaidGap = null;
-    const raid = state.teamRaids.find((r) => r.id === state.selTeamRaid);
-    if (raid) renderTeamRaidMain(raid);
+// Renumber an existing team lane's DOM (id, child ids, handlers, labels) from
+// oldT to newT WITHOUT rebuilding its slot cards — the Nikke <img> nodes are
+// left in place so they don't reload. Used when deleting a team shifts the lanes
+// below it down by one.
+function _relabelTeamLane(raid, oldT, newT) {
+    const el = document.getElementById(`team-lane-${raid.id}-${oldT}`);
+    if (!el) return;
+    el.id = `team-lane-${raid.id}-${newT}`;
+    const members = raid.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === newT);
+    const ng = el.querySelector(".team-name-group");
+    if (ng) {
+        ng.id = `team-name-group-${raid.id}-${newT}`;
+        ng.innerHTML = renderTeamNameGroupStatic(raid, newT);
+    }
+    const warn = el.querySelector(".team-warnings");
+    if (warn) {
+        warn.id = `team-warnings-${raid.id}-${newT}`;
+        warn.innerHTML = _teamWarningsHtml(raid, newT, members);
+    }
+    const tot = el.querySelector(".team-total");
+    if (tot) tot.id = `team-total-${raid.id}-${newT}`; // value/colour set by _updateAllTeamTotals
+    const del = el.querySelector(".team-del-btn");
+    if (del) del.setAttribute("onclick", `deleteRosterTeam('${raid.id}',${newT})`);
+    // Filled slots render in member order first, then empties — reassign each
+    // slot's team number and (splice-shifted) entry index without touching icons.
+    el.querySelectorAll(".team-slots > .team-slot").forEach((slotEl, i) => {
+        if (i < members.length) _applySlotEntryIdx(slotEl, raid.id, newT, members[i].origIdx);
+        else slotEl.setAttribute("onclick", `openTeamSlotPicker('${raid.id}',${newT},${i})`);
+    });
 }
 
 function startEditRaidName(raidId) {
@@ -331,8 +447,11 @@ function commitRaidName(input, raidId) {
             const members = raid.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === tnum);
             const warnEl = document.getElementById(`team-warnings-${raid.id}-${tnum}`);
             if (warnEl) warnEl.innerHTML = _teamWarningsHtml(raid, tnum, members);
-            _reconcileTeamReadiness(raid, tnum);
         });
+        // A boss change re-weights each Nikke's gear Potential/Eff — refresh the
+        // (hidden) Gear panel so it's current when the user opens it.
+        const gearPanel = _rosterGapPanelEl("gear");
+        if (gearPanel) gearPanel.innerHTML = _renderRosterTabContent(raid, "gear");
     }
 }
 
@@ -349,8 +468,6 @@ function renderTeamRaidMain(raid) {
     const raidSubtitle = `<div id="raid-subtitle-${raid.id}" style="font-size:16px;color:#94a3b8;margin-top:3px;line-height:1.3;display:flex;align-items:center;gap:4px">${modeLabel}${weaknessHtml}</div>`;
     const totalDmg = raid.entries.reduce((s, e) => s + (e.damage || 0), 0);
 
-    const bodyHtml = renderTeamSlots(raid);
-
     area.innerHTML = `
     <div class="team-main-header">
       <div style="display:flex;align-items:flex-start;gap:8px">
@@ -358,14 +475,265 @@ function renderTeamRaidMain(raid) {
           <span class="team-raid-title" id="raid-title-${raid.id}">${raid.name}</span>
           ${raidSubtitle}
         </div>
-        <button class="btn-sm" onclick="startEditRaidName('${raid.id}')" title="Edit raid" style="font-size:12px;padding:2px 6px;min-width:auto;margin-top:4px">✎</button>
+        ${raid.mode === "tribe" ? "" : `<button class="btn-sm" onclick="startEditRaidName('${raid.id}')" title="Edit raid" style="font-size:12px;padding:2px 6px;min-width:auto;margin-top:4px">✎</button>`}
       </div>
       <div style="display:flex;align-items:center;gap:12px">
         <span id="raid-total-${raid.id}" style="font-size:13px;color:#64748b">Total <strong style="color:#f1f5f9">${totalDmg ? totalDmg.toLocaleString() + "m" : "—"}</strong></span>
         <button class="del-btn" onclick="deleteTeamRaid('${raid.id}')" title="Delete raid">✕ Delete</button>
       </div>
     </div>
-    ${bodyHtml}`;
+    ${renderRosterTabBar(raid)}
+    ${renderRosterTabPanels(raid)}`;
+}
+
+// ── Roster-wide tabs (Teams / Gear / Skills / Dolls / Bond) ─────
+// The four gap tabs aggregate every Nikke across all teams that has a gap in
+// that category into a single flat, team-badged list. "Teams" is the lane view.
+const ROSTER_TABS = [
+    { key: "teams", label: "Teams" },
+    { key: "gear", label: "Gear" },
+    { key: "skills", label: "Skills" },
+    { key: "dolls", label: "Dolls" },
+    { key: "bond", label: "Bond" },
+];
+
+// Campaign & Tribe Tower let the same Nikke sit on multiple teams. As a result
+// their gap tabs (Gear/Skills/Dolls/Bond) are viewed one team at a time via a
+// pill selector (a Nikke — and its per-team damage-weighted Potential — can
+// differ per team). Solo/Union keep the flat, team-badged all-teams view.
+function rosterSharesNikkesAcrossTeams(raid) {
+    return !!(raid && (raid.mode === "campaign" || raid.mode === "tribe"));
+}
+// Team currently shown on the gap tabs (reset to 1 when switching rosters).
+let _rosterGapTeam = 1;
+function _currentGapTeam(raid) {
+    const count = rosterTeamCount(raid);
+    return _rosterGapTeam >= 1 && _rosterGapTeam <= count ? _rosterGapTeam : 1;
+}
+
+function renderRosterTabBar(raid) {
+    const view = state.teamRaidView || "teams";
+    const counts = _gapCounts(raid);
+    const tabs = ROSTER_TABS.map((t) => {
+        const active = view === t.key;
+        const badge = t.key !== "teams" ? ` <span class="roster-tab-count">${counts[t.key]}</span>` : "";
+        return `<button class="gear-subtab roster-tab${active ? " active" : ""}" data-view="${t.key}" onclick="switchRosterTab('${t.key}')">${t.label}${badge}</button>`;
+    }).join("");
+    return `<div class="gear-subtab-bar roster-tab-bar" id="roster-tab-bar-${raid.id}">${tabs}</div>`;
+}
+
+// Build the single-tab body for a given view.
+function _renderRosterTabContent(raid, view) {
+    return view === "teams" ? renderTeamSlots(raid) : renderRosterGapTab(raid, view);
+}
+
+// All five tab panels are rendered up front and only the active one is shown.
+// Swapping tabs then just toggles `display`, so the Nikke <img> nodes are never
+// recreated — no icon reload/flicker. The hidden gap panels are kept current by
+// refreshRosterGapPanels() whenever the roster changes (invisible work).
+function renderRosterTabPanels(raid) {
+    const view = state.teamRaidView || "teams";
+    const panels = ROSTER_TABS.map((t) => {
+        const hidden = t.key === view ? "" : ' style="display:none"';
+        return `<div class="roster-tab-panel" data-view="${t.key}"${hidden}>${_renderRosterTabContent(raid, t.key)}</div>`;
+    }).join("");
+    return `<div id="team-tab-panels">${panels}</div>`;
+}
+
+function switchRosterTab(view) {
+    state.teamRaidView = view;
+    const raid = state.teamRaids.find((r) => r.id === state.selTeamRaid);
+    if (!raid) return;
+    document.querySelectorAll(`#roster-tab-bar-${raid.id} .roster-tab`).forEach((b) => {
+        b.classList.toggle("active", b.dataset.view === view);
+    });
+    // Just show/hide the already-rendered panels — no innerHTML rebuild.
+    document.querySelectorAll("#team-tab-panels .roster-tab-panel").forEach((p) => {
+        p.style.display = p.dataset.view === view ? "" : "none";
+    });
+}
+
+// The DOM node for one gap tab's panel (gear/skills/dolls/bond).
+function _rosterGapPanelEl(view) {
+    return document.querySelector(`#team-tab-panels .roster-tab-panel[data-view="${view}"]`);
+}
+
+// Re-render the four hidden gap panels so they reflect the current roster. Called
+// after composition/damage/boss changes. When the Teams tab is active these
+// panels are hidden, so rebuilding them (and reloading their icons) is invisible;
+// by the time the user switches to one it's already correct and won't flicker.
+function refreshRosterGapPanels(raid) {
+    ["gear", "skills", "dolls", "bond"].forEach((view) => {
+        const el = _rosterGapPanelEl(view);
+        if (el) el.innerHTML = _renderRosterTabContent(raid, view);
+    });
+}
+
+// Recompute the four gap-tab count badges in place (called after a Nikke is
+// added/removed on the Teams tab, since that changes roster-wide gap counts).
+function updateRosterTabCounts(raid) {
+    const counts = _gapCounts(raid);
+    document.querySelectorAll(`#roster-tab-bar-${raid.id} .roster-tab`).forEach((b) => {
+        const c = b.querySelector(".roster-tab-count");
+        if (c && counts[b.dataset.view] != null) c.textContent = counts[b.dataset.view];
+    });
+}
+
+// Aggregate per-team gap details across the whole roster, tagging each row with
+// its team number. Reuses the per-team detail computation.
+function _computeRosterGaps(raid) {
+    const { teamNums, teams } = _raidLaneMetrics(raid);
+    const all = { gear: [], skills: [], dolls: [], bond: [] };
+    teamNums.forEach((tnum) => {
+        const members = teams[tnum] || [];
+        const d = _computeTeamReadinessDetails(raid, members);
+        ["gear", "skills", "dolls", "bond"].forEach((k) => {
+            d[k].forEach((item) => all[k].push({ ...item, team: tnum }));
+        });
+    });
+    return all;
+}
+
+// Gaps actually shown on the tabs: the whole roster for Solo/Union (flat, badged),
+// or just the selected team for Campaign/Tribe (per-team pill selector).
+function _visibleGaps(raid) {
+    const gaps = _computeRosterGaps(raid);
+    if (!rosterSharesNikkesAcrossTeams(raid)) return gaps;
+    const sel = _currentGapTeam(raid);
+    const f = { gear: [], skills: [], dolls: [], bond: [] };
+    ["gear", "skills", "dolls", "bond"].forEach((k) => (f[k] = gaps[k].filter((m) => m.team === sel)));
+    return f;
+}
+// Tab-header badge counts: unique Nikkes with a gap across the WHOLE roster
+// (deduped by nikkeId, so a Nikke shared between teams counts once), regardless
+// of which team the list is currently focused on. For Solo/Union there are no
+// cross-team duplicates, so this equals the plain entry count.
+function _gapCounts(raid) {
+    const gaps = _computeRosterGaps(raid);
+    const uniq = (arr) => new Set(arr.map((m) => m.nikkeId)).size;
+    return { gear: uniq(gaps.gear), skills: uniq(gaps.skills), dolls: uniq(gaps.dolls), bond: uniq(gaps.bond) };
+}
+
+const ROSTER_GAP_LABEL = { gear: "gear", skills: "skill", dolls: "doll", bond: "bond" };
+
+function renderRosterGapTab(raid, cat) {
+    const perTeam = rosterSharesNikkesAcrossTeams(raid);
+    const list = _visibleGaps(raid)[cat] || [];
+    // Team pill selector (Campaign/Tribe with >1 team): choose which team's
+    // improvements to view, since a Nikke can belong to several teams.
+    let pills = "";
+    if (perTeam) {
+        const { teamNums } = _raidLaneMetrics(raid);
+        if (teamNums.length > 1) {
+            const sel = _currentGapTeam(raid);
+            pills =
+                `<div class="roster-gap-teamsel">` +
+                teamNums
+                    .map(
+                        (t) =>
+                            `<button class="roster-team-pill${t === sel ? " active" : ""}" onclick="selectGapTeam(${t})">${getTeamName(raid, t)}</button>`,
+                    )
+                    .join("") +
+                `</div>`;
+        }
+    }
+    // Team badge only in the aggregate (Solo/Union) view — redundant per-team.
+    const badge = (m) => (perTeam ? "" : `<span class="roster-team-badge">T${m.team}</span>`);
+    if (!list.length) {
+        return `<div class="roster-gap-tab">${pills}<div class="empty-state" style="padding:24px">✓ No ${ROSTER_GAP_LABEL[cat]} gaps — everything looks good.</div></div>`;
+    }
+    if (cat === "gear") {
+        const sorted = [...list].sort((a, b) => {
+            const d = _teamGearSortVal(b) - _teamGearSortVal(a);
+            return _teamGearSort.dir === "desc" ? d : -d;
+        });
+        const arrow = (col) => (_teamGearSort.col === col ? (_teamGearSort.dir === "desc" ? " ▼" : " ▲") : "");
+        const DMGW = "120px";
+        const EFFW = "66px";
+        const DOTW = "34px";
+        return `<div class="roster-gap-tab">${pills}<div class="team-gap-list">
+          <div style="display:flex;align-items:center;gap:18px;padding:2px 11px 4px">
+            <span style="width:28px;flex-shrink:0"></span>
+            <span style="flex:1"></span>
+            <button class="team-gear-sort-btn${_teamGearSort.col === "dmg" ? " active" : ""}" style="width:${DMGW};flex-shrink:0" onclick="sortRosterGear('dmg')">Potential${arrow("dmg")}</button>
+            <button class="team-gear-sort-btn${_teamGearSort.col === "eff" ? " active" : ""}" style="width:${EFFW};flex-shrink:0" onclick="sortRosterGear('eff')">Eff${arrow("eff")}</button>
+            <span style="width:${DOTW};flex-shrink:0"></span>
+          </div>
+          ${sorted
+              .map(
+                  (
+                      m,
+                  ) => `<button class="team-gap-item" data-nikke-id="${m.nikkeId}" style="gap:18px" onclick="goToGearNikke('${m.nikkeId}')">
+            ${badge(m)}
+            ${nikkeIcon(m.name, 28)}
+            <span class="team-gap-item-name" style="flex:1;min-width:0">${m.elem} ${m.name}</span>
+            <span class="team-gear-potential" style="width:${DMGW};flex-shrink:0;text-align:right;font-size:12px;color:#f1f5f9">${_teamGearPotentialHtml(m)}</span>
+            <span class="team-gear-eff" style="width:${EFFW};flex-shrink:0;text-align:right;font-size:12px;color:${m.bestEff > 0 ? "#f1f5f9" : "#475569"}" title="${m.bestSlot}">${_teamGearEffText(m)}</span>
+            <span style="width:${DOTW};flex-shrink:0">${m.gearDots}</span>
+          </button>`,
+              )
+              .join("")}
+        </div></div>`;
+    }
+    return `<div class="roster-gap-tab">${pills}<div class="team-gap-list">
+      ${list
+          .map(
+              (
+                  m,
+              ) => `<button class="team-gap-item" data-nikke-id="${m.nikkeId}" onclick="goToGearNikke('${m.nikkeId}')">
+        ${badge(m)}
+        ${nikkeIcon(m.name, 28)}
+        <span class="team-gap-item-name">${m.elem} ${m.name}</span>
+        <span class="team-gap-item-detail">${m.detail}</span>
+      </button>`,
+          )
+          .join("")}
+    </div></div>`;
+}
+
+// Switch which team the gap tabs display (Campaign/Tribe). Rebuilds the gap
+// panels (hidden ones invisibly) and the tab-bar counts for the new team.
+function selectGapTeam(tnum) {
+    _rosterGapTeam = tnum;
+    const raid = state.teamRaids.find((r) => r.id === state.selTeamRaid);
+    if (!raid) return;
+    refreshRosterGapPanels(raid);
+    updateRosterTabCounts(raid);
+}
+
+function sortRosterGear(col) {
+    if (_teamGearSort.col === col) {
+        _teamGearSort.dir = _teamGearSort.dir === "desc" ? "asc" : "desc";
+    } else {
+        _teamGearSort = { col, dir: "desc" };
+    }
+    const raid = state.teamRaids.find((r) => r.id === state.selTeamRaid);
+    const panel = _rosterGapPanelEl("gear");
+    if (!raid || !panel) return;
+    const listEl = panel.querySelector(".team-gap-list");
+    if (!listEl) {
+        panel.innerHTML = _renderRosterTabContent(raid, "gear");
+        return;
+    }
+    // Reorder the existing row nodes (appendChild moves, never clones) so the
+    // Nikke icons are preserved and don't reload. Key off the visible gaps so
+    // per-team rows sort by that team's own (damage-weighted) values.
+    const byId = new Map(_visibleGaps(raid).gear.map((m) => [String(m.nikkeId), m]));
+    const rows = [...listEl.querySelectorAll(".team-gap-item[data-nikke-id]")];
+    rows.sort((a, b) => {
+        const d =
+            _teamGearSortVal(byId.get(b.dataset.nikkeId) || {}) - _teamGearSortVal(byId.get(a.dataset.nikkeId) || {});
+        return _teamGearSort.dir === "desc" ? d : -d;
+    });
+    rows.forEach((r) => listEl.appendChild(r));
+    // Update the two sort-header buttons' active state + arrow in place.
+    const arrow = (c) => (_teamGearSort.col === c ? (_teamGearSort.dir === "desc" ? " ▼" : " ▲") : "");
+    listEl.querySelectorAll(".team-gear-sort-btn").forEach((b) => {
+        const isDmg = b.textContent.trim().startsWith("Potential");
+        const c = isDmg ? "dmg" : "eff";
+        b.classList.toggle("active", _teamGearSort.col === c);
+        b.textContent = (isDmg ? "Potential" : "Eff") + arrow(c);
+    });
 }
 
 // ── TEAMS VIEW: 5 lanes × 5 slots ────────────────────────────
@@ -388,7 +756,7 @@ function _raidLaneMetrics(raid) {
 // team's composition, so it can be recomputed in place when a nikke is added or
 // removed without rebuilding the slot cards.
 function _teamWarningsHtml(raid, tnum, members) {
-    const teamWeakness = raid.mode === "union" ? getTeamWeakness(raid, tnum) : null;
+    const teamWeakness = rosterHasTeamWeakness(raid) ? getTeamWeakness(raid, tnum) : null;
     let elemWarningHtml = "";
     if (raid.mode === "solo" && raid.bossSeason != null) {
         const _ewBoss = SOLO_RAID_BOSSES.find((b) => b.season === raid.bossSeason);
@@ -398,7 +766,7 @@ function _teamWarningsHtml(raid, tnum, members) {
                 elemWarningHtml = `<div class="team-elem-warning">⚠ Missing ${elemIcon(_ewBoss.weakness)}</div>`;
             }
         }
-    } else if (raid.mode === "union" && teamWeakness) {
+    } else if (rosterHasTeamWeakness(raid) && teamWeakness) {
         const _uwNikkes = members.map((e) => state.nikkes.find((x) => x.id === e.nikkeId)).filter(Boolean);
         if (_uwNikkes.length > 0 && !_uwNikkes.some((n) => n.element === teamWeakness)) {
             elemWarningHtml = `<div class="team-elem-warning">⚠ Missing ${elemIcon(teamWeakness)}</div>`;
@@ -440,7 +808,7 @@ function _teamWarningsHtml(raid, tnum, members) {
     return elemWarningHtml + burstWarningHtml;
 }
 
-function _buildTeamLaneHtml(raid, tnum, members, total, maxTeam, maxEntry, isCampaign) {
+function _buildTeamLaneHtml(raid, tnum, members, total, maxTeam, maxEntry, isExpandable) {
     const teamColor = (pct) => (pct >= 80 ? "#4ade80" : pct >= 50 ? "#60a5fa" : pct >= 25 ? "#fbbf24" : "#f87171");
     const pct = (total / maxTeam) * 100;
     const tColor = total === 0 ? "#64748b" : teamColor(pct);
@@ -449,10 +817,9 @@ function _buildTeamLaneHtml(raid, tnum, members, total, maxTeam, maxEntry, isCam
         slots.push(renderTeamSlot(raid, tnum, i, members[i] || null, maxEntry));
     }
     const delTeamBtn =
-        isCampaign && tnum > 1
-            ? `<button class="team-del-btn" onclick="deleteCampaignTeam('${raid.id}',${tnum})" title="Delete team">✕</button>`
+        isExpandable && tnum > 1
+            ? `<button class="team-del-btn" onclick="deleteRosterTeam('${raid.id}',${tnum})" title="Delete team">✕</button>`
             : "";
-    const readinessHtml = renderTeamReadinessInline(raid, tnum, members);
     return `<div class="team-lane" id="team-lane-${raid.id}-${tnum}">
     <div class="team-lane-header">
       <div class="team-name-group" id="team-name-group-${raid.id}-${tnum}">${renderTeamNameGroupStatic(raid, tnum)}</div>
@@ -460,20 +827,18 @@ function _buildTeamLaneHtml(raid, tnum, members, total, maxTeam, maxEntry, isCam
       <span class="team-total" id="team-total-${raid.id}-${tnum}" style="color:${tColor};margin-left:auto">${total ? total.toLocaleString() + "m" : ""}</span>
       ${delTeamBtn}
     </div>
-    <div id="team-dmgbar-${raid.id}-${tnum}">${renderTeamDmgBar(raid, tnum, members)}</div>
     <div class="team-slots">${slots.join("")}</div>
-    ${readinessHtml}
   </div>`;
 }
 
 function renderTeamSlots(raid) {
-    const isCampaign = raid.mode === "campaign";
+    const isExpandable = isExpandableRoster(raid);
     const { teamNums, teams, teamTotals, maxTeam, maxEntry } = _raidLaneMetrics(raid);
     const lanes = teamNums
-        .map((t, ti) => _buildTeamLaneHtml(raid, t, teams[t], teamTotals[ti], maxTeam, maxEntry, isCampaign))
+        .map((t, ti) => _buildTeamLaneHtml(raid, t, teams[t], teamTotals[ti], maxTeam, maxEntry, isExpandable))
         .join("");
-    const addTeamBtn = isCampaign
-        ? `<button class="add-line-btn" style="margin-top:9px" onclick="addCampaignTeam('${raid.id}')">+ Add Team</button>`
+    const addTeamBtn = isExpandable
+        ? `<button class="add-line-btn" style="margin-top:9px" onclick="addRosterTeam('${raid.id}')">+ Add Team</button>`
         : "";
     return `<div class="team-lanes">${lanes}</div>
       ${addTeamBtn}
@@ -486,7 +851,7 @@ function _rerenderTeamLane(raid, tnum) {
         renderTeamRaidMain(raid);
         return;
     }
-    const isCampaign = raid.mode === "campaign";
+    const isExpandable = isExpandableRoster(raid);
     const { teamNums, teams, teamTotals, maxTeam, maxEntry } = _raidLaneMetrics(raid);
     const ti = teamNums.indexOf(tnum);
     el.outerHTML = _buildTeamLaneHtml(
@@ -496,32 +861,8 @@ function _rerenderTeamLane(raid, tnum) {
         teamTotals[ti] || 0,
         maxTeam,
         maxEntry,
-        isCampaign,
+        isExpandable,
     );
-}
-
-// Rebuild a team's readiness section from the canonical renderer, then transplant
-// the already-loaded icon nodes from the previous rows into the matching new rows
-// (keyed by nikkeId) so their <img> elements are moved, not recreated. This lets
-// rows be added/removed/reordered and values change (when a nikke is added or
-// removed) without the surviving rows' icons flickering.
-function _reconcileTeamReadiness(raid, tnum) {
-    const liveEl = document.getElementById(`team-readiness-${raid.id}-${tnum}`);
-    if (!liveEl) { renderTeamRaidMain(raid); return; }
-    const members = raid.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === tnum);
-    const fresh = _htmlToNode(renderTeamReadinessInline(raid, tnum, members));
-    if (!fresh) { liveEl.replaceChildren(); return; }
-    const oldIcons = new Map();
-    liveEl.querySelectorAll(".team-gap-item[data-nikke-id]").forEach((row) => {
-        if (row.firstElementChild && !oldIcons.has(row.dataset.nikkeId)) {
-            oldIcons.set(row.dataset.nikkeId, row.firstElementChild);
-        }
-    });
-    fresh.querySelectorAll(".team-gap-item[data-nikke-id]").forEach((row) => {
-        const oldIcon = oldIcons.get(row.dataset.nikkeId);
-        if (oldIcon && row.firstElementChild) row.replaceChild(oldIcon, row.firstElementChild);
-    });
-    liveEl.replaceChildren(...fresh.childNodes);
 }
 
 function renderTeamSlot(raid, teamNum, slotIdx, entry, maxEntry) {
@@ -616,10 +957,25 @@ function filterTeamSlotPicker() {
         return;
     }
     const currentNikkeId = entryIdx != null ? raid.entries[entryIdx]?.nikkeId : null;
-    const assignedIds = new Set(raid.entries.filter((e) => e.team && e.team > 0).map((e) => e.nikkeId));
+    // Campaign/Tribe let a Nikke sit on multiple teams, so uniqueness is scoped to
+    // the picker's own team; Solo/Union keep a Nikke unique across the whole roster.
+    const scopeTeam = _teamSlotPickerState.team;
+    const sharesAcrossTeams = rosterSharesNikkesAcrossTeams(raid);
+    const assignedIds = new Set(
+        raid.entries
+            .filter((e) => e.team && e.team > 0 && (!sharesAcrossTeams || e.team === scopeTeam))
+            .map((e) => e.nikkeId),
+    );
     if (currentNikkeId) assignedIds.delete(currentNikkeId);
+    // Tribe Tower rosters only admit Nikkes eligible for the roster's tower.
+    const isTribe = raid.mode === "tribe";
     const available = state.nikkes
-        .filter((n) => !assignedIds.has(n.id) && n.name.toLowerCase().includes(q))
+        .filter(
+            (n) =>
+                !assignedIds.has(n.id) &&
+                n.name.toLowerCase().includes(q) &&
+                (!isTribe || nikkeEligibleForTower(n, raid.tower)),
+        )
         .sort((a, b) => a.name.localeCompare(b.name));
     const removeBtn =
         entryIdx != null
@@ -673,12 +1029,17 @@ function removeTeamSlot(raidId, entryIdx) {
     const tnum = raid.entries[entryIdx]?.team;
     raid.entries.splice(entryIdx, 1);
     save();
-    if (!tnum) { renderTeamRaidMain(raid); return; }
+    if (!tnum) {
+        renderTeamRaidMain(raid);
+        return;
+    }
     // The splice shifted the index of every later entry, so re-sync the slot
     // handlers on the OTHER lanes too (icon-preserving); only the changed team's
     // warnings/bar/readiness/totals need rebuilding.
     const { teamNums } = _raidLaneMetrics(raid);
-    teamNums.forEach((t) => { if (t !== tnum) _resyncTeamSlotIdx(raid, t); });
+    teamNums.forEach((t) => {
+        if (t !== tnum) _resyncTeamSlotIdx(raid, t);
+    });
     _updateTeamLaneComposition(raid, tnum);
 }
 
@@ -698,19 +1059,19 @@ function _updateAllTeamTotals(raid) {
     });
     const raidTotal = raid.entries.reduce((s, e) => s + (e.damage || 0), 0);
     const raidTotalEl = document.getElementById(`raid-total-${raid.id}`);
-    if (raidTotalEl) raidTotalEl.innerHTML = `Total <strong style="color:#f1f5f9">${raidTotal ? raidTotal.toLocaleString() + "m" : "—"}</strong>`;
+    if (raidTotalEl)
+        raidTotalEl.innerHTML = `Total <strong style="color:#f1f5f9">${raidTotal ? raidTotal.toLocaleString() + "m" : "—"}</strong>`;
 }
 
 // Surgically update only the damage-dependent displays without touching nikke
-// icons, names, or warnings (none of which depend on damage). The gear-upgrade
-// bar and the Potential/Eff table are weighted by each nikke's own damage, so
-// only the changed team needs those refreshed.
+// icons, names, or warnings (none of which depend on damage). Damage feeds the
+// per-team/raid totals and the Gear tab's Potential/Eff values, so refresh those.
+// The Gear panel is hidden while damage is edited (inputs live on the Teams tab),
+// so rebuilding it is invisible.
 function _updateTeamDmgDisplays(raid, changedTeam) {
     _updateAllTeamTotals(raid);
-    const { teams } = _raidLaneMetrics(raid);
-    const barEl = document.getElementById(`team-dmgbar-${raid.id}-${changedTeam}`);
-    if (barEl) barEl.innerHTML = renderTeamDmgBar(raid, changedTeam, teams[changedTeam] || []);
-    _updateTeamGearVals(raid, changedTeam);
+    const gearPanel = _rosterGapPanelEl("gear");
+    if (gearPanel) gearPanel.innerHTML = _renderRosterTabContent(raid, "gear");
 }
 
 // Parse a single-element HTML string into a detached DOM node.
@@ -751,9 +1112,15 @@ function _resyncTeamSlotIdx(raid, tnum) {
 // handlers rewritten in place.
 function _reconcileTeamSlots(raid, tnum) {
     const laneEl = document.getElementById(`team-lane-${raid.id}-${tnum}`);
-    if (!laneEl) { renderTeamRaidMain(raid); return; }
+    if (!laneEl) {
+        renderTeamRaidMain(raid);
+        return;
+    }
     const slotsEl = laneEl.querySelector(".team-slots");
-    if (!slotsEl) { _rerenderTeamLane(raid, tnum); return; }
+    if (!slotsEl) {
+        _rerenderTeamLane(raid, tnum);
+        return;
+    }
     const { teams, maxEntry } = _raidLaneMetrics(raid);
     const members = teams[tnum] || [];
     const filledByNikke = new Map();
@@ -789,17 +1156,18 @@ function _reconcileTeamSlots(raid, tnum) {
 }
 
 // Refresh the composition-dependent parts of a lane after a nikke is added or
-// removed: the slot cards (icon-preserving), coverage warnings, gear-upgrade
-// bar, readiness gaps, and all team totals/colors.
+// removed: the slot cards (icon-preserving), coverage warnings, all team
+// totals/colors, and the roster-wide gap-tab counts.
 function _updateTeamLaneComposition(raid, tnum) {
     _reconcileTeamSlots(raid, tnum);
     const members = raid.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === tnum);
     const warnEl = document.getElementById(`team-warnings-${raid.id}-${tnum}`);
     if (warnEl) warnEl.innerHTML = _teamWarningsHtml(raid, tnum, members);
-    const barEl = document.getElementById(`team-dmgbar-${raid.id}-${tnum}`);
-    if (barEl) barEl.innerHTML = renderTeamDmgBar(raid, tnum, members);
-    _reconcileTeamReadiness(raid, tnum);
     _updateAllTeamTotals(raid);
+    // Adding/removing a Nikke changes the roster-wide gap tabs and their counts;
+    // refresh the (hidden) gap panels and tab-bar badges so they stay current.
+    updateRosterTabCounts(raid);
+    refreshRosterGapPanels(raid);
 }
 
 function commitTeamDmgInput(input, raidId, entryIdx) {
@@ -826,7 +1194,7 @@ function getTeamName(raid, teamNum) {
 
 function renderTeamNameGroupStatic(raid, tnum) {
     const name = getTeamName(raid, tnum);
-    const weakness = raid.mode === "union" ? getTeamWeakness(raid, tnum) : null;
+    const weakness = rosterHasTeamWeakness(raid) ? getTeamWeakness(raid, tnum) : null;
     const weaknessBadge = weakness
         ? ` <span class="team-weakness-badge"> · ${elemIcon(weakness, 16)} <span class="team-weakness-text">${weakness} Weak</span></span>`
         : "";
@@ -844,11 +1212,23 @@ function startEditTeamName(raidId, teamNum) {
     const input = document.createElement("input");
     input.className = "team-label-input";
     input.type = "text";
+    input.maxLength = 50;
     input.value = getTeamName(raid, teamNum);
-    group.appendChild(input);
+    // Wrap the input so a live "current/max" character counter can sit at its
+    // right edge (input has padding-right to keep typed text clear of it).
+    const inputWrap = document.createElement("div");
+    inputWrap.className = "team-label-input-wrap";
+    const counter = document.createElement("span");
+    counter.className = "team-label-counter";
+    const updateCounter = () => (counter.textContent = `${input.value.length}/50`);
+    updateCounter();
+    input.addEventListener("input", updateCounter);
+    inputWrap.appendChild(input);
+    inputWrap.appendChild(counter);
+    group.appendChild(inputWrap);
 
     let weaknessSelect = null;
-    if (raid.mode === "union") {
+    if (rosterHasTeamWeakness(raid)) {
         weaknessSelect = document.createElement("select");
         weaknessSelect.className = "team-weakness-select";
         weaknessSelect.appendChild(new Option("No Weakness", ""));
@@ -868,21 +1248,24 @@ function startEditTeamName(raidId, teamNum) {
         const r = state.teamRaids.find((x) => x.id === raidId);
         if (!r) return;
         if (!cancel) {
-            const val = input.value.trim();
+            const val = input.value.trim().slice(0, 50);
             if (!r.teamNames) r.teamNames = {};
             r.teamNames[teamNum] = val && val !== "Team " + teamNum ? val : "";
-            if (r.mode === "union" && weaknessSelect) {
+            if (rosterHasTeamWeakness(r) && weaknessSelect) {
                 if (!r.teamWeakness) r.teamWeakness = {};
                 r.teamWeakness[teamNum] = weaknessSelect.value || null;
             }
             save();
             // Weakness also drives the element-coverage warning; refresh it in
             // place so the slot cards (and their icons) aren't re-rendered.
-            if (r.mode === "union") {
+            if (rosterHasTeamWeakness(r)) {
                 const members = r.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === teamNum);
                 const warnEl = document.getElementById(`team-warnings-${raidId}-${teamNum}`);
                 if (warnEl) warnEl.innerHTML = _teamWarningsHtml(r, teamNum, members);
             }
+            // The team name also appears on the gap-tab pills; refresh those hidden
+            // panels in the background so the renamed pill is correct on switch.
+            refreshRosterGapPanels(r);
         }
         // Both commit and cancel just swap the inline editor back to the static
         // name group — no full lane rebuild.
@@ -906,21 +1289,27 @@ function startEditTeamName(raidId, teamNum) {
     input.select();
 }
 
-// ── Team element weakness (union raids) ─────────────────────
+// ── Team element weakness (per-team, non-Solo rosters) ──────
+// Solo rosters use a single boss weakness; every other mode (Union, Tribe Tower,
+// Campaign) lets each team set its own weakness element for coverage warnings.
+function rosterHasTeamWeakness(raid) {
+    return !!(raid && raid.mode !== "solo");
+}
 function getTeamWeakness(raid, teamNum) {
     return (raid.teamWeakness && raid.teamWeakness[teamNum]) || null;
 }
 
 // ── Inline readiness (rendered below each team's slots) ─────
 
-// Per-team readiness gap details. gainPct/potentialM/bestEff are the only
-// damage-dependent fields (updated in place by _updateTeamGearVals); everything
-// else derives from gear/skill/doll/bond state and is unaffected by damage.
+// Per-team readiness gap details, aggregated across the roster by
+// _computeRosterGaps. gainPct/potentialM/bestEff are the damage-dependent fields;
+// everything else derives from gear/skill/doll/bond state.
 function _computeTeamReadinessDetails(raid, members) {
     const details = { gear: [], skills: [], dolls: [], bond: [] };
-    const boss = raid.mode === "solo" && raid.bossSeason != null
-        ? SOLO_RAID_BOSSES.find((b) => b.season === raid.bossSeason)
-        : null;
+    const boss =
+        raid.mode === "solo" && raid.bossSeason != null
+            ? SOLO_RAID_BOSSES.find((b) => b.season === raid.bossSeason)
+            : null;
     members.forEach((e) => {
         const n = state.nikkes.find((x) => x.id === e.nikkeId);
         if (!n) return;
@@ -928,12 +1317,14 @@ function _computeTeamReadinessDetails(raid, members) {
         if (boss && boss.weakness && n.element !== boss.weakness) state.elementalBoss = false;
         const g = getTeamRaidGaps(n);
         const gainPct = getNikkeTotalGainPct(n);
-        let bestEff = 0, bestSlot = "";
+        let bestEff = 0,
+            bestSlot = "";
         if (e.damage) {
             SLOTS.forEach((slot) => {
                 const sv = getVerdict(n, slot);
                 if (!sv || sv.cls === "v-keep") return;
-                let rocks = 0, dpsGain = 0;
+                let rocks = 0,
+                    dpsGain = 0;
                 if (sv.options) {
                     const rec = sv.options.find((o) => o.recommended) || sv.options[0];
                     rocks = rec.rocks;
@@ -943,8 +1334,11 @@ function _computeTeamReadinessDetails(raid, members) {
                     dpsGain = sv.dpsGain || 0;
                 }
                 if (rocks > 0 && dpsGain > 0) {
-                    const eff = (dpsGain / 100) * e.damage / rocks;
-                    if (eff > bestEff) { bestEff = eff; bestSlot = slot; }
+                    const eff = ((dpsGain / 100) * e.damage) / rocks;
+                    if (eff > bestEff) {
+                        bestEff = eff;
+                        bestSlot = slot;
+                    }
                 }
             });
         }
@@ -971,9 +1365,11 @@ function _computeTeamReadinessDetails(raid, members) {
 
 // Sort key for a gear row under the current column selection.
 function _teamGearSortVal(m) {
-    return _teamGearSort.col === "pct" ? (m.gainPct || 0)
-        : _teamGearSort.col === "eff" ? (m.bestEff || 0)
-        : (m.potentialM || 0);
+    return _teamGearSort.col === "pct"
+        ? m.gainPct || 0
+        : _teamGearSort.col === "eff"
+          ? m.bestEff || 0
+          : m.potentialM || 0;
 }
 
 // HTML for the Potential cell — shared by the initial render and the in-place
@@ -982,122 +1378,13 @@ function _teamGearPotentialHtml(m) {
     return m.potentialM != null && m.potentialM > 0
         ? `<span style="color:#f1f5f9;font-weight:600">+${m.potentialM.toFixed(1)}m</span> <span style="font-size:11px;color:#f1f5f9">(+${m.gainPct.toFixed(1)}%)</span>`
         : m.gainPct > 0
-        ? `<span style="color:#f1f5f9">+${m.gainPct.toFixed(1)}%</span>`
-        : "—";
+          ? `<span style="color:#f1f5f9">+${m.gainPct.toFixed(1)}%</span>`
+          : "—";
 }
 
 // Eff cell text for a gear row.
 function _teamGearEffText(m) {
     return m.bestEff > 0 ? m.bestEff.toFixed(2) + "m/rock" : "—";
-}
-
-function renderTeamReadinessInline(raid, tnum, members) {
-    if (!members.length) return `<div id="team-readiness-${raid.id}-${tnum}"></div>`;
-    const details = _computeTeamReadinessDetails(raid, members);
-    const CATS = [
-        { key: "gear", label: "Gear" },
-        { key: "skills", label: "Skills" },
-        { key: "dolls", label: "Dolls" },
-        { key: "bond", label: "Bond" },
-    ];
-    const selKey = state.teamRaidGap || "";
-    const counts = {
-        gear: details.gear.length,
-        skills: details.skills.length,
-        dolls: details.dolls.length,
-        bond: details.bond.length,
-    };
-    const chips = CATS.map((cd) => {
-        const count = counts[cd.key];
-        const active = selKey === tnum + ":" + cd.key;
-        const cls = `team-gap-chip${count ? "" : " empty"}${active ? " active" : ""}`;
-        const onclick = count ? ` onclick="selTeamGap('${tnum}:${cd.key}')"` : "";
-        return `<button class="${cls}"${onclick}>${cd.label} <span class="team-gap-count">${count}</span></button>`;
-    }).join("");
-    const showCat = selKey.startsWith(tnum + ":") ? selKey.split(":")[1] : "";
-    const list = showCat ? details[showCat] : [];
-    let listHtml = "";
-    if (showCat && list.length) {
-        if (showCat === "gear") {
-            const sorted = [...list].sort((a, b) => {
-                const d = _teamGearSortVal(b) - _teamGearSortVal(a);
-                return _teamGearSort.dir === "desc" ? d : -d;
-            });
-            const arrow = (col) => _teamGearSort.col === col ? (_teamGearSort.dir === "desc" ? " ▼" : " ▲") : "";
-            const DMGW = "120px";
-            const EFFW = "66px";
-            const DOTW = "34px";
-            listHtml = `<div class="team-gap-list">
-              <div style="display:flex;align-items:center;gap:18px;padding:2px 11px 4px">
-                <span style="width:28px;flex-shrink:0"></span>
-                <span style="flex:1"></span>
-                <button class="team-gear-sort-btn${_teamGearSort.col === "dmg" ? " active" : ""}" style="width:${DMGW};flex-shrink:0" onclick="sortTeamGear('dmg','${raid.id}',${tnum})">Potential${arrow("dmg")}</button>
-                <button class="team-gear-sort-btn${_teamGearSort.col === "eff" ? " active" : ""}" style="width:${EFFW};flex-shrink:0" onclick="sortTeamGear('eff','${raid.id}',${tnum})">Eff${arrow("eff")}</button>
-                <span style="width:${DOTW};flex-shrink:0"></span>
-              </div>
-              ${sorted.map((m) => `<button class="team-gap-item" data-nikke-id="${m.nikkeId}" style="gap:18px" onclick="goToGearNikke('${m.nikkeId}')">
-                ${nikkeIcon(m.name, 28)}
-                <span class="team-gap-item-name" style="flex:1;min-width:0">${m.elem} ${m.name}</span>
-                <span class="team-gear-potential" style="width:${DMGW};flex-shrink:0;text-align:right;font-size:12px;color:#f1f5f9">${_teamGearPotentialHtml(m)}</span>
-                <span class="team-gear-eff" style="width:${EFFW};flex-shrink:0;text-align:right;font-size:12px;color:${m.bestEff > 0 ? "#f1f5f9" : "#475569"}" title="${m.bestSlot}">${_teamGearEffText(m)}</span>
-                <span style="width:${DOTW};flex-shrink:0">${m.gearDots}</span>
-              </button>`).join("")}
-            </div>`;
-        } else {
-            listHtml = `<div class="team-gap-list">
-              ${list
-                  .map(
-                      (m) => `<button class="team-gap-item" data-nikke-id="${m.nikkeId}" onclick="goToGearNikke('${m.nikkeId}')">
-                ${nikkeIcon(m.name, 28)}
-                <span class="team-gap-item-name">${m.elem} ${m.name}</span>
-                <span class="team-gap-item-detail">${m.detail}</span>
-              </button>`,
-                  )
-                  .join("")}
-            </div>`;
-        }
-    }
-    return `<div id="team-readiness-${raid.id}-${tnum}"><div class="team-gap-chips">${chips}</div>${listHtml}</div>`;
-}
-
-// Update the gear tab's damage-weighted Potential/Eff cells and row order in
-// place, reusing the existing icon DOM so nothing flickers. Only the Gear tab
-// has damage-dependent values, so when another tab (or none) is open there is
-// nothing to do. Gear-gap membership is gear-state driven and can't change on a
-// damage edit, so every row is guaranteed to already exist.
-function _updateTeamGearVals(raid, tnum) {
-    if (state.teamRaidGap !== tnum + ":gear") return;
-    const readinessEl = document.getElementById(`team-readiness-${raid.id}-${tnum}`);
-    if (!readinessEl) return;
-    const listEl = readinessEl.querySelector(".team-gap-list");
-    if (!listEl) return;
-    const members = raid.entries.map((e, i) => ({ ...e, origIdx: i })).filter((e) => e.team === tnum);
-    const gear = _computeTeamReadinessDetails(raid, members).gear;
-    const rowByK = new Map();
-    listEl.querySelectorAll(".team-gap-item[data-nikke-id]").forEach((row) => rowByK.set(row.dataset.nikkeId, row));
-    gear.forEach((m) => {
-        const row = rowByK.get(String(m.nikkeId));
-        if (!row) return;
-        const potEl = row.querySelector(".team-gear-potential");
-        if (potEl) potEl.innerHTML = _teamGearPotentialHtml(m);
-        const effEl = row.querySelector(".team-gear-eff");
-        if (effEl) {
-            effEl.textContent = _teamGearEffText(m);
-            effEl.style.color = m.bestEff > 0 ? "#f1f5f9" : "#475569";
-            effEl.title = m.bestSlot || "";
-        }
-    });
-    // Re-sort by moving the existing row nodes (appendChild moves, never clones)
-    // so the nikke icons are preserved and don't reload.
-    [...gear]
-        .sort((a, b) => {
-            const d = _teamGearSortVal(b) - _teamGearSortVal(a);
-            return _teamGearSort.dir === "desc" ? d : -d;
-        })
-        .forEach((m) => {
-            const row = rowByK.get(String(m.nikkeId));
-            if (row) listEl.appendChild(row);
-        });
 }
 
 // ── READINESS VIEW ───────────────────────────────────────────
@@ -1192,137 +1479,4 @@ function calcNikkeGearDmgData(n) {
     };
 }
 
-function renderTeamDmgBar(raid, tnum, members) {
-    if (!members.length) return "";
-    const data = members.map((e) => {
-        const n = state.nikkes.find((x) => x.id === e.nikkeId);
-        if (!n) return null;
-        return { gainPct: getNikkeTotalGainPct(n), damage: e.damage || 0 };
-    }).filter(Boolean);
-    if (!data.length) return "";
-    const teamTotal = data.reduce((s, d) => s + d.damage, 0);
-    const hasEnteredDamage = teamTotal > 0;
-    let upgradeSummary;
-    if (hasEnteredDamage) {
-        upgradeSummary = data.reduce((s, d) => s + d.gainPct * (d.damage / teamTotal), 0);
-    } else {
-        upgradeSummary = data.reduce((s, d) => s + d.gainPct, 0) / data.length;
-    }
-    if (upgradeSummary < 0.05) return "";
-    return `<div style="display:flex;align-items:center;gap:8px;padding:3px 8px 4px;font-size:12px;color:#64748b">
-        <span>Gear upgrade potential: avg <strong style="color:#4ade80">+${upgradeSummary.toFixed(1)}%</strong></span>
-    </div>`;
-}
-
-function renderTeamReadiness(raid) {
-    const count = rosterTeamCount(raid);
-    const teamNums = Array.from({ length: count }, (_, i) => i + 1);
-    const teams = {};
-    teamNums.forEach((t) => (teams[t] = []));
-    raid.entries.forEach((e) => {
-        if (e.team && teams[e.team]) teams[e.team].push(e);
-    });
-    const selKey = state.teamRaidGap || "";
-    const CATS = [
-        { key: "gear", label: "Gear" },
-        { key: "skills", label: "Skills" },
-        { key: "dolls", label: "Dolls" },
-        { key: "bond", label: "Bond" },
-    ];
-
-    const cards = teamNums
-        .map((tnum) => {
-            const members = teams[tnum];
-            const details = { gear: [], skills: [], dolls: [], bond: [] };
-            members.forEach((e) => {
-                const n = state.nikkes.find((x) => x.id === e.nikkeId);
-                if (!n) return;
-                const g = getTeamRaidGaps(n);
-                const base = { nikkeId: n.id, name: n.name, elem: n.element ? elemIcon(n.element) : "" };
-                if (g.gearCount)
-                    details.gear.push({
-                        ...base,
-                        detail: `<span class="gear-dots-mini">${SLOTS.map((s) => `<span class="${dotStatus(n, s)}" title="${s}"></span>`).join("")}</span>`,
-                    });
-                if (g.skillGaps.length)
-                    details.skills.push({
-                        ...base,
-                        detail: g.skillGaps.map((s) => `${s.label} ${s.cur}→${s.rec}`).join(", "),
-                    });
-                if (g.dollGap) details.dolls.push({ ...base, detail: `Needs ${g.dollLabel}` });
-                if (g.bondGap) details.bond.push({ ...base, detail: g.bondDetail });
-            });
-            const memberCount = members.length || 1;
-            const counts = {
-                gear: details.gear.length,
-                skills: details.skills.length,
-                dolls: details.dolls.length,
-                bond: details.bond.length,
-            };
-            const totalGaps = counts.gear + counts.skills + counts.dolls + counts.bond;
-            const ready = Math.max(0, Math.round(100 - (totalGaps / (memberCount * 4)) * 100));
-            const rc = ready >= 75 ? "#4ade80" : ready >= 45 ? "#fbbf24" : "#f87171";
-
-            const chips = CATS.map((cd) => {
-                const count = counts[cd.key];
-                const active = selKey === tnum + ":" + cd.key;
-                const cls = `team-gap-chip${count ? "" : " empty"}${active ? " active" : ""}`;
-                const onclick = count ? ` onclick="selTeamGap('${tnum}:${cd.key}')"` : "";
-                return `<button class="${cls}"${onclick}>${cd.label} <span class="team-gap-count">${count}</span></button>`;
-            }).join("");
-
-            const showCat = selKey.indexOf(tnum + ":") === 0 ? selKey.split(":")[1] : "";
-            const list = showCat ? details[showCat] : [];
-            let listHtml = "";
-            if (showCat && list.length) {
-                const catLabel = CATS.find((c) => c.key === showCat).label;
-                listHtml = `<div class="team-gap-list">
-          ${list
-              .map(
-                  (m) => `<button class="team-gap-item" onclick="goToGearNikke('${m.nikkeId}')">
-            ${nikkeIcon(m.name, 28)}
-            <span class="team-gap-item-name">${m.elem} ${m.name}</span>
-            <span class="team-gap-item-detail">${m.detail}</span>
-          </button>`,
-              )
-              .join("")}
-        </div>`;
-            }
-
-            return `<div class="team-readiness-card">
-        <div class="team-readiness-header">
-          <span class="team-label">${getTeamName(raid, tnum)}</span>
-          <div class="team-readiness-bar"><div class="team-readiness-fill" style="width:${members.length ? ready : 0}%;background:${rc}"></div></div>
-          <span class="team-readiness-pct" style="color:${members.length ? rc : "#5d6779"}">${members.length ? ready + "%" : "—"}</span>
-        </div>
-        <div class="team-gap-chips">${chips}</div>
-        ${listHtml}
-      </div>`;
-        })
-        .join("");
-
-    return `<div class="team-readiness-list">${cards}</div>`;
-}
-
-function selTeamGap(key) {
-    const prevKey = state.teamRaidGap;
-    state.teamRaidGap = prevKey === key ? null : key;
-    const raid = state.teamRaids.find((r) => r.id === state.selTeamRaid);
-    if (!raid) return;
-    const affected = new Set();
-    if (prevKey) affected.add(parseInt(prevKey.split(":")[0]));
-    if (state.teamRaidGap) affected.add(parseInt(state.teamRaidGap.split(":")[0]));
-    affected.forEach((tnum) => _reconcileTeamReadiness(raid, tnum));
-}
-
 let _teamGearSort = { col: "dmg", dir: "desc" };
-
-function sortTeamGear(col, raidId, tnum) {
-    if (_teamGearSort.col === col) {
-        _teamGearSort.dir = _teamGearSort.dir === "desc" ? "asc" : "desc";
-    } else {
-        _teamGearSort = { col, dir: "desc" };
-    }
-    const raid = state.teamRaids.find((r) => r.id === raidId);
-    if (raid) _reconcileTeamReadiness(raid, tnum);
-}
