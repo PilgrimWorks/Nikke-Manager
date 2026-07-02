@@ -1067,7 +1067,7 @@ const NIKKE_DATABASE = [
         burst1: false,
         burst2: false,
         burst3: true,
-        element: "Electric",
+        element: "Iron",
         weapon: "MG",
         rarity: "SSR",
         manufacturer: "Pilgrim",
