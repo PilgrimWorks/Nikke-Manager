@@ -204,7 +204,7 @@ function renderRaidMain(raid) {
           <span style="font-size:14px;font-weight:600;color:#f1f5f9">Pick a Nikke</span>
           <button class="del-btn" onclick="closeRaidSlotPicker()" style="font-size:16px">✕</button>
         </div>
-        <input class="form-input" id="raid-slot-picker-search" placeholder="Search..." oninput="filterRaidSlotPicker()" style="margin-bottom:8px"/>
+        <input class="form-input" id="raid-slot-picker-search" placeholder="Search..." oninput="filterRaidSlotPicker()" data-kbnav-list="#raid-slot-picker-list" style="margin-bottom:8px"/>
         <div id="raid-slot-picker-list" class="raid-slot-picker-list"></div>
       </div>
     </div>`;
@@ -603,7 +603,7 @@ function filterRaidSlotPicker() {
         .sort((a, b) => a.name.localeCompare(b.name));
     list.innerHTML = available.map((n) => {
         const elem = n.element ? elemIcon(n.element) : "";
-        return `<div class="raid-slot-picker-item" onclick="pickRaidSlotNikke('${n.id}')">
+        return `<div class="raid-slot-picker-item js-kbnav-item" tabindex="0" role="button" onclick="pickRaidSlotNikke('${n.id}')">
       ${nikkeIcon(n.name, 28)}
       <span>${n.name}</span>
       <span style="font-size:12px;color:#64748b;margin-left:auto">${elem} ${burstDisplay(n)}</span>

@@ -114,17 +114,25 @@ body {
 .roster-list-collapsible .nikke-list {
     margin-top: 6px;
 }
-.nikke-list::-webkit-scrollbar {
+.nikke-list::-webkit-scrollbar,
+.team-slot-picker-list::-webkit-scrollbar,
+.raid-slot-picker-list::-webkit-scrollbar {
     width: 6px;
 }
-.nikke-list::-webkit-scrollbar-track {
+.nikke-list::-webkit-scrollbar-track,
+.team-slot-picker-list::-webkit-scrollbar-track,
+.raid-slot-picker-list::-webkit-scrollbar-track {
     background: transparent;
 }
-.nikke-list::-webkit-scrollbar-thumb {
+.nikke-list::-webkit-scrollbar-thumb,
+.team-slot-picker-list::-webkit-scrollbar-thumb,
+.raid-slot-picker-list::-webkit-scrollbar-thumb {
     background: #2d3f5e;
     border-radius: 3px;
 }
-.nikke-list::-webkit-scrollbar-thumb:hover {
+.nikke-list::-webkit-scrollbar-thumb:hover,
+.team-slot-picker-list::-webkit-scrollbar-thumb:hover,
+.raid-slot-picker-list::-webkit-scrollbar-thumb:hover {
     background: #3b82f6;
 }
 .nikke-sidebar {
@@ -160,6 +168,21 @@ body {
     color: #64748b;
     margin-top: 2px;
     font-weight: 400;
+}
+
+/* Keyboard focus highlight for arrow/Tab-navigable Nikke lists — reuses each
+   list's own hover/active styling instead of a separate ring, so keyboard
+   navigation looks native to the rest of the app. */
+.js-kbnav-item:focus-visible {
+    outline: none;
+}
+.nikke-list .js-kbnav-item:focus-visible {
+    background: #1a2235;
+    border-color: #2d3f5e;
+}
+.team-slot-picker-list .js-kbnav-item:focus-visible,
+.raid-slot-picker-list .js-kbnav-item:focus-visible {
+    background: #1e3a5f;
 }
 
 /* ── Desktop: lock the left sidebar to the viewport (full-height, sticky) ──
