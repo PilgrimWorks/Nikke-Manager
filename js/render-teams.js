@@ -49,9 +49,13 @@ function nikkeEligibleForTower(nikke, tower) {
 // Selected mode in the "New Roster" create form (reset each time the form opens).
 let _newRosterMode = "solo";
 // Whether the roster list is collapsed. Only has a visual effect on mobile
-// (≤768px) — on desktop the list is always shown via CSS. Auto-collapses when a
-// roster is selected so the team lanes take focus on small screens.
-let _rosterListCollapsed = false;
+// (≤768px), where the list renders as a centered modal popup (like the Nikkes
+// tab's "Search Nikke" picker) — collapsed = popup closed. On desktop the list
+// is always shown inline via CSS. Starts closed and auto-closes when a roster is
+// selected so the team lanes take focus on small screens.
+let _rosterListCollapsed = true;
+// Current roster-list search text (persisted across re-renders).
+let _rosterSearch = "";
 function toggleRosterList() {
     _rosterListCollapsed = !_rosterListCollapsed;
     const sb = document.querySelector("#teams .nikke-sidebar");
@@ -59,6 +63,51 @@ function toggleRosterList() {
     sb.classList.toggle("roster-collapsed", _rosterListCollapsed);
     const tog = sb.querySelector(".roster-list-toggle");
     if (tog) tog.setAttribute("aria-expanded", String(!_rosterListCollapsed));
+    // When the popup opens on mobile, focus the search field for quick filtering.
+    if (!_rosterListCollapsed) {
+        const search = document.getElementById("roster-sidebar-search");
+        if (search) search.focus();
+    }
+}
+// Explicit close for the mobile roster-list popup (backdrop tap / ✕ button).
+// No-op on desktop, where the list is always shown inline.
+function closeRosterListPopup() {
+    _rosterListCollapsed = true;
+    const sb = document.querySelector("#teams .nikke-sidebar");
+    if (!sb) return;
+    sb.classList.add("roster-collapsed");
+    const tog = sb.querySelector(".roster-list-toggle");
+    if (tog) tog.setAttribute("aria-expanded", "false");
+}
+// Filter the roster list by name (mobile popup search) — toggles item
+// visibility only, mirroring the Nikkes tab's list search.
+function filterRosterList() {
+    const input = document.getElementById("roster-sidebar-search");
+    if (!input) return;
+    _rosterSearch = input.value.toLowerCase();
+    const items = document.querySelectorAll("#teams .nikke-list .nikke-item");
+    let anyVisible = false;
+    items.forEach((el) => {
+        const visible = (el.dataset.name || "").includes(_rosterSearch);
+        el.style.display = visible ? "" : "none";
+        if (visible) anyVisible = true;
+    });
+    const list = document.querySelector("#teams .nikke-list");
+    if (!list) return;
+    let emptyMsg = list.querySelector(".roster-list-search-empty");
+    if (items.length > 0 && !anyVisible) {
+        if (!emptyMsg) {
+            emptyMsg = document.createElement("div");
+            emptyMsg.className = "roster-list-search-empty";
+            emptyMsg.style.cssText = "font-size:14px;color:#475569;padding:6px";
+            emptyMsg.textContent = "No rosters matching search";
+            list.appendChild(emptyMsg);
+        } else {
+            emptyMsg.style.display = "";
+        }
+    } else if (emptyMsg) {
+        emptyMsg.style.display = "none";
+    }
 }
 // Clear the "missing required field" highlight (and its self-removing listeners)
 // from a New Roster form field.
@@ -116,7 +165,8 @@ function renderTeams() {
         sortedRaids
             .map((r) => {
                 const modeLabel = TEAM_MODES[r.mode] ? TEAM_MODES[r.mode].label : "Solo Raid";
-                return `<div class="nikke-item ${state.selTeamRaid === r.id ? "active" : ""}" onclick="selTeamRaid('${r.id}')">
+                const dn = r.name.toLowerCase().replace(/"/g, "&quot;");
+                return `<div class="nikke-item ${state.selTeamRaid === r.id ? "active" : ""}" data-name="${dn}" onclick="selTeamRaid('${r.id}')">
       <span id="roster-name-${r.id}">${r.name}</span>
       <div class="nikke-item-sub">${modeLabel}</div>
     </div>`;
@@ -125,15 +175,19 @@ function renderTeams() {
 
     el.innerHTML = `<div class="two-col">
     <div class="nikke-sidebar${_rosterListCollapsed ? " roster-collapsed" : ""}">
-      <button type="button" class="roster-list-toggle" onclick="toggleRosterList()" aria-expanded="${!_rosterListCollapsed}">
-        <span class="roster-list-chevron">›</span>
-        <span>Rosters</span>
+      <button type="button" class="roster-list-toggle is-popout" onclick="toggleRosterList()" aria-haspopup="dialog" aria-expanded="${!_rosterListCollapsed}">
+        <svg class="nikke-list-toggle-icon" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.5" y2="15.5"/></svg>
+        <span>Search Roster</span>
         <span class="roster-list-count">${state.teamRaids.length}</span>
       </button>
-      <div class="roster-list-collapsible">
-        <button class="add-line-btn" onclick="showAddTeamRaidForm()" style="width:100%">+ New Roster</button>
-        <div class="nikke-list">
-          ${raidList}
+      <div class="roster-list-collapsible" onclick="if(event.target===this)closeRosterListPopup()">
+        <div class="nikke-list-panel">
+          <div class="nikke-list-popup-header"><span>Rosters</span><button type="button" class="del-btn" onclick="closeRosterListPopup()" style="font-size:16px">✕</button></div>
+          <input id="roster-sidebar-search" class="form-input" placeholder="Search roster..." value="${_rosterSearch.replace(/"/g, "&quot;")}" oninput="filterRosterList()" style="font-size:13px;padding:4px 8px;width:100%"/>
+          <button class="add-line-btn" onclick="showAddTeamRaidForm()" style="width:100%">+ New Roster</button>
+          <div class="nikke-list">
+            ${raidList}
+          </div>
         </div>
       </div>
     </div>
@@ -169,6 +223,9 @@ function renderTeams() {
       <div class="btn-row"><button class="btn" onclick="hideAddTeamRaidForm()" style="font-size:13px;padding:4px 10px">Cancel</button><button class="btn btn-roster-add" onclick="addTeamRaid()" style="font-size:13px;padding:4px 10px">Add</button></div>
     </div>
   </div>`;
+
+    // Re-apply the roster search filter after a full re-render rebuilds the list.
+    if (_rosterSearch) filterRosterList();
 
     if (state.selTeamRaid) {
         const raid = state.teamRaids.find((r) => r.id === state.selTeamRaid);

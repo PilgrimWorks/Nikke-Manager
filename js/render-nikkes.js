@@ -5,9 +5,11 @@
 let _gearSidebarCache = "";
 let _gearSidebarSearch = "";
 // Whether the Nikke list is collapsed. Only has a visual effect on mobile
-// (≤768px) — on desktop the list is always shown via CSS. Auto-collapses when a
-// Nikke is selected so the detail panel takes focus on small screens.
-let _nikkeListCollapsed = false;
+// (≤768px), where the list + filters render as a centered modal popup (like the
+// "Add a Nikke" picker) — collapsed = popup closed. On desktop the list is
+// always shown inline via CSS. Starts closed and auto-closes when a Nikke is
+// selected so the detail panel takes focus on small screens.
+let _nikkeListCollapsed = true;
 function toggleNikkeList() {
     _nikkeListCollapsed = !_nikkeListCollapsed;
     const sb = document.getElementById("gear-sidebar-inner");
@@ -15,6 +17,21 @@ function toggleNikkeList() {
     sb.classList.toggle("nikke-list-collapsed", _nikkeListCollapsed);
     const tog = sb.querySelector(".roster-list-toggle");
     if (tog) tog.setAttribute("aria-expanded", String(!_nikkeListCollapsed));
+    // When the popup opens on mobile, focus the search field for quick filtering.
+    if (!_nikkeListCollapsed) {
+        const search = document.getElementById("nikke-sidebar-search");
+        if (search) search.focus();
+    }
+}
+// Explicit close for the mobile Nikke-list popup (backdrop tap / ✕ button).
+// No-op on desktop, where the list is always shown inline.
+function closeNikkeListPopup() {
+    _nikkeListCollapsed = true;
+    const sb = document.getElementById("gear-sidebar-inner");
+    if (!sb) return;
+    sb.classList.add("nikke-list-collapsed");
+    const tog = sb.querySelector(".roster-list-toggle");
+    if (tog) tog.setAttribute("aria-expanded", "false");
 }
 // Active sub-tab within a Nikke's detail panel: "gear" or "priorities"
 let _gearSubTab = "gear";
@@ -174,12 +191,21 @@ function renderGear() {
         // Add Nikke button (opens the modal popup built below)
         const addHtml = `<button class="add-line-btn" onclick="showGearAddForm()" style="margin-top:6px;width:100%">+ Add Nikke</button>`;
 
-        const toggleBtn = `<button type="button" class="roster-list-toggle" onclick="toggleNikkeList()" aria-expanded="${!_nikkeListCollapsed}">
-          <span class="roster-list-chevron">›</span>
-          <span>Nikkes</span>
+        // The Nikkes list opens as a modal popup (not an inline dropdown), so the
+        // button carries a "pop-out" icon + haspopup semantics rather than a
+        // rotating chevron. is-popout scopes the styling away from the Teams tab's
+        // roster toggle, which genuinely expands inline.
+        const toggleBtn = `<button type="button" class="roster-list-toggle is-popout" onclick="toggleNikkeList()" aria-haspopup="dialog" aria-expanded="${!_nikkeListCollapsed}">
+          <svg class="nikke-list-toggle-icon" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.5" y2="15.5"/></svg>
+          <span>Search Nikke</span>
           <span class="roster-list-count">${filtered.length}</span>
         </button>`;
-        const collapsibleHtml = `<div class="nikke-list-collapsible">${filterHtml}${addHtml}<div class="nikke-list">${list}</div></div>`;
+        // Mobile-only header (hidden on desktop) shown at the top of the popup.
+        const popupHeader = `<div class="nikke-list-popup-header"><span>Nikkes</span><button type="button" class="del-btn" onclick="closeNikkeListPopup()" style="font-size:16px">✕</button></div>`;
+        // On mobile the collapsible becomes a full-screen dimmed overlay (tap the
+        // backdrop to close) and the inner panel is the centered modal card. On
+        // desktop both are transparent flex columns filling the sidebar.
+        const collapsibleHtml = `<div class="nikke-list-collapsible" onclick="if(event.target===this)closeNikkeListPopup()"><div class="nikke-list-panel">${popupHeader}${filterHtml}${addHtml}<div class="nikke-list">${list}</div></div></div>`;
         const sidebarEl = document.getElementById("gear-sidebar-inner");
         if (!sidebarEl) {
             el.innerHTML = `<div class="two-col">
@@ -319,6 +345,7 @@ function pickGearAddNikke(name) {
     const nikke = mkNikke(entry.name, entry.burst1, entry.burst2, entry.burst3, entry.element);
     state.nikkes.push(nikke);
     state.selGear = nikke.id;
+    _nikkeListCollapsed = true; // mobile: close the list popup so the new Nikke's detail shows
     try {
         localStorage.setItem("nikke_selGear", nikke.id);
     } catch (e) {}

@@ -114,6 +114,11 @@ body {
 .roster-list-collapsible .nikke-list {
     margin-top: 6px;
 }
+/* Popup header is only shown inside the mobile Nikke-list modal (see the
+   ≤768px block below); hidden everywhere else. */
+.nikke-list-popup-header {
+    display: none;
+}
 .nikke-list::-webkit-scrollbar,
 .team-slot-picker-list::-webkit-scrollbar,
 .raid-slot-picker-list::-webkit-scrollbar {
@@ -226,7 +231,8 @@ body {
        effect — otherwise the wrapper grows to fit all items and the sidebar's
        overflow:hidden just clips the overflow instead of scrolling it. */
     .nikke-list-collapsible,
-    .roster-list-collapsible {
+    .roster-list-collapsible,
+    .nikke-list-panel {
         display: flex;
         flex-direction: column;
         flex: 1;
@@ -3068,7 +3074,8 @@ details[open] > .verdict-title {
         grid-template-columns: repeat(3, 1fr);
     }
 
-    /* Collapsible roster list: show the tappable header and let it hide the list. */
+    /* Pop-out list toggle (Nikkes + Teams): the tappable button that opens the
+       list as a modal popup on mobile. */
     .roster-list-toggle {
         display: flex;
         align-items: center;
@@ -3084,15 +3091,6 @@ details[open] > .verdict-title {
         padding: 8px 12px;
         cursor: pointer;
     }
-    .roster-list-chevron {
-        font-size: 16px;
-        color: #64748b;
-        transition: transform 0.15s;
-        transform: rotate(90deg);
-        transform-origin: center center;
-        display: inline-block;
-        line-height: 1;
-    }
     .roster-list-count {
         margin-left: auto;
         font-size: 12px;
@@ -3104,18 +3102,72 @@ details[open] > .verdict-title {
         padding: 1px 8px;
     }
     /* Collapsed state: rotate the chevron to point right and hide the list. */
-    .nikke-sidebar.roster-collapsed .roster-list-chevron {
-        transform: rotate(0deg);
-    }
     .nikke-sidebar.roster-collapsed .roster-list-collapsible {
         display: none;
     }
-    /* Collapsible Nikke list (Nikkes tab) — same visual as roster-collapsed. */
-    .nikke-sidebar.nikke-list-collapsed .roster-list-chevron {
-        transform: rotate(0deg);
+    /* The Nikkes tab and Teams roster both open their list as a centered modal
+       popup on mobile (mirroring the "Add a Nikke" picker) rather than expanding
+       inline — so their toggles use a static "pop-out" magnifying glass icon
+       instead of a rotating chevron. */
+    .roster-list-toggle.is-popout .nikke-list-toggle-icon {
+        color: #fff;
+        flex-shrink: 0;
+        display: block;
     }
+    /* Open state: dimmed full-screen backdrop; tap outside the panel to close. */
+    .nikke-sidebar .nikke-list-collapsible,
+    .nikke-sidebar .roster-list-collapsible {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+    /* Closed state (default): popup hidden. Higher specificity than the rule
+       above, so it wins regardless of source order. */
     .nikke-sidebar.nikke-list-collapsed .nikke-list-collapsible {
         display: none;
+    }
+    /* The centered modal card holding the header, filters, Add button and list. */
+    .nikke-sidebar .nikke-list-panel {
+        background: #151c2b;
+        border: 1px solid #2d3f5e;
+        border-radius: 12px;
+        padding: 16px;
+        width: min(420px, calc(100vw - 32px));
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    /* Inside the popup the list fills the remaining height and scrolls, rather
+       than being capped to the 150px inline strip used elsewhere on mobile. */
+    .nikke-sidebar .nikke-list-panel .nikke-list {
+        max-height: none;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+    .nikke-list-popup-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 14px;
+        font-weight: 600;
+        color: #f1f5f9;
+    }
+    /* Nikkes & Teams tabs (mobile): the sidebar only holds the pop-out toggle
+       button here — the list lives in the popup — so drop the sidebar's card
+       chrome to avoid a card-within-a-card look around the button. */
+    #gear .nikke-sidebar,
+    #teams .nikke-sidebar {
+        background: none;
+        border: none;
+        padding: 0;
+        overflow: visible;
     }
 
     .team-gap-chips {
