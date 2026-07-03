@@ -322,7 +322,7 @@ function load() {
 function migrateState() {
     if (!state.nikkes) state.nikkes = [];
     if (!state.cubeLevels) state.cubeLevels = {};
-    if (state.elementalBoss === undefined) state.elementalBoss = true;
+    state.elementalBoss = true;
     if (state.gearElementFilter === undefined) state.gearElementFilter = "";
     if (state.gearBurstFilter === undefined) state.gearBurstFilter = "";
     if (state.gearSidebarSort === undefined) state.gearSidebarSort = "power";
@@ -358,7 +358,9 @@ function migrateState() {
     });
 
     state.nikkes.forEach((n) => {
-        n.id = n.id.replace(".", "");
+        if (!n.id) n.id = "n" + Date.now() + Math.floor(Math.random() * 1000000);
+        n.id = String(n.id).replace(".", "");
+        if (!n.name) n.name = "Unknown";
         if (!n.element) {
             const dbEntry = NIKKE_DATABASE.find((e) => e.name === n.name);
             n.element = dbEntry ? dbEntry.element : "";
@@ -369,10 +371,13 @@ function migrateState() {
             n.burst2 = dbEntry ? dbEntry.burst2 || false : false;
             n.burst3 = dbEntry ? dbEntry.burst3 || false : true;
         }
+        if (!n.priorities) n.priorities = dbOverloadToPriorities(n.name);
+        if (!Array.isArray(n.priorities)) n.priorities = [];
         n.priorities.forEach((p) => {
             if (!p.targetTier) p.targetTier = 11;
             if (!p.count) p.count = 1;
         });
+        if (!n.gear || typeof n.gear !== 'object') n.gear = {};
         SLOTS.forEach((s) => {
             if (!n.gear[s])
                 n.gear[s] = {
@@ -525,50 +530,45 @@ function _applyScraperImport(scraperData, opts) {
     if (!silent) {
         const mode = confirm(
             `Scraper file contains ${scraperEntries.length} Nikke(s), ${withGear.length} with gear data.\n\n` +
-                `OK = Merge (update existing, add new)\nCancel = abort import`,
+                `OK = Import (replaces all Nikke data)\nCancel = abort import`,
         );
         if (!mode) return;
     }
 
+    // Build a map of old nikke names → IDs so Raid/Team references survive
+    const oldIdByName = {};
+    state.nikkes.forEach((n) => { if (n.name && n.id) oldIdByName[n.name] = n.id; });
+
+    // Wipe nikkes array — scraper is source of truth for Nikke data
+    const freshNikkes = [];
     let added = 0,
-        updated = 0,
-        addedNoGear = 0,
         unrecognized = 0;
     const unrecognizedNames = [];
 
     for (const [gameId, entry] of Object.entries(scraperData)) {
-        const hasGear = entry.Helmet || entry.Chest || entry.Gloves || entry["Combat Boots"];
-
         const resolvedName = resolveNikkeName(entry.name, gameId);
         const dbEntry = NIKKE_DATABASE.find((n) => n.name === resolvedName);
+        const hasGear = entry.Helmet || entry.Chest || entry.Gloves || entry["Combat Boots"];
 
-        let nikke = state.nikkes.find((n) => n.name === resolvedName);
+        const nikke = mkNikke(
+            resolvedName,
+            dbEntry ? dbEntry.burst1 : false,
+            dbEntry ? dbEntry.burst2 : false,
+            dbEntry ? dbEntry.burst3 : false,
+            dbEntry ? dbEntry.element : "",
+            dbEntry ? dbEntry.weapon : "",
+        );
 
-        if (!nikke) {
-            nikke = mkNikke(
-                resolvedName,
-                dbEntry ? dbEntry.burst1 : false,
-                dbEntry ? dbEntry.burst2 : false,
-                dbEntry ? dbEntry.burst3 : false,
-                dbEntry ? dbEntry.element : "",
-                dbEntry ? dbEntry.weapon : "",
-            );
-            // Not in the local database — leave burst/element/weapon unknown
-            // (rather than guessing) and flag it so the roster/list can prompt
-            // the user to fill them in manually.
-            if (!dbEntry) {
-                nikke.unrecognized = true;
-                // mkNikke defaults weapon to "AR" when unknown — clear it so the
-                // weapon stays genuinely unknown rather than a wrong guess.
-                nikke.weapon = "";
-                unrecognized++;
-                unrecognizedNames.push(resolvedName);
-            }
-            state.nikkes.push(nikke);
-            if (hasGear) added++;
-            else addedNoGear++;
-        } else if (hasGear) {
-            updated++;
+        // Preserve the old ID so Raid/Team entries still reference this nikke
+        if (oldIdByName[resolvedName]) {
+            nikke.id = oldIdByName[resolvedName];
+        }
+
+        if (!dbEntry) {
+            nikke.unrecognized = true;
+            nikke.weapon = "";
+            unrecognized++;
+            unrecognizedNames.push(resolvedName);
         }
 
         nikke.cube = entry.cube
@@ -595,39 +595,57 @@ function _applyScraperImport(scraperData, opts) {
         if (entry.skill2 != null) nikke.skill2 = entry.skill2;
         if (entry.ultiSkill != null) nikke.skill3 = entry.ultiSkill;
 
-        if (!hasGear) continue;
+        if (hasGear) {
+            for (const [scraperSlot, appSlot] of Object.entries(SLOT_MAP)) {
+                const scraperSlotData = entry[scraperSlot];
+                if (!scraperSlotData) continue;
+                const scraperLines = Array.isArray(scraperSlotData) ? scraperSlotData : scraperSlotData.lines;
+                if (!Array.isArray(scraperLines)) continue;
 
-        for (const [scraperSlot, appSlot] of Object.entries(SLOT_MAP)) {
-            const scraperSlotData = entry[scraperSlot];
-            if (!scraperSlotData) continue;
-            const scraperLines = Array.isArray(scraperSlotData) ? scraperSlotData : scraperSlotData.lines;
-            if (!Array.isArray(scraperLines)) continue;
+                if (!Array.isArray(scraperSlotData)) {
+                    nikke.gear[appSlot].lv = scraperSlotData.lv ?? 0;
+                    nikke.gear[appSlot].tier = scraperSlotData.tier ?? 0;
+                }
 
-            if (!Array.isArray(scraperSlotData)) {
-                nikke.gear[appSlot].lv = scraperSlotData.lv ?? 0;
-                nikke.gear[appSlot].tier = scraperSlotData.tier ?? 0;
-            }
-
-            for (let i = 0; i < 3; i++) {
-                const scraperLine = scraperLines[i];
-                if (!scraperLine) {
-                    nikke.gear[appSlot].lines[i] = { stat: "", val: "", locked: false };
-                } else {
-                    const mappedStat = STAT_MAP[scraperLine.stat] || scraperLine.stat;
-                    let rawVal = scraperLine.value || "";
-                    // Normalize value to 2 decimal places to match TIER_TABLE format
-                    if (rawVal) {
-                        const num = parseFloat(String(rawVal).replace("%", ""));
-                        if (!isNaN(num)) rawVal = num.toFixed(2);
+                for (let i = 0; i < 3; i++) {
+                    const scraperLine = scraperLines[i];
+                    if (!scraperLine) {
+                        nikke.gear[appSlot].lines[i] = { stat: "", val: "", locked: false };
+                    } else {
+                        const mappedStat = STAT_MAP[scraperLine.stat] || scraperLine.stat;
+                        let rawVal = scraperLine.value || "";
+                        if (rawVal) {
+                            const num = parseFloat(String(rawVal).replace("%", ""));
+                            if (!isNaN(num)) rawVal = num.toFixed(2);
+                        }
+                        nikke.gear[appSlot].lines[i] = {
+                            stat: mappedStat,
+                            val: rawVal,
+                            locked: false,
+                        };
                     }
-                    nikke.gear[appSlot].lines[i] = {
-                        stat: mappedStat,
-                        val: rawVal,
-                        locked: false,
-                    };
                 }
             }
         }
+
+        freshNikkes.push(nikke);
+        added++;
+    }
+
+    // Replace nikkes array entirely — clean slate from scraper
+    state.nikkes = freshNikkes;
+
+    // Prune Raid/Team entries that reference nikkes no longer in the roster
+    const validIds = new Set(state.nikkes.map((n) => n.id));
+    if (state.raids) {
+        state.raids.forEach((r) => {
+            r.entries = (r.entries || []).filter((e) => validIds.has(e.nikkeId));
+        });
+    }
+    if (state.teamRaids) {
+        state.teamRaids.forEach((r) => {
+            r.entries = (r.entries || []).filter((e) => validIds.has(e.nikkeId));
+        });
     }
 
     if (!state.selGear && state.nikkes.length) state.selGear = sortNikkesBySidebar(state.nikkes)[0].id;
@@ -636,13 +654,12 @@ function _applyScraperImport(scraperData, opts) {
     save();
     render();
 
-    const totalAdded = added + addedNoGear;
-    let summary = `${totalAdded} added · ${updated} updated`;
+    let summary = `${added} Nikke(s) imported`;
     if (unrecognized) summary += ` · ${unrecognized} not in database`;
     if (silent) {
         _showExtImportToast("Extension import complete — " + summary, unrecognized > 0);
     } else {
-        let msg = `Import complete!\n\n• ${totalAdded} Nikke(s) added\n• ${updated} Nikke(s) updated`;
+        let msg = `Import complete!\n\n• ${added} Nikke(s) imported (full replace)`;
         if (unrecognized) {
             msg +=
                 `\n• ${unrecognized} not in database (${unrecognizedNames.join(", ")})` +

@@ -126,6 +126,16 @@ function goodStatFraction(pool, nikke) {
 }
 
 /*
+ * Given a normalized stat pool and a Nikke's priority list,
+ * returns the fraction of the pool that consists of Passable stats.
+ */
+function passableStatFraction(pool, nikke) {
+  return nikke.priorities
+    .filter(p => p.tier === 'Passable')
+    .reduce((sum, p) => sum + (pool[p.line] || pool[normStat(p.line)] || pool[STAT_ALIASES_REV[p.line]] || 0), 0);
+}
+
+/*
  * Probability that at least one of the given unlocked lines produces
  * a good stat in a single Change Effects roll.
  */
@@ -490,6 +500,62 @@ function getVerdict(nikke, slot) {
           steps, cls: 'v-ok', rocks: fr, gain: ceGainLabel, dpsGain: ceGainDps,
         };
       }
+      // ── No 3rd ideal stat available, but check if we can upgrade trash/unset → passable ──
+      // If any fishable line is trash/unset (not passable) and the Nikke has passable priorities
+      // that aren't already on the piece, suggest locking good lines and rerolling for a passable.
+      const trashOrUnsetLines = fishableLines.filter(l => l.cls === 'trash' || l.cls === 'unset' || l.cls === null);
+      if (trashOrUnsetLines.length > 0) {
+        const poolPass = remainingStatPool(new Set([...usedStats]));
+        const passFrac = passableStatFraction(poolPass, nikke);
+        if (passFrac > 0) {
+          const fl = trashOrUnsetLines.map(l => ({ appear: l.appear }));
+          const passRocks = estChangeEffectsRocks(fl, passFrac, postLocked);
+          const passablePrioNames = nikke.priorities
+            .filter(p => p.tier === 'Passable')
+            .map(p => p.line)
+            .filter(ln => !usedStats.has(ln) && !usedStats.has(normStat(ln)));
+          const passStatLabel = statsOrLabel(passablePrioNames);
+
+          // Calculate gain: expected value of landing a passable stat (weighted avg across passable pool)
+          let totalPassWeight = 0, weightedPassGain = 0;
+          const passGains = [];
+          passablePrioNames.forEach(ln => {
+            const w = poolPass[ln] || poolPass[normStat(ln)] || 0;
+            if (w <= 0) return;
+            const ev = expectedValAnyTier(ln);
+            if (ln === 'Elemental Dmg' && !state.elementalBoss) return;
+            const dmgW = getStatDmgWeight(ln, nikke.name, nikke) || 0.01;
+            passGains.push({ stat: ln, gain: ev, weight: w, dmgW });
+            totalPassWeight += w;
+            weightedPassGain += ev * w * dmgW;
+          });
+          const grossGain = totalPassWeight > 0
+            ? passGains.reduce((s, g) => s + g.gain * g.weight, 0) / totalPassWeight
+            : 0;
+          const dpsGain = totalPassWeight > 0 ? weightedPassGain / totalPassWeight : 0;
+          const gainLabel = passGains.length
+            ? passGains.map(g => `${g.stat} +${g.gain.toFixed(2)}%`).join(' or ')
+            : '';
+
+          const fishLineLabels = trashOrUnsetLines.map(l => `Line ${l.idx + 1}`).join(', ');
+          steps.push(`Change Effects on ${fishLineLabels} — ${rocksPerRoll(postLocked)} rocks/roll`);
+          steps.push(`P(${passStatLabel}) per line: ${(passFrac * 100).toFixed(1)}%`);
+          steps.push(`Expected ~${passRocks} rocks for a passable line`);
+          const toLock = goodLines.filter(l => !l.locked);
+          return {
+            label: `${goodLines.length} good lines at target — roll for passable`,
+            action: 'Lock ' + goodLines.length + ' + roll for passable',
+            simpleSteps: [
+              toLock.length
+                ? `Lock ${toLock.map(l => `${l.stat} (Line ${l.idx + 1})`).join(' & ')}`
+                : 'Keep good lines locked',
+              `Change Effects ${fishLineLabels} until ${passStatLabel} rolls`,
+            ],
+            steps, cls: 'v-ok', rocks: passRocks, gain: gainLabel, dpsGain,
+          };
+        }
+      }
+
       if (!steps.length) steps.push('This piece is complete — no action needed.');
       return { label: `Keep — ${goodLines.length} good lines at target`, action: `Keep · ${goodLines.length} good lines`, steps, cls: 'v-keep', rocks: 0 };
     }

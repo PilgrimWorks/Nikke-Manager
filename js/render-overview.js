@@ -376,7 +376,7 @@ function renderOverview() {
     <div style="display:flex;align-items:center;margin-bottom:10px">
       <label class="elemental-toggle" title="Include Elemental Dmg in gain and verdict calculations" style="margin-left:auto">
         <input type="checkbox" id="elemental-chk" onchange="toggleElementalBoss(this.checked)" ${state.elementalBoss ? "checked" : ""} style="accent-color:#3b82f6"/>
-        <span>Elemental boss</span>
+        <span>Include Elemental Dmg</span>
       </label>
     </div>
     <div class="ov-grid">
@@ -392,6 +392,11 @@ function renderOverview() {
 function toggleElementalBoss(checked) {
     state.elementalBoss = checked;
     save();
+    // Sync both checkboxes if they exist
+    const chkOverview = document.getElementById("elemental-chk");
+    const chkGear = document.getElementById("elemental-chk-gear");
+    if (chkOverview) chkOverview.checked = checked;
+    if (chkGear) chkGear.checked = checked;
     renderOverview();
     // Only re-render gear main content if a nikke is selected, don't touch sidebar
     if (state.selGear) {

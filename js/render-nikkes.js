@@ -89,6 +89,7 @@ function renderGear() {
     const list =
         filtered
             .map((n) => {
+                try {
                 // One dot per gear slot, coloured by that slot's gear status (done/partial/warn/none)
                 const dots = SLOTS.map(
                     (s) => `<span class="${dotStatus(n, s)}" title="${s}" data-slot="${s}"></span>`,
@@ -99,6 +100,12 @@ function renderGear() {
                 return `<div class="nikke-item ${state.selGear === n.id ? "active" : ""}" data-id="${n.id}" data-name="${n.name.toLowerCase()}" onclick="selGearNikke('${n.id}')" style="display:flex;align-items:center;gap:8px">
       ${nikkeIcon(n.name, 34)}<div style="min-width:0"><div>${n.name}${badge}</div><div class="nikke-item-sub" style="display:flex;align-items:center;gap:6px"><span class="gear-dots-mini">${dots}</span>${elemIcon(n.element, 14)}</div></div>
     </div>`;
+                } catch (e) {
+                    console.error("Error rendering nikke sidebar item:", n.name || n.id, e);
+                    return `<div class="nikke-item" data-id="${n.id || ''}" data-name="${(n.name || '').toLowerCase()}" onclick="selGearNikke('${n.id || ''}')" style="display:flex;align-items:center;gap:8px;opacity:0.5">
+      <div style="min-width:0"><div>${n.name || '(corrupted)'}<span class="nikke-badge" title="This Nikke has corrupted data. Try re-importing.">⚠</span></div></div>
+    </div>`;
+                }
             })
             .join("") ||
         `<div style="font-size:14px;color:#475569;padding:6px">${state.gearElementFilter || state.gearBurstFilter || state.gearManufacturerFilter || state.gearWeaponFilter ? "No Nikkes matching filters" : "No Nikkes added"}</div>`;
@@ -516,10 +523,12 @@ ${tierOpts}
                     : "";
             // Damage suffix for the option rows, e.g. " · +4.4% dmg"
             const dmgTxt = (g) => (g && g > 0 ? ` · +${g.toFixed(1)}% dmg` : "");
+            // Efficiency suffix, e.g. " · 0.24 dmg/rock"
+            const effTxt = (rocks, g) => (rocks > 0 && g > 0 ? ` · ${(g / rocks).toFixed(2)} dmg/rock` : "");
             // Rocks + dmg estimate for the card title — no em-dash, standard weight (not bold)
             const costTxt = (rocks, g) => {
                 let inner = "";
-                if (rocks > 0) inner = `~${rocks} rocks${dmgTxt(g)}`;
+                if (rocks > 0) inner = `~${rocks} rocks${dmgTxt(g)}${effTxt(rocks, g)}`;
                 else if (g && g > 0) inner = `+${g.toFixed(1)}% dmg`;
                 return inner ? ` <span class="verdict-cost">${inner}</span>` : "";
             };
@@ -535,12 +544,13 @@ ${tierOpts}
         </details>`;
             } else if (v.options) {
                 const title = v.action || v.label;
-                const summary = `${title}`;
+                const rec = v.options.find((o) => o.recommended) || v.options[0];
+                const summary = `${title}${costTxt(rec.rocks, rec.dpsGain)}`;
                 const optionsBody = v.options
                     .map(
                         (opt) => `
 <div class="verdict-option" style="${opt.recommended ? "border-left:3px solid currentColor" : ""}">
-  <div class="verdict-option-title">${opt.recommended ? "★ " : ""}${opt.action || opt.title}<span class="rock-est">${opt.rocks > 0 ? `~${opt.rocks} rocks` : ""}${dmgTxt(opt.dpsGain)}</span>${opt.recommended ? '<span class="recommended-badge">Recommended</span>' : ""}</div>
+  <div class="verdict-option-title">${opt.recommended ? "★ " : ""}${opt.action || opt.title}<span class="rock-est">${opt.rocks > 0 ? `~${opt.rocks} rocks` : ""}${dmgTxt(opt.dpsGain)}${effTxt(opt.rocks, opt.dpsGain)}</span>${opt.recommended ? '<span class="recommended-badge">Recommended</span>' : ""}</div>
   ${stepList(opt.simpleSteps && opt.simpleSteps.length ? opt.simpleSteps : opt.steps)}
 </div>`,
                     )
@@ -704,6 +714,13 @@ ${nikke.doll && !isTreasureDoll ? statStepperHtml(nikke.id, "doll", nikke.doll.l
 
     // ── Sub-tabs: Gear (attribute totals + slots + damage) vs Priorities ──
     const sub = _gearSubTab === "priorities" ? "priorities" : "gear";
+    const elementalToggle = `
+    <div style="display:flex;align-items:center;margin-bottom:10px">
+      <label class="elemental-toggle" title="Include Elemental Dmg in gain and verdict calculations" style="margin-left:auto">
+        <input type="checkbox" id="elemental-chk-gear" onchange="toggleElementalBoss(this.checked)" ${state.elementalBoss ? "checked" : ""} style="accent-color:#3b82f6"/>
+        <span>Include Elemental Dmg</span>
+      </label>
+    </div>`;
     const subTabBar = `
     <div class="gear-subtab-bar">
       <button class="gear-subtab ${sub === "gear" ? "active" : ""}" data-subtab="gear" onclick="switchGearSubTab('gear')">Gear</button>
@@ -713,6 +730,7 @@ ${nikke.doll && !isTreasureDoll ? statStepperHtml(nikke.id, "doll", nikke.doll.l
     const prioTabHtml = renderPrioContent(nikke);
     const bodyHtml =
         statsPanel +
+        elementalToggle +
         subTabBar +
         `<div id="gear-subtab-gear"${sub === "gear" ? "" : ' style="display:none"'}>${gearTabHtml}</div>` +
         `<div id="gear-subtab-priorities"${sub === "priorities" ? "" : ' style="display:none"'}>${prioTabHtml}</div>`;
