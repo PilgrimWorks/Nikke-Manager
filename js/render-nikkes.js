@@ -97,7 +97,7 @@ function renderGear() {
                 const badge = n.unrecognized
                     ? `<span class="nikke-badge" title="Not in database — burst, element and weapon are unknown. Edit in the Roster to fill them in.">not in DB</span>`
                     : "";
-                return `<div class="nikke-item ${state.selGear === n.id ? "active" : ""}" data-id="${n.id}" data-name="${n.name.toLowerCase()}" onclick="selGearNikke('${n.id}')" style="display:flex;align-items:center;gap:8px">
+                return `<div class="nikke-item js-kbnav-item ${state.selGear === n.id ? "active" : ""}" data-id="${n.id}" data-name="${n.name.toLowerCase()}" tabindex="0" role="button" onclick="selGearNikke('${n.id}')" style="display:flex;align-items:center;gap:8px">
       ${nikkeIcon(n.name, 34)}<div style="min-width:0"><div>${n.name}${badge}</div><div class="nikke-item-sub" style="display:flex;align-items:center;gap:6px"><span class="gear-dots-mini">${dots}</span>${elemIcon(n.element, 14)}</div></div>
     </div>`;
                 } catch (e) {
@@ -123,7 +123,7 @@ function renderGear() {
     const sortDir = state.gearSidebarSortDir || "desc";
     const sortBy = state.gearSidebarSort || "power";
     const filterHtml = `<div style="margin-bottom:6px">
-    <input id="nikke-sidebar-search" class="form-input" placeholder="Search Nikke..." value="${_gearSidebarSearch.replace(/"/g, "&quot;")}" oninput="filterGearSidebarList()" style="font-size:13px;padding:4px 8px;width:100%"/>
+    <input id="nikke-sidebar-search" class="form-input" placeholder="Search Nikke..." value="${_gearSidebarSearch.replace(/"/g, "&quot;")}" oninput="filterGearSidebarList()" data-kbnav-list="#gear .nikke-list" style="font-size:13px;padding:4px 8px;width:100%"/>
   </div>
   <div style="display:flex;gap:4px;margin-bottom:6px">
     <select style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1" onchange="setGearSidebarSort(this.value)">
@@ -237,7 +237,7 @@ function renderGearAddOverlay() {
           <span style="font-size:14px;font-weight:600;color:#f1f5f9">Add a Nikke</span>
           <button class="del-btn" onclick="hideGearAddForm()" style="font-size:16px">✕</button>
         </div>
-        <input class="form-input" id="gear-nn-search" placeholder="Search..." oninput="filterGearNikkeList()" style="margin-bottom:8px"/>
+        <input class="form-input" id="gear-nn-search" placeholder="Search..." oninput="filterGearNikkeList()" data-kbnav-list="#gear-nn-list" style="margin-bottom:8px"/>
         <div id="gear-nn-list" class="team-slot-picker-list"></div>
       </div>
     </div>`;
@@ -247,6 +247,9 @@ function showGearAddForm() {
     const overlay = document.getElementById("gear-add-overlay");
     if (!overlay) return;
     overlay.classList.add("show");
+    // Build the item list once when the popup opens; filtering afterwards only
+    // toggles visibility (mirrors the main Nikke list) so icons aren't recreated.
+    renderGearAddList();
     const search = document.getElementById("gear-nn-search");
     if (search) {
         search.value = "";
@@ -259,13 +262,12 @@ function hideGearAddForm() {
     if (overlay) overlay.classList.remove("show");
 }
 
-function filterGearNikkeList() {
-    const search = document.getElementById("gear-nn-search");
+// Renders every addable Nikke once. Called on open — not per keystroke.
+function renderGearAddList() {
     const list = document.getElementById("gear-nn-list");
     if (!list) return;
-    const q = search ? search.value.toLowerCase() : "";
     const addedNames = new Set(state.nikkes.map((n) => n.name));
-    const available = NIKKE_DATABASE.filter((n) => !addedNames.has(n.name) && n.name.toLowerCase().includes(q));
+    const available = NIKKE_DATABASE.filter((n) => !addedNames.has(n.name));
     list.innerHTML =
         available
             .map((n) => {
@@ -273,13 +275,42 @@ function filterGearNikkeList() {
                 const bd = burstDisplay(n);
                 const burstNum = bd === "All" ? "All" : bd === "III" ? 3 : bd === "II" ? 2 : bd === "I" ? 1 : null;
                 const burst = burstNum ? burstIcon(burstNum) : "";
-                return `<div class="team-slot-picker-item" onclick="pickGearAddNikke('${n.name.replace(/'/g, "\\'")}')">
+                return `<div class="team-slot-picker-item js-kbnav-item" data-name="${n.name.toLowerCase().replace(/"/g, "&quot;")}" tabindex="0" role="button" onclick="pickGearAddNikke('${n.name.replace(/'/g, "\\'")}')">
       ${nikkeIcon(n.name, 28)}
       <span>${n.name}</span>
       <span style="display:flex;align-items:center;gap:4px;margin-left:auto">${elem} ${burst}</span>
     </div>`;
             })
             .join("") || '<div style="padding:8px;color:#475569;font-size:13px">No available Nikkes</div>';
+}
+
+// Filters the already-rendered list by toggling visibility only — no re-render.
+function filterGearNikkeList() {
+    const search = document.getElementById("gear-nn-search");
+    const list = document.getElementById("gear-nn-list");
+    if (!list) return;
+    const q = search ? search.value.toLowerCase() : "";
+    const items = list.querySelectorAll(".team-slot-picker-item");
+    let anyVisible = false;
+    items.forEach((el) => {
+        const visible = (el.dataset.name || "").includes(q);
+        el.style.display = visible ? "" : "none";
+        if (visible) anyVisible = true;
+    });
+    let emptyMsg = list.querySelector(".gear-nn-search-empty");
+    if (items.length > 0 && !anyVisible) {
+        if (!emptyMsg) {
+            emptyMsg = document.createElement("div");
+            emptyMsg.className = "gear-nn-search-empty";
+            emptyMsg.style.cssText = "padding:8px;color:#475569;font-size:13px";
+            emptyMsg.textContent = "No matching Nikkes";
+            list.appendChild(emptyMsg);
+        } else {
+            emptyMsg.style.display = "";
+        }
+    } else if (emptyMsg) {
+        emptyMsg.style.display = "none";
+    }
 }
 
 function pickGearAddNikke(name) {

@@ -239,6 +239,48 @@ document.addEventListener(
     true,
 );
 
+// ── Keyboard navigation for Nikke selection lists ───────────
+// Applies to the Gear sidebar list and the Add-Nikke / Team-slot / Raid-slot
+// pickers, whose items carry class "js-kbnav-item" and tabindex="0".
+//   ArrowUp / ArrowDown  → move focus to the previous / next visible item
+//   Tab / Shift+Tab      → same as the arrows (focus stays within the list)
+//   Enter                → activate the focused item (fires its onclick)
+// A list of 0–1 items lets Tab pass through natively so focus is never trapped.
+document.addEventListener("keydown", function (e) {
+    // From a search box (data-kbnav-list points at its list), ArrowDown moves
+    // focus onto the first visible item so you can select it — combobox style.
+    if (e.key === "ArrowDown" && e.target.dataset && e.target.dataset.kbnavList) {
+        const list = document.querySelector(e.target.dataset.kbnavList);
+        const first = list
+            ? Array.from(list.querySelectorAll(".js-kbnav-item")).find((el) => el.offsetParent !== null)
+            : null;
+        if (first) {
+            e.preventDefault();
+            first.focus();
+        }
+        return;
+    }
+    const item = e.target.closest ? e.target.closest(".js-kbnav-item") : null;
+    if (!item) return;
+    if (e.key === "Enter") {
+        e.preventDefault();
+        item.click();
+        return;
+    }
+    const forward = e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey);
+    const backward = e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey);
+    if (!forward && !backward) return;
+    // Visible sibling items belonging to the same list container.
+    const items = Array.from(item.parentElement.children).filter(
+        (el) => el.classList.contains("js-kbnav-item") && el.offsetParent !== null,
+    );
+    if (items.length < 2) return; // nothing to move between — let Tab escape
+    e.preventDefault();
+    const idx = items.indexOf(item);
+    const next = forward ? (idx + 1) % items.length : (idx - 1 + items.length) % items.length;
+    items[next].focus();
+});
+
 // If brand new (0 Nikkes), show tutorial and land on Nikkes tab
 const _isNewUser = (function handleNewUser() {
     if (state.nikkes.length === 0) {

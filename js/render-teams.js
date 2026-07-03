@@ -902,7 +902,7 @@ function renderTeamSlotPickerOverlay() {
           <span style="font-size:14px;font-weight:600;color:#f1f5f9">Pick a Nikke</span>
           <button class="del-btn" onclick="closeTeamSlotPicker()" style="font-size:16px">✕</button>
         </div>
-        <input class="form-input" id="team-slot-picker-search" placeholder="Search..." oninput="filterTeamSlotPicker()" style="margin-bottom:8px"/>
+        <input class="form-input" id="team-slot-picker-search" placeholder="Search..." oninput="filterTeamSlotPicker()" data-kbnav-list="#team-slot-picker-list" style="margin-bottom:8px"/>
         <div id="team-slot-picker-list" class="team-slot-picker-list"></div>
       </div>
     </div>`;
@@ -979,7 +979,7 @@ function filterTeamSlotPicker() {
         .sort((a, b) => a.name.localeCompare(b.name));
     const removeBtn =
         entryIdx != null
-            ? `<div class="team-slot-picker-item team-slot-picker-remove" onclick="removeTeamSlotFromPicker()">
+            ? `<div class="team-slot-picker-item team-slot-picker-remove js-kbnav-item" tabindex="0" role="button" onclick="removeTeamSlotFromPicker()">
       <span style="font-size:16px;line-height:1">✕</span>
       <span>Remove from team</span>
     </div>`
@@ -989,7 +989,7 @@ function filterTeamSlotPicker() {
         (available
             .map((n) => {
                 const elem = n.element ? elemIcon(n.element) : "";
-                return `<div class="team-slot-picker-item" onclick="pickTeamSlotNikke('${n.id}')">
+                return `<div class="team-slot-picker-item js-kbnav-item" tabindex="0" role="button" onclick="pickTeamSlotNikke('${n.id}')">
       ${nikkeIcon(n.name, 28)}
       <span>${n.name}</span>
       <span style="font-size:12px;color:#64748b;margin-left:auto">${elem} ${burstDisplay(n)}</span>
