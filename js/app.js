@@ -3,7 +3,7 @@
 // ============================================================
 
 function switchTab(tab, event) {
-    const tabBtnOrderSwitch = ["overview", "gear", "raids", "teams", "cubes", "wishlist", "weights"];
+    const tabBtnOrderSwitch = ["overview", "gear", "teams", "cubes", "wishlist", "weights"];
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
     document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
     if (event) {
@@ -20,7 +20,6 @@ function switchTab(tab, event) {
     if (tab === "overview") renderOverview();
     else if (tab === "roster") renderRoster();
     else if (tab === "gear") renderGear();
-    else if (tab === "raids") renderRaids();
     else if (tab === "teams") renderTeams();
     else if (tab === "weights") renderWeights();
     else if (tab === "cubes") renderCubes();
@@ -81,7 +80,6 @@ function render() {
     renderOverview();
     renderRoster();
     renderGear();
-    renderRaids();
     renderTeams();
     renderWeights();
     renderCubes();
@@ -156,8 +154,6 @@ async function pullCloudData() {
     delete state._updatedAt;
     migrateState();
     state.selGear = state.nikkes.length ? state.nikkes[0].id : null;
-    state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
-    state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
     try {
         localStorage.setItem("nikke_v8", JSON.stringify(state));
     } catch (e) {}
@@ -195,9 +191,6 @@ function clearAllData() {
         selGear: null,
         selPrio: null,
         elementalBoss: true,
-        raids: [],
-        selRaid: null,
-        selRaidEdit: null,
         rankSort: "efficiency",
         rankSortAsc: false,
         gearElementFilter: "",
@@ -287,7 +280,7 @@ const _isNewUser = (function handleNewUser() {
         // No data yet — always show the guide on load
         showTutorial();
         // Auto-switch to Nikkes tab
-        const tabBtnOrder = ["overview", "gear", "raids", "teams", "cubes", "wishlist", "weights"];
+        const tabBtnOrder = ["overview", "gear", "teams", "cubes", "wishlist", "weights"];
         const gearIdx = tabBtnOrder.indexOf("gear");
         document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
         document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
@@ -306,7 +299,7 @@ if (!_isNewUser) {
     const initTab = new URLSearchParams(window.location.search).get("tab");
     if (initTab && document.getElementById(initTab)) {
         // Map section IDs to tab button indices (roster has no button)
-        const tabBtnOrder = ["overview", "gear", "raids", "teams", "cubes", "wishlist", "weights"];
+        const tabBtnOrder = ["overview", "gear", "teams", "cubes", "wishlist", "weights"];
         const btnIdx = tabBtnOrder.indexOf(initTab);
         if (btnIdx >= 0) {
             document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));

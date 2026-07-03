@@ -120,24 +120,20 @@ body {
     display: none;
 }
 .nikke-list::-webkit-scrollbar,
-.team-slot-picker-list::-webkit-scrollbar,
-.raid-slot-picker-list::-webkit-scrollbar {
+.team-slot-picker-list::-webkit-scrollbar {
     width: 6px;
 }
 .nikke-list::-webkit-scrollbar-track,
-.team-slot-picker-list::-webkit-scrollbar-track,
-.raid-slot-picker-list::-webkit-scrollbar-track {
+.team-slot-picker-list::-webkit-scrollbar-track {
     background: transparent;
 }
 .nikke-list::-webkit-scrollbar-thumb,
-.team-slot-picker-list::-webkit-scrollbar-thumb,
-.raid-slot-picker-list::-webkit-scrollbar-thumb {
+.team-slot-picker-list::-webkit-scrollbar-thumb {
     background: #2d3f5e;
     border-radius: 3px;
 }
 .nikke-list::-webkit-scrollbar-thumb:hover,
-.team-slot-picker-list::-webkit-scrollbar-thumb:hover,
-.raid-slot-picker-list::-webkit-scrollbar-thumb:hover {
+.team-slot-picker-list::-webkit-scrollbar-thumb:hover {
     background: #3b82f6;
 }
 .nikke-sidebar {
@@ -185,8 +181,7 @@ body {
     background: #1a2235;
     border-color: #2d3f5e;
 }
-.team-slot-picker-list .js-kbnav-item:focus-visible,
-.raid-slot-picker-list .js-kbnav-item:focus-visible {
+.team-slot-picker-list .js-kbnav-item:focus-visible {
     background: #1e3a5f;
 }
 
@@ -1507,348 +1502,6 @@ details[open] > .verdict-title {
     color: #94a3b8;
 }
 
-/* ── Raid Teams Drag & Drop ── */
-.raid-teams-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-    margin-bottom: 12px;
-}
-.raid-team-lane {
-    background: #151c2b;
-    border: 1px solid #1e2535;
-    border-radius: 8px;
-    padding: 8px;
-}
-.raid-team-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-    min-height: 28px;
-}
-.raid-team-label {
-    font-size: 16px;
-    font-weight: 700;
-    color: #60a5fa;
-    white-space: nowrap;
-}
-.raid-team-total {
-    font-size: 16px;
-    font-weight: 700;
-    color: #4ade80;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-.raid-team-note {
-    width: 100%;
-    font-size: 15px;
-    padding: 5px 28px 5px 10px;
-    background: #0f172a;
-    border: 1px solid #475569;
-    border-radius: 5px;
-    color: #ffffff;
-    font-weight: 500;
-    transition: border-color 0.1s;
-}
-.raid-team-note::placeholder {
-    color: #64748b;
-    font-weight: 400;
-    font-style: italic;
-}
-.raid-team-note:hover {
-    border-color: #60a5fa;
-    background: #1a2236;
-}
-.raid-team-note:focus {
-    border-color: #60a5fa;
-    outline: none;
-    background: #1a2236;
-    color: #ffffff;
-}
-.raid-note-wrap {
-    position: relative;
-    flex: 1;
-    min-width: 0;
-}
-.raid-note-clear {
-    position: absolute;
-    right: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    border-radius: 3px;
-    color: #64748b;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1;
-    cursor: pointer;
-    transition: all 0.1s;
-}
-.raid-note-clear:hover {
-    background: #7f1d1d;
-    color: #fca5a5;
-}
-.raid-team-drop {
-    min-height: 36px;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
-    padding: 6px;
-    border-radius: 6px;
-    border: 1px dashed #2d3f5e;
-    transition: all 0.15s;
-}
-.raid-team-drop.drag-active {
-    border-color: #3b82f6;
-}
-.raid-team-drop.drag-over {
-    background: rgba(59, 130, 246, 0.08);
-    border-color: #60a5fa;
-}
-.raid-drop-hint {
-    font-size: 12px;
-    color: #334155;
-    padding: 4px 8px;
-    grid-column: 1 / -1;
-    text-align: center;
-}
-.raid-unassigned-section {
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid #1e2535;
-}
-.raid-unassigned-drop {
-    min-height: 40px;
-    grid-template-columns: repeat(5, 1fr);
-}
-.raid-chip {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 6px;
-    width: 100%;
-    position: relative;
-    background: #1a2235;
-    border: 1px solid #2d3f5e;
-    border-radius: 8px;
-    cursor: grab;
-    color: #e2e8f0;
-    user-select: none;
-    transition:
-        opacity 0.1s,
-        box-shadow 0.1s;
-    text-align: center;
-}
-.raid-chip:hover {
-    border-color: #3b82f6;
-}
-.raid-chip.dragging {
-    opacity: 0.4;
-}
-.raid-chip-remove {
-    position: absolute;
-    top: 3px;
-    right: 3px;
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #1e293b;
-    border: 1px solid #475569;
-    border-radius: 4px;
-    color: #94a3b8;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1;
-    cursor: pointer;
-    transition: all 0.1s;
-}
-.raid-chip-remove:hover {
-    background: #7f1d1d;
-    border-color: #f87171;
-    color: #fca5a5;
-}
-.raid-chip-edit-btn {
-    background: none;
-    border: 1px solid #2d3f5e;
-    cursor: pointer;
-    color: #64748b;
-    font-size: 12px;
-    padding: 2px 5px;
-    margin-left: 3px;
-    line-height: 1;
-    border-radius: 4px;
-    transition: all 0.1s;
-}
-.raid-chip-edit-btn:hover {
-    color: #60a5fa;
-    border-color: #3b82f6;
-    background: #0f1117;
-}
-.raid-chip-dmg-input {
-    width: 55px;
-    font-size: 13px;
-    font-weight: 700;
-    padding: 1px 4px;
-    background: #0f1117;
-    border: 1px solid #3b82f6;
-    border-radius: 3px;
-    color: #f1f5f9;
-    outline: none;
-}
-.raid-chip-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1px;
-    min-width: 0;
-    width: 100%;
-    overflow: hidden;
-}
-.raid-chip-name {
-    font-weight: 600;
-    font-size: 13px;
-    line-height: 1.3;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-}
-.raid-chip-meta {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-.raid-chip-dmg-label {
-    font-size: 13px;
-    font-weight: 700;
-}
-
-/* ── Raid Slot-based UI ── */
-.raid-team-slots {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
-}
-.raid-slot {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 6px;
-    width: 100%;
-    position: relative;
-    background: #1a2235;
-    border: 1px solid #2d3f5e;
-    border-radius: 8px;
-    color: #e2e8f0;
-    text-align: center;
-    min-height: 80px;
-    justify-content: center;
-    min-width: 0;
-    overflow: hidden;
-}
-.raid-slot-empty {
-    border-style: dashed;
-    background: #0f172a;
-}
-.raid-slot-add-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 2px dashed #475569;
-    background: none;
-    color: #64748b;
-    font-size: 22px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-}
-.raid-slot-add-btn:hover {
-    border-color: #60a5fa;
-    color: #60a5fa;
-    background: rgba(59, 130, 246, 0.08);
-}
-.raid-slot-picker-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-.raid-slot-picker-overlay.show {
-    display: flex;
-}
-.raid-slot-picker-modal {
-    background: #151c2b;
-    border: 1px solid #2d3f5e;
-    border-radius: 12px;
-    padding: 16px;
-    width: 340px;
-    max-height: 70vh;
-    display: flex;
-    flex-direction: column;
-}
-.raid-slot-picker-list {
-    overflow-y: auto;
-    max-height: 50vh;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-.raid-slot-picker-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #e2e8f0;
-    transition: background 0.1s;
-}
-.raid-slot-picker-item:hover {
-    background: #1e3a5f;
-}
-.raid-team-badge {
-    font-size: 12px;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: #1e3a5f;
-    color: #60a5fa;
-    display: inline-block;
-}
-.raid-dmg-bar-bg {
-    width: 100%;
-    height: 6px;
-    background: #1e2535;
-    border-radius: 3px;
-    overflow: hidden;
-}
-.raid-dmg-bar {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.2s;
-}
 #nn-select {
     background: #0f1117;
     color: #e2e8f0;
@@ -2086,8 +1739,7 @@ details[open] > .verdict-title {
         -webkit-overflow-scrolling: touch;
     }
     #overview,
-    #gear-main,
-    #raid-main {
+    #gear-main {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
@@ -2099,17 +1751,6 @@ details[open] > .verdict-title {
     #cubes table.attr-table,
     #weights table.attr-table {
         min-width: 0;
-    }
-
-    /* Raid team chips: wrap on mobile */
-    .raid-team-drop {
-        grid-template-columns: repeat(5, 1fr);
-    }
-    .raid-team-slots {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .raid-unassigned-drop {
-        grid-template-columns: repeat(3, 1fr);
     }
 
     /* Priority rows: 2x2 layout — stat column wider to fit long names */
@@ -2202,11 +1843,6 @@ details[open] > .verdict-title {
     .verdict {
         font-size: 13px;
         padding: 8px 10px;
-    }
-
-    /* Raid chips: full width */
-    .raid-chip {
-        padding: 5px 8px;
     }
 
     /* Add nikke button: full width on mobile */
@@ -2495,7 +2131,7 @@ details[open] > .verdict-title {
 }
 
 /* ============================================================
-   TEAMS TAB  (independent of .raid-* — do not merge)
+   TEAMS TAB
    ============================================================ */
 .team-main-header {
     display: flex;
@@ -3161,13 +2797,24 @@ details[open] > .verdict-title {
     }
     /* Nikkes & Teams tabs (mobile): the sidebar only holds the pop-out toggle
        button here — the list lives in the popup — so drop the sidebar's card
-       chrome to avoid a card-within-a-card look around the button. */
+       chrome to avoid a card-within-a-card look around the button. It also
+       sticks to the top of the screen so the button floats into view while
+       scrolling down through the detail panel below it. */
     #gear .nikke-sidebar,
     #teams .nikke-sidebar {
         background: none;
         border: none;
         padding: 0;
         overflow: visible;
+        position: sticky;
+        top: 8px;
+        z-index: 50;
+    }
+    /* A shadow under the sticky button so it reads as floating over the content
+       it scrolls past. */
+    #gear .roster-list-toggle.is-popout,
+    #teams .roster-list-toggle.is-popout {
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
     }
 
     .team-gap-chips {

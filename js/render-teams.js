@@ -1,6 +1,6 @@
 // ============================================================
-//  RENDER: TEAMS  (independent clone of the Solo Raid screen)
-//  Data: state.teamRaids  (separate from state.raids)
+//  RENDER: TEAMS
+//  Data: state.teamRaids
 //  Reuses shared globals: getVerdict, bondMaxFor, NIKKE_DB_MAP,
 //  COLLECTION_DOLLS, TREASURE_NAMES, SLOTS, elemIcon, nikkeIcon,
 //  burstDisplay, goToGearNikke, save.
@@ -56,8 +56,20 @@ let _newRosterMode = "solo";
 let _rosterListCollapsed = true;
 // Current roster-list search text (persisted across re-renders).
 let _rosterSearch = "";
+// Clear the roster list's type filter + search back to their defaults. Not
+// saved — this only resets the current view.
+function resetRosterFilters() {
+    _rosterSearch = "";
+    state.teamModeFilter = "";
+}
 function toggleRosterList() {
     _rosterListCollapsed = !_rosterListCollapsed;
+    if (!_rosterListCollapsed) {
+        // Opening the popup (mobile-only) — clear the filter + search so it opens
+        // fresh each time. renderTeams fully rebuilds, so the reset takes effect.
+        resetRosterFilters();
+        renderTeams();
+    }
     const sb = document.querySelector("#teams .nikke-sidebar");
     if (!sb) return;
     sb.classList.toggle("roster-collapsed", _rosterListCollapsed);
@@ -78,6 +90,13 @@ function closeRosterListPopup() {
     sb.classList.add("roster-collapsed");
     const tog = sb.querySelector(".roster-list-toggle");
     if (tog) tog.setAttribute("aria-expanded", "false");
+}
+// Filter the roster list by type (Solo / Union / Tribe / Campaign). Persisted in
+// state and rebuilds the list, like the Nikkes tab's dropdown filters.
+function setTeamModeFilter(val) {
+    state.teamModeFilter = val;
+    save();
+    renderTeams();
 }
 // Filter the roster list by name (mobile popup search) — toggles item
 // visibility only, mirroring the Nikkes tab's list search.
@@ -160,7 +179,11 @@ function setNewRosterMode(mode) {
 function renderTeams() {
     const el = document.getElementById("teams");
     if (!el) return;
-    const sortedRaids = [...state.teamRaids].reverse();
+    // Roster-type filter (All / Solo / Union / Tribe / Campaign). A roster with a
+    // missing/unknown mode is treated as Solo, matching its default label.
+    const rosterMode = (r) => (TEAM_MODES[r.mode] ? r.mode : "solo");
+    let sortedRaids = [...state.teamRaids].reverse();
+    if (state.teamModeFilter) sortedRaids = sortedRaids.filter((r) => rosterMode(r) === state.teamModeFilter);
     const raidList =
         sortedRaids
             .map((r) => {
@@ -171,7 +194,11 @@ function renderTeams() {
       <div class="nikke-item-sub">${modeLabel}</div>
     </div>`;
             })
-            .join("") || '<div style="font-size:14px;color:#475569;padding:6px">No rosters created</div>';
+            .join("") ||
+        `<div style="font-size:14px;color:#475569;padding:6px">${state.teamModeFilter ? "No rosters matching filter" : "No rosters created"}</div>`;
+    const modeFilterOpts = Object.entries(TEAM_MODES)
+        .map(([key, m]) => `<option value="${key}" ${state.teamModeFilter === key ? "selected" : ""}>${m.label}</option>`)
+        .join("");
 
     el.innerHTML = `<div class="two-col">
     <div class="nikke-sidebar${_rosterListCollapsed ? " roster-collapsed" : ""}">
@@ -184,6 +211,12 @@ function renderTeams() {
         <div class="nikke-list-panel">
           <div class="nikke-list-popup-header"><span>Rosters</span><button type="button" class="del-btn" onclick="closeRosterListPopup()" style="font-size:16px">✕</button></div>
           <input id="roster-sidebar-search" class="form-input" placeholder="Search roster..." value="${_rosterSearch.replace(/"/g, "&quot;")}" oninput="filterRosterList()" style="font-size:13px;padding:4px 8px;width:100%"/>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Type</span>
+            <select style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%" onchange="setTeamModeFilter(this.value)">
+              <option value="">All</option>${modeFilterOpts}
+            </select>
+          </div>
           <button class="add-line-btn" onclick="showAddTeamRaidForm()" style="width:100%">+ New Roster</button>
           <div class="nikke-list">
             ${raidList}

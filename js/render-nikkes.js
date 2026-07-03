@@ -10,8 +10,24 @@ let _gearSidebarSearch = "";
 // always shown inline via CSS. Starts closed and auto-closes when a Nikke is
 // selected so the detail panel takes focus on small screens.
 let _nikkeListCollapsed = true;
+// Clear the sidebar's search + dropdown filters back to their defaults. Not
+// saved — this only resets the current view (sort order is left untouched).
+function resetGearFilters() {
+    _gearSidebarSearch = "";
+    state.gearElementFilter = "";
+    state.gearBurstFilter = "";
+    state.gearManufacturerFilter = "";
+    state.gearWeaponFilter = "";
+}
 function toggleNikkeList() {
     _nikkeListCollapsed = !_nikkeListCollapsed;
+    if (!_nikkeListCollapsed) {
+        // Opening the popup (mobile-only) — clear filters + search so it opens
+        // fresh each time. Bust the sidebar cache so the reset actually rebuilds.
+        resetGearFilters();
+        _gearSidebarCache = "";
+        renderGear();
+    }
     const sb = document.getElementById("gear-sidebar-inner");
     if (!sb) return;
     sb.classList.toggle("nikke-list-collapsed", _nikkeListCollapsed);
@@ -198,7 +214,7 @@ function renderGear() {
         const toggleBtn = `<button type="button" class="roster-list-toggle is-popout" onclick="toggleNikkeList()" aria-haspopup="dialog" aria-expanded="${!_nikkeListCollapsed}">
           <svg class="nikke-list-toggle-icon" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.5" y2="15.5"/></svg>
           <span>Search Nikke</span>
-          <span class="roster-list-count">${filtered.length}</span>
+          <span class="roster-list-count">${state.nikkes.length}</span>
         </button>`;
         // Mobile-only header (hidden on desktop) shown at the top of the popup.
         const popupHeader = `<div class="nikke-list-popup-header"><span>Nikkes</span><button type="button" class="del-btn" onclick="closeNikkeListPopup()" style="font-size:16px">✕</button></div>`;

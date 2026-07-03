@@ -11,10 +11,6 @@ function setSkillTarget(val) {
         const n = state.nikkes.find((x) => x.id === state.selGear);
         if (n) renderGearMain(n);
     }
-    if (state.selRaidEdit) {
-        const raid = state.raids.find((r) => r.id === state.selRaidEdit);
-        if (raid) renderRaidMain(raid);
-    }
 }
 
 // ============================================================

@@ -8,9 +8,6 @@ let _overviewView = "equipment";
 // Element filter for Equipment/Skills/Dolls/Bond views
 let _overviewElement = "";
 
-// Solo Raid team filter for Equipment/Skills/Dolls/Bond views
-let _overviewRaid = "";
-
 // Bossing tier ordering (best first) + the set of Nikke names that have a treasure doll.
 const BOSSING_ORDER = ["SSS", "SS", "S", "A", "B", "C", "D", "E", "F"];
 const TREASURE_NAMES = new Set(COLLECTION_DOLLS.filter((d) => d.treasure).map((d) => d.treasure));
@@ -40,26 +37,11 @@ function setOverviewElement(el) {
     renderOverview();
 }
 
-function setOverviewRaid(raidId) {
-    _overviewRaid = raidId;
-    renderOverview();
-}
-
-// Returns a Set of nikke IDs in the selected overview raid, or null if no raid filter active
-function getOverviewRaidIds() {
-    if (!_overviewRaid) return null;
-    const raid = state.raids.find((r) => r.id === _overviewRaid);
-    if (!raid) return null;
-    return new Set(raid.entries.filter((e) => (e.team || 0) !== 0).map((e) => e.nikkeId));
-}
-
 // ── Overview view: Equipment (Prydwen overload gear recommendations) ──
 function buildEquipmentView() {
     const rows = [];
-    const raidIds = getOverviewRaidIds();
     for (const n of state.nikkes) {
         if (_overviewElement && n.element !== _overviewElement) continue;
-        if (raidIds && !raidIds.has(n.id)) continue;
         const db = NIKKE_DB_MAP.get(n.name);
         const overload = db && db.build && db.build.overload;
         if (!overload || !overload.priority) continue;
@@ -174,10 +156,8 @@ function ovEmpty(msg) {
 // ── Overview view: Skills below the recommended levels ──
 function buildSkillsView() {
     const rows = [];
-    const raidIds = getOverviewRaidIds();
     for (const n of state.nikkes) {
         if (_overviewElement && n.element !== _overviewElement) continue;
-        if (raidIds && !raidIds.has(n.id)) continue;
         const db = NIKKE_DB_MAP.get(n.name);
         const pve = db && db.build && db.build.skill && db.build.skill.pve;
         if (!pve) continue;
@@ -236,10 +216,8 @@ function buildSkillsView() {
 function buildDollsView() {
     const S_IDX = BOSSING_ORDER.indexOf("S");
     const rows = [];
-    const raidIds = getOverviewRaidIds();
     for (const n of state.nikkes) {
         if (_overviewElement && n.element !== _overviewElement) continue;
-        if (raidIds && !raidIds.has(n.id)) continue;
         const db = NIKKE_DB_MAP.get(n.name);
         if (!db) continue;
         const rawIdx = bossingIdxOf(n.name);
@@ -304,10 +282,8 @@ function buildDollsView() {
 // ── Overview view: Bond below its LB-based max ──
 function buildBondView() {
     const rows = [];
-    const raidIds = getOverviewRaidIds();
     for (const n of state.nikkes) {
         if (_overviewElement && n.element !== _overviewElement) continue;
-        if (raidIds && !raidIds.has(n.id)) continue;
         const max = bondMaxFor(n);
         if (max == null) continue; // R rarity → no bond
         const cur = n.bond ?? 0;
@@ -350,26 +326,12 @@ function renderOverview() {
         `<button type="button" class="metric-card ov-btn${view === key ? " active" : ""}" onclick="setOverviewView('${key}')">
         <div class="metric-val">${views[key].data.count}</div><div class="metric-label">${views[key].label}</div></button>`;
     const showElementFilter = true;
-    const raidOpts = [...state.raids]
-        .reverse()
-        .map((r) => {
-            const dn = `${r.season ? "S" + r.season + " · " : ""}${r.name}${r.element ? " — " + r.element : ""}`;
-            return `<option value="${r.id}" ${_overviewRaid === r.id ? "selected" : ""}>${dn}</option>`;
-        })
-        .join("");
     const elementFilter = showElementFilter
         ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
       <select class="form-input" style="font-size:13px;padding:4px 8px;width:auto" onchange="setOverviewElement(this.value)">
         <option value="">All Elements</option>
         ${NIKKE_ELEMENTS.map((e) => `<option value="${e}" ${_overviewElement === e ? "selected" : ""}>${e}</option>`).join("")}
       </select>
-      ${
-          state.raids.length
-              ? `<select class="form-input" style="font-size:13px;padding:4px 8px;width:auto" onchange="setOverviewRaid(this.value)">
-        <option value="">All Solo Raid Teams</option>${raidOpts}
-      </select>`
-              : ""
-      }
     </div>`
         : "";
     el.innerHTML = `

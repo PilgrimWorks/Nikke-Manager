@@ -34,8 +34,6 @@ function getSerializableState() {
     // Remove transient fields that shouldn't sync
     delete s.selGear;
     delete s.selPrio;
-    delete s.selRaid;
-    delete s.selRaidEdit;
     delete s._localUpdatedAt;
     return s;
 }
@@ -126,8 +124,6 @@ async function onAuthChanged(user) {
                                   ? _sorted[0].id
                                   : null;
                     }
-                    state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
-                    state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                     save();
                     render();
                 } else {
@@ -148,8 +144,6 @@ async function onAuthChanged(user) {
                               ? _sorted[0].id
                               : null;
                 }
-                state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
-                state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                 save();
                 render();
             } else {
@@ -176,8 +170,6 @@ async function onAuthChanged(user) {
                                   ? _sorted[0].id
                                   : null;
                     }
-                    state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
-                    state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
                     save();
                     render();
                 } else {
@@ -197,9 +189,6 @@ async function onAuthChanged(user) {
             selGear: null,
             selPrio: null,
             elementalBoss: true,
-            raids: [],
-            selRaid: null,
-            selRaidEdit: null,
             rankSort: "efficiency",
             rankSortAsc: false,
             skillTarget: "rec",
@@ -304,11 +293,6 @@ function load() {
         const sorted = sortNikkesBySidebar(state.nikkes);
         state.selPrio = sorted.length ? sorted[0].id : null;
     }
-    // Default to latest raid (last in array = displayed first in sidebar)
-    state.selRaid = state.raids.length ? state.raids[state.raids.length - 1].id : null;
-    state.selRaidEdit = state.raids.length ? state.raids[state.raids.length - 1].id : null;
-    // Always default Solo Raids view to Recommendations on reload
-    state.raidViewMode = "recommend";
     // Teams tab: default to latest team-raid, collapse any expanded gap
     state.selTeamRaid = state.teamRaids.length ? state.teamRaids[state.teamRaids.length - 1].id : null;
     state.teamRaidGap = null;
@@ -328,7 +312,6 @@ function migrateState() {
     if (state.gearSidebarSort === undefined) state.gearSidebarSort = "power";
     if (state.gearSidebarSortDir === undefined) state.gearSidebarSortDir = "desc";
     if (state.overviewElementFilter === undefined) state.overviewElementFilter = "";
-    if (!state.raids) state.raids = [];
     if (!state.teamRaids) state.teamRaids = [];
     // Backfill roster mode/teamCount: pre-mode rosters were all 5-team Solo Raids.
     state.teamRaids.forEach((r) => {
@@ -340,8 +323,6 @@ function migrateState() {
     if (state.selTeamRaid === undefined) state.selTeamRaid = null;
     if (state.teamRaidView === undefined) state.teamRaidView = "teams";
     if (state.teamRaidGap === undefined) state.teamRaidGap = null;
-    if (state.selRaid === undefined) state.selRaid = null;
-    if (state.selRaidEdit === undefined) state.selRaidEdit = null;
     if (state.rankSortAsc === undefined) state.rankSortAsc = false;
     if (state.skillTarget === undefined) state.skillTarget = "rec";
     // Migrate old slot names (Chest→Torso, Gloves→Arms, Boots→Legs)
@@ -635,13 +616,8 @@ function _applyScraperImport(scraperData, opts) {
     // Replace nikkes array entirely — clean slate from scraper
     state.nikkes = freshNikkes;
 
-    // Prune Raid/Team entries that reference nikkes no longer in the roster
+    // Prune Team entries that reference nikkes no longer in the roster
     const validIds = new Set(state.nikkes.map((n) => n.id));
-    if (state.raids) {
-        state.raids.forEach((r) => {
-            r.entries = (r.entries || []).filter((e) => validIds.has(e.nikkeId));
-        });
-    }
     if (state.teamRaids) {
         state.teamRaids.forEach((r) => {
             r.entries = (r.entries || []).filter((e) => validIds.has(e.nikkeId));

@@ -7,9 +7,6 @@ let state = {
     selGear: null,
     selPrio: null,
     elementalBoss: true,
-    raids: [],
-    selRaid: null,
-    selRaidEdit: null,
     rankSort: "efficiency",
     rankSortAsc: false,
     skillTarget: "rec",
@@ -18,7 +15,7 @@ let state = {
     gearWeaponFilter: "",
     gearSidebarSort: "power",
     gearSidebarSortDir: "desc",
-    // Teams tab (independent of Solo Raids / state.raids)
+    // Teams tab
     teamRaids: [],
     selTeamRaid: null,
     teamRaidView: "teams",
