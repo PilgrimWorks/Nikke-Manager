@@ -309,3 +309,46 @@ if (!_isNewUser) {
         }
     }
 }
+
+// ============================================================
+//  BACKGROUND SCROLL LOCK WHILE A POPUP/MODAL IS OPEN
+//  Centralised so every modal (overlays, tutorial, My Data, the mobile
+//  Nikke/roster list popups) is handled without editing each open/close
+//  handler. A MutationObserver watches for the class/DOM changes those
+//  handlers make and toggles `html.modal-open`, which locks page scroll.
+// ============================================================
+function isBackgroundLocked() {
+    // Full-screen overlays: locked only when actually laid out (getClientRects
+    // is empty when the element — or an ancestor tab section — is display:none).
+    for (const o of document.querySelectorAll(".tutorial-overlay.show, .team-slot-picker-overlay.show")) {
+        if (o.getClientRects().length) return true;
+    }
+    // Mobile list popups render their collapsible as a position:fixed modal;
+    // inline (desktop) or collapsed (closed) states are static/hidden instead.
+    for (const p of document.querySelectorAll(".nikke-list-collapsible, .roster-list-collapsible")) {
+        if (p.getClientRects().length && getComputedStyle(p).position === "fixed") return true;
+    }
+    return false;
+}
+function syncBackgroundScrollLock() {
+    // Toggled on <html> (outside the observed <body> subtree, so no feedback loop).
+    document.documentElement.classList.toggle("modal-open", isBackgroundLocked());
+}
+let _scrollLockRaf = 0;
+function scheduleScrollLockSync() {
+    if (_scrollLockRaf) return;
+    _scrollLockRaf = requestAnimationFrame(() => {
+        _scrollLockRaf = 0;
+        syncBackgroundScrollLock();
+    });
+}
+new MutationObserver(scheduleScrollLockSync).observe(document.body, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ["class", "style"],
+});
+// A resize can flip a mobile popup between fixed-modal and inline (desktop).
+window.addEventListener("resize", scheduleScrollLockSync);
+// Initial pass — the new-user tutorial may already be open on load.
+syncBackgroundScrollLock();

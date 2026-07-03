@@ -273,6 +273,8 @@ function selTeamRaid(id) {
     _rosterGapTeam = 1; // gap tabs default to Team 1 for the newly-picked roster
     _rosterListCollapsed = true; // mobile: hide the list so the picked roster's lanes show
     renderTeams();
+    // Jump to the top so the picked roster's lanes start at their header.
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function showAddTeamRaidForm() {

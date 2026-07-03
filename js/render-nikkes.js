@@ -409,6 +409,8 @@ function selGearNikke(id) {
     // Only re-render the main content area
     const n = state.nikkes.find((x) => x.id === id);
     if (n) renderGearMain(n);
+    // Jump to the top so the picked Nikke's detail starts at its header.
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // Toggle between the "Gear" and "Priorities" sub-tabs in the Nikke detail panel.

@@ -20,6 +20,12 @@ body {
     font-size: 18px;
     min-height: 100vh;
 }
+/* Scroll-lock while a popup/modal is open (toggled on <html> by app.js) so the
+   page behind the overlay can't scroll. */
+html.modal-open,
+html.modal-open body {
+    overflow: hidden;
+}
 
 /* ── Layout ── */
 .app {
