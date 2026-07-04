@@ -217,7 +217,7 @@ function renderTeams() {
               <option value="">All</option>${modeFilterOpts}
             </select>
           </div>
-          <button class="add-line-btn" onclick="showAddTeamRaidForm()" style="width:100%">+ New Roster</button>
+          <button class="add-line-btn" onclick="showAddTeamRaidForm()" style="margin-top:12px;width:100%">+ New Roster</button>
           <div class="nikke-list">
             ${raidList}
           </div>
@@ -740,16 +740,20 @@ function renderRosterGapTab(raid, cat) {
             return _teamGearSort.dir === "desc" ? d : -d;
         });
         const arrow = (col) => (_teamGearSort.col === col ? (_teamGearSort.dir === "desc" ? " ▼" : " ▲") : "");
-        const DMGW = "120px";
+        // Best values currently on screen — Potential-dmg and Eff colours are
+        // graded relative to these.
+        const maxEff = Math.max(0, ...sorted.map((x) => x.bestEff || 0));
+        const maxPot = Math.max(0, ...sorted.map((x) => x.potentialM || 0));
+        const DMGW = "66px";
+        const PCTW = "54px";
         const EFFW = "66px";
-        const DOTW = "34px";
         return `<div class="roster-gap-tab">${pills}<div class="team-gap-list">
           <div style="display:flex;align-items:center;gap:18px;padding:2px 11px 4px">
             <span style="width:28px;flex-shrink:0"></span>
             <span style="flex:1"></span>
-            <button class="team-gear-sort-btn${_teamGearSort.col === "dmg" ? " active" : ""}" style="width:${DMGW};flex-shrink:0" onclick="sortRosterGear('dmg')">Potential${arrow("dmg")}</button>
-            <button class="team-gear-sort-btn${_teamGearSort.col === "eff" ? " active" : ""}" style="width:${EFFW};flex-shrink:0" onclick="sortRosterGear('eff')">Eff${arrow("eff")}</button>
-            <span style="width:${DOTW};flex-shrink:0"></span>
+            <button class="team-gear-sort-btn${_teamGearSort.col === "dmg" ? " active" : ""}" data-col="dmg" style="width:${DMGW};flex-shrink:0" onclick="sortRosterGear('dmg')">Dmg${arrow("dmg")}</button>
+            <button class="team-gear-sort-btn${_teamGearSort.col === "pct" ? " active" : ""}" data-col="pct" style="width:${PCTW};flex-shrink:0" onclick="sortRosterGear('pct')">%${arrow("pct")}</button>
+            <button class="team-gear-sort-btn${_teamGearSort.col === "eff" ? " active" : ""}" data-col="eff" style="width:${EFFW};flex-shrink:0" onclick="sortRosterGear('eff')">Eff${arrow("eff")}</button>
           </div>
           ${sorted
               .map(
@@ -758,10 +762,10 @@ function renderRosterGapTab(raid, cat) {
                   ) => `<button class="team-gap-item" data-nikke-id="${m.nikkeId}" style="gap:18px" onclick="goToGearNikke('${m.nikkeId}')">
             ${badge(m)}
             ${nikkeIcon(m.name, 28)}
-            <span class="team-gap-item-name" style="flex:1;min-width:0">${m.elem} ${m.name}</span>
-            <span class="team-gear-potential" style="width:${DMGW};flex-shrink:0;text-align:right;font-size:12px;color:#f1f5f9">${_teamGearPotentialHtml(m)}</span>
-            <span class="team-gear-eff" style="width:${EFFW};flex-shrink:0;text-align:right;font-size:12px;color:${m.bestEff > 0 ? "#f1f5f9" : "#475569"}" title="${m.bestSlot}">${_teamGearEffText(m)}</span>
-            <span style="width:${DOTW};flex-shrink:0">${m.gearDots}</span>
+            <span class="team-gap-item-name" style="flex:1;min-width:0;display:flex;align-items:center;gap:4px">${m.elem}<span style="min-width:0">${m.name}</span></span>
+            <span class="team-gear-dmg" style="width:${DMGW};flex-shrink:0;text-align:right;font-size:12px">${_teamGearDmgHtml(m, maxPot)}</span>
+            <span class="team-gear-pct" style="width:${PCTW};flex-shrink:0;text-align:right;font-size:12px">${_teamGearPctHtml(m)}</span>
+            <span class="team-gear-eff" style="width:${EFFW};flex-shrink:0;text-align:right;font-size:12px;color:${_teamGearEffColor(m, maxEff)}" title="${m.bestSlot}">${_teamGearEffText(m)}</span>
           </button>`,
               )
               .join("")}
@@ -818,13 +822,13 @@ function sortRosterGear(col) {
         return _teamGearSort.dir === "desc" ? d : -d;
     });
     rows.forEach((r) => listEl.appendChild(r));
-    // Update the two sort-header buttons' active state + arrow in place.
+    // Update the sort-header buttons' active state + arrow in place.
     const arrow = (c) => (_teamGearSort.col === c ? (_teamGearSort.dir === "desc" ? " ▼" : " ▲") : "");
+    const LABEL = { dmg: "Dmg", pct: "%", eff: "Eff" };
     listEl.querySelectorAll(".team-gear-sort-btn").forEach((b) => {
-        const isDmg = b.textContent.trim().startsWith("Potential");
-        const c = isDmg ? "dmg" : "eff";
+        const c = b.dataset.col;
         b.classList.toggle("active", _teamGearSort.col === c);
-        b.textContent = (isDmg ? "Potential" : "Eff") + arrow(c);
+        b.textContent = (LABEL[c] || "") + arrow(c);
     });
 }
 
@@ -1437,10 +1441,8 @@ function _computeTeamReadinessDetails(raid, members) {
         state.elementalBoss = savedElementalBoss;
         const base = { nikkeId: n.id, name: n.name, elem: n.element ? elemIcon(n.element) : "" };
         if (g.gearCount) {
-            const gearDots = `<span class="gear-dots-mini">${SLOTS.map((s) => `<span class="${dotStatus(n, s)}" title="${s}"></span>`).join("")}</span>`;
             details.gear.push({
                 ...base,
-                gearDots,
                 gainPct,
                 potentialM: e.damage > 0 && gainPct > 0 ? (gainPct / 100) * e.damage : null,
                 bestEff,
@@ -1464,19 +1466,55 @@ function _teamGearSortVal(m) {
           : m.potentialM || 0;
 }
 
-// HTML for the Potential cell — shared by the initial render and the in-place
-// damage update so both paths produce identical markup.
-function _teamGearPotentialHtml(m) {
-    return m.potentialM != null && m.potentialM > 0
-        ? `<span style="color:#f1f5f9;font-weight:600">+${m.potentialM.toFixed(1)}m</span> <span style="font-size:11px;color:#f1f5f9">(+${m.gainPct.toFixed(1)}%)</span>`
-        : m.gainPct > 0
-          ? `<span style="color:#f1f5f9">+${m.gainPct.toFixed(1)}%</span>`
-          : "—";
+// Green/yellow/red thresholds for how worthwhile a gear upgrade is, using the
+// app's standard status trio. Potential is judged by total damage-gain % still
+// on the table (scale-independent). Eff (m/rock) scales with player power, so
+// it's judged RELATIVELY — each row's share of the best efficiency on screen —
+// rather than by flat marks. Tune these to taste.
+const GEAR_POTENTIAL_PCT_GREEN = 10; // ≥10% total gain available → worth it
+const GEAR_POTENTIAL_PCT_YELLOW = 4; // 4–10% → marginal; <4% → not worth much
+// Relative thresholds (share of the best value on screen) shared by the
+// Potential-damage and Eff columns, since both scale with the player's power.
+const GEAR_REL_GREEN_FRAC = 0.5; // ≥50% of the best on screen → green
+const GEAR_REL_YELLOW_FRAC = 0.2; // 20–50% → yellow; below → red
+
+// Map a value to the green/yellow/red status colours used across the app.
+function _gearWorthColor(val, green, yellow) {
+    if (val >= green) return "#4ade80";
+    if (val >= yellow) return "#fbbf24";
+    return "#f87171";
+}
+
+// Potential damage-gain cell (+Xm). Coloured RELATIVELY — this row's gain as a
+// share of the best potential damage gain on screen (maxPot) — because absolute
+// damage scales with the player's power. Blank until damage has been entered.
+function _teamGearDmgHtml(m, maxPot) {
+    if (!(m.potentialM > 0)) return `<span style="color:#475569">—</span>`;
+    const c = maxPot > 0 ? _gearWorthColor(m.potentialM / maxPot, GEAR_REL_GREEN_FRAC, GEAR_REL_YELLOW_FRAC) : "#4ade80";
+    return `<span style="color:${c};font-weight:600">+${m.potentialM.toFixed(1)}m</span>`;
+}
+
+// Potential percent-gain cell (+X.X%). Coloured by absolute % breakpoints —
+// scale-independent, so it shows how much room the gear still has regardless of
+// player power (present even before damage is entered).
+function _teamGearPctHtml(m) {
+    if (!(m.gainPct > 0)) return `<span style="color:#475569">—</span>`;
+    const c = _gearWorthColor(m.gainPct, GEAR_POTENTIAL_PCT_GREEN, GEAR_POTENTIAL_PCT_YELLOW);
+    return `<span style="color:${c}">+${m.gainPct.toFixed(1)}%</span>`;
 }
 
 // Eff cell text for a gear row.
 function _teamGearEffText(m) {
     return m.bestEff > 0 ? m.bestEff.toFixed(2) + "m/rock" : "—";
+}
+
+// Colour for the Eff cell — dimmed when there's no upgrade, otherwise judged by
+// this row's m/rock as a share of the best m/rock currently on screen (maxEff),
+// so the scale tracks the player's power instead of using flat marks.
+function _teamGearEffColor(m, maxEff) {
+    if (!(m.bestEff > 0)) return "#475569";
+    if (!(maxEff > 0)) return "#4ade80";
+    return _gearWorthColor(m.bestEff / maxEff, GEAR_REL_GREEN_FRAC, GEAR_REL_YELLOW_FRAC);
 }
 
 // ── READINESS VIEW ───────────────────────────────────────────

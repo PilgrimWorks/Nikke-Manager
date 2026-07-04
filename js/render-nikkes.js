@@ -790,23 +790,20 @@ ${nikke.doll && !isTreasureDoll ? statStepperHtml(nikke.id, "doll", nikke.doll.l
 
     // ── Sub-tabs: Gear (attribute totals + slots + damage) vs Priorities ──
     const sub = _gearSubTab === "priorities" ? "priorities" : "gear";
-    const elementalToggle = `
-    <div style="display:flex;align-items:center;margin-bottom:10px">
-      <label class="elemental-toggle" title="Include Elemental Dmg in gain and verdict calculations" style="margin-left:auto">
-        <input type="checkbox" id="elemental-chk-gear" onchange="toggleElementalBoss(this.checked)" ${state.elementalBoss ? "checked" : ""} style="accent-color:#3b82f6"/>
-        <span>Include Elemental Dmg</span>
-      </label>
-    </div>`;
+    // Elemental-Dmg toggle sits inline at the right of the sub-tab bar to save vertical space.
     const subTabBar = `
     <div class="gear-subtab-bar">
       <button class="gear-subtab ${sub === "gear" ? "active" : ""}" data-subtab="gear" onclick="switchGearSubTab('gear')">Gear</button>
       <button class="gear-subtab ${sub === "priorities" ? "active" : ""}" data-subtab="priorities" onclick="switchGearSubTab('priorities')">Priorities</button>
+      <label class="elemental-toggle" title="Include Elemental Dmg in gain and verdict calculations" style="margin-left:auto;align-self:center">
+        <input type="checkbox" id="elemental-chk-gear" onchange="toggleElementalBoss(this.checked)" ${state.elementalBoss ? "checked" : ""} style="accent-color:#3b82f6"/>
+        <span>Include Elemental Dmg</span>
+      </label>
     </div>`;
     const gearTabHtml = attrTable + slots + dmgCalcHtml;
     const prioTabHtml = renderPrioContent(nikke);
     const bodyHtml =
         statsPanel +
-        elementalToggle +
         subTabBar +
         `<div id="gear-subtab-gear"${sub === "gear" ? "" : ' style="display:none"'}>${gearTabHtml}</div>` +
         `<div id="gear-subtab-priorities"${sub === "priorities" ? "" : ' style="display:none"'}>${prioTabHtml}</div>`;

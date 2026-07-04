@@ -239,6 +239,11 @@ html.modal-open body {
         flex: 1;
         min-height: 0;
     }
+    /* Desktop roster panel has no flex gap (unlike the mobile popup), so give the
+       search bar breathing room above the Type filter that follows it. */
+    .roster-list-collapsible #roster-sidebar-search {
+        margin-bottom: 6px;
+    }
 }
 
 /* ── Roster ── */
