@@ -21,9 +21,15 @@ body {
     min-height: 100vh;
 }
 /* Scroll-lock while a popup/modal is open (toggled on <html> by app.js) so the
-   page behind the overlay can't scroll. */
-html.modal-open,
-html.modal-open body {
+   page behind the overlay can't scroll.
+   NOTE: lock the scroll on <html> ONLY — never on <body>. Setting
+   overflow:hidden on <body> turns the body into its own scroll container, which
+   makes the sticky Nikke/roster sidebar stick relative to the body instead of
+   the viewport. Since the body isn't scrolled, the sidebar "releases" and jumps
+   back to the top of .two-col the moment a modal opens (the add-Nikke / New
+   Roster menus). Locking <html> alone stops the page scroll while leaving the
+   sticky list exactly where it was. */
+html.modal-open {
     overflow: hidden;
 }
 
@@ -2862,5 +2868,267 @@ details[open] > .verdict-title {
         width: 28px;
         height: 28px;
         font-size: 22px;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ANIMATIONS  (review menu)
+   ══════════════════════════════════════════════════════════════
+   Each numbered block below is self-contained — delete any block
+   you don't want. They all hook into class states the app already
+   toggles (.section.active, .show, :hover, etc.) so nothing here
+   needs a JS change. A prefers-reduced-motion guard at the very
+   bottom disables the whole set for users who ask their OS for it.
+
+   Blocks marked [re-render] replay whenever their element is
+   re-rendered by JS (e.g. after editing/filtering), not only on
+   first view — cut those first if any feel too busy.
+   ────────────────────────────────────────────────────────────── */
+
+@keyframes nm-fade-rise {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes nm-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+@keyframes nm-pop-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.94) translateY(6px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+@keyframes nm-dot-pop {
+    0% {
+        transform: scale(0);
+    }
+    70% {
+        transform: scale(1.25);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+@keyframes nm-bar-grow {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
+}
+@keyframes nm-lock-pop {
+    0% {
+        transform: scale(1);
+    }
+    45% {
+        transform: scale(1.06);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+@keyframes nm-slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes nm-badge-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ── 1. Tab content: fade + rise when a section becomes active ──
+   Plays each time you switch tabs. Uses the default (none) fill mode
+   ON PURPOSE: an element with any lingering transform — even
+   translateY(0) from `both`/`forwards` — becomes the containing block
+   for its position:fixed descendants, which would trap the fixed
+   list/picker overlays inside the section box instead of the viewport.
+   Letting the transform revert to none at rest keeps those popups
+   anchored to the viewport and correctly darkening the whole page. */
+.section.active {
+    animation: nm-fade-rise 0.28s ease;
+}
+
+/* ── 2. Cards: subtle lift + shadow on hover ──
+   Covers the main card surfaces across every tab. */
+.nikke-card,
+.metric-card,
+.ov-nikke,
+.team-readiness-card {
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        border-color 0.15s ease;
+}
+.nikke-card:hover,
+.metric-card:hover,
+.ov-nikke:hover,
+.team-readiness-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    border-color: #2d3f5e;
+}
+
+/* ── 3. Tactile press: buttons & interactive rows dip on click ── */
+.btn:active,
+.btn-sm:active,
+.tab:active,
+.gear-subtab:active,
+.stepper-btn:active,
+.team-gap-item:active,
+.ov-btn:active,
+.add-nikke-btn:active,
+.add-line-btn:active {
+    transform: scale(0.96);
+}
+.btn,
+.btn-sm,
+.gear-subtab,
+.ov-btn,
+.team-gap-item,
+.add-nikke-btn,
+.add-line-btn {
+    transition:
+        transform 0.08s ease,
+        background 0.1s,
+        color 0.1s,
+        border-color 0.12s;
+}
+
+/* ── 5. Modals: backdrop fades, dialog pops in ──
+   Tutorial, My Data, team-slot picker, and the mobile Nikke/roster
+   list popup all share this. */
+.tutorial-overlay.show,
+.team-slot-picker-overlay.show {
+    animation: nm-fade-in 0.18s ease both;
+}
+.tutorial-overlay.show .tutorial-modal,
+.team-slot-picker-overlay.show .team-slot-picker-modal {
+    animation: nm-pop-in 0.24s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+@media (max-width: 768px) {
+    .nikke-sidebar .nikke-list-collapsible,
+    .nikke-sidebar .roster-list-collapsible {
+        animation: nm-fade-in 0.18s ease both;
+    }
+    .nikke-sidebar .nikke-list-panel {
+        animation: nm-pop-in 0.24s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+    }
+}
+
+/* ── 6. Tutorial steps: gentle staggered rise on open ── */
+.tutorial-overlay.show .tut-step {
+    animation: nm-fade-rise 0.32s ease both;
+}
+.tutorial-overlay.show .tut-step:nth-child(1) {
+    animation-delay: 0.05s;
+}
+.tutorial-overlay.show .tut-step:nth-child(2) {
+    animation-delay: 0.1s;
+}
+.tutorial-overlay.show .tut-step:nth-child(3) {
+    animation-delay: 0.15s;
+}
+.tutorial-overlay.show .tut-step:nth-child(4) {
+    animation-delay: 0.2s;
+}
+.tutorial-overlay.show .tut-step:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+/* ── 7. Delete-confirm popover: pop in when shown ── */
+.del-confirm.show {
+    animation: nm-pop-in 0.16s ease both;
+    transform-origin: top right;
+}
+
+/* ── 8. Verdict details: slide the body down when expanded ── */
+details[open] > .verdict-title ~ * {
+    animation: nm-slide-down 0.2s ease both;
+}
+
+/* ── 10. Lock button: quick pop when it becomes locked [re-render] ── */
+.lock-btn.locked {
+    animation: nm-lock-pop 0.22s ease;
+}
+
+/* ── 11. Progress bars: fill grows out from the left on render [re-render] ──
+   scaleX keeps the JS-set inline width intact while animating. */
+.prog-fill,
+.team-readiness-fill {
+    transform-origin: left center;
+    animation: nm-bar-grow 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── 12. Gear status dots: pop in [re-render] ──
+   Applies to the roster card dots and the compact sidebar dots. */
+.gear-dots .dot,
+.gear-dots-mini span {
+    animation: nm-dot-pop 0.24s ease both;
+}
+.gear-dots .dot:nth-child(2),
+.gear-dots-mini span:nth-child(2) {
+    animation-delay: 0.04s;
+}
+.gear-dots .dot:nth-child(3),
+.gear-dots-mini span:nth-child(3) {
+    animation-delay: 0.08s;
+}
+.gear-dots .dot:nth-child(4),
+.gear-dots-mini span:nth-child(4) {
+    animation-delay: 0.12s;
+}
+
+/* ── 13. Team slots: fill scales up when hovered ── */
+.team-slot-filled {
+    transition:
+        transform 0.12s ease,
+        background 0.12s,
+        border-color 0.12s;
+}
+.team-slot-filled:hover {
+    transform: translateY(-2px);
+}
+
+/* ── 14. "Mold" (and similar) badge: slow light sweep to draw the eye ── */
+.nikke-badge {
+    background: linear-gradient(100deg, #2e1e05 30%, #4a3410 50%, #2e1e05 70%);
+    background-size: 200% 100%;
+    animation: nm-badge-shimmer 3.5s linear infinite;
+}
+
+/* ── Accessibility: honour reduced-motion by disabling all of the above ── */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
     }
 }
