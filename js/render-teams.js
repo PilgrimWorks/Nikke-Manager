@@ -197,7 +197,10 @@ function renderTeams() {
             .join("") ||
         `<div style="font-size:14px;color:#475569;padding:6px">${state.teamModeFilter ? "No rosters matching filter" : "No rosters created"}</div>`;
     const modeFilterOpts = Object.entries(TEAM_MODES)
-        .map(([key, m]) => `<option value="${key}" ${state.teamModeFilter === key ? "selected" : ""}>${m.label}</option>`)
+        .map(
+            ([key, m]) =>
+                `<option value="${key}" ${state.teamModeFilter === key ? "selected" : ""}>${m.label}</option>`,
+        )
         .join("");
 
     el.innerHTML = `<div class="two-col">
@@ -570,7 +573,7 @@ function renderTeamRaidMain(raid) {
         ${raid.mode === "tribe" ? "" : `<button class="btn-sm" onclick="startEditRaidName('${raid.id}')" title="Edit raid" style="font-size:12px;padding:2px 6px;min-width:auto;margin-top:4px">✎</button>`}
       </div>
       <div style="display:flex;align-items:center;gap:12px">
-        <span id="raid-total-${raid.id}" style="font-size:13px;color:#64748b">Total <strong style="color:#f1f5f9">${totalDmg ? totalDmg.toLocaleString() + "m" : "—"}</strong></span>
+        ${raid.mode === "solo" ? `<span id="raid-total-${raid.id}" style="font-size:13px;color:#64748b">Total <strong style="color:#f1f5f9">${totalDmg ? totalDmg.toLocaleString() + "m" : "—"}</strong></span>` : ""}
         <button class="del-btn" onclick="deleteTeamRaid('${raid.id}')" title="Delete raid">✕ Delete</button>
       </div>
     </div>
@@ -744,43 +747,45 @@ function renderRosterGapTab(raid, cat) {
         // graded relative to these.
         const maxEff = Math.max(0, ...sorted.map((x) => x.bestEff || 0));
         const maxPot = Math.max(0, ...sorted.map((x) => x.potentialM || 0));
-        const DMGW = "66px";
-        const PCTW = "54px";
-        const EFFW = "66px";
-        return `<div class="roster-gap-tab">${pills}<div class="team-gap-list">
-          <div style="display:flex;align-items:center;gap:18px;padding:2px 11px 4px">
-            <span style="width:28px;flex-shrink:0"></span>
-            <span style="flex:1"></span>
-            <button class="team-gear-sort-btn${_teamGearSort.col === "dmg" ? " active" : ""}" data-col="dmg" style="width:${DMGW};flex-shrink:0" onclick="sortRosterGear('dmg')">Dmg${arrow("dmg")}</button>
-            <button class="team-gear-sort-btn${_teamGearSort.col === "pct" ? " active" : ""}" data-col="pct" style="width:${PCTW};flex-shrink:0" onclick="sortRosterGear('pct')">%${arrow("pct")}</button>
-            <button class="team-gear-sort-btn${_teamGearSort.col === "eff" ? " active" : ""}" data-col="eff" style="width:${EFFW};flex-shrink:0" onclick="sortRosterGear('eff')">Eff${arrow("eff")}</button>
+        // Portrait-card grid (mirrors the Teams sub-tab's slot cards). The sort
+        // bar spans the full grid width; each card keeps .team-gap-item +
+        // data-nikke-id so sortRosterGear() can reorder the nodes in place.
+        return `<div class="roster-gap-tab">${pills}<div class="team-gap-list team-gear-grid">
+          <div class="team-gear-sortbar">
+            <span class="team-gear-sortbar-label">Sort by</span>
+            <button class="team-gear-sort-btn${_teamGearSort.col === "dmg" ? " active" : ""}" data-col="dmg" onclick="sortRosterGear('dmg')">Dmg${arrow("dmg")}</button>
+            <button class="team-gear-sort-btn${_teamGearSort.col === "pct" ? " active" : ""}" data-col="pct" onclick="sortRosterGear('pct')">%${arrow("pct")}</button>
+            <button class="team-gear-sort-btn${_teamGearSort.col === "eff" ? " active" : ""}" data-col="eff" onclick="sortRosterGear('eff')">Eff${arrow("eff")}</button>
           </div>
           ${sorted
               .map(
                   (
                       m,
-                  ) => `<button class="team-gap-item" data-nikke-id="${m.nikkeId}" style="gap:18px" onclick="goToGearNikke('${m.nikkeId}')">
+                  ) => `<button class="team-gap-item team-gear-item team-gear-card" data-nikke-id="${m.nikkeId}" onclick="goToGearNikke('${m.nikkeId}')">
             ${badge(m)}
-            ${nikkeIcon(m.name, 28)}
-            <span class="team-gap-item-name" style="flex:1;min-width:0;display:flex;align-items:center;gap:4px">${m.elem}<span style="min-width:0">${m.name}</span></span>
-            <span class="team-gear-dmg" style="width:${DMGW};flex-shrink:0;text-align:right;font-size:12px">${_teamGearDmgHtml(m, maxPot)}</span>
-            <span class="team-gear-pct" style="width:${PCTW};flex-shrink:0;text-align:right;font-size:12px">${_teamGearPctHtml(m)}</span>
-            <span class="team-gear-eff" style="width:${EFFW};flex-shrink:0;text-align:right;font-size:12px;color:${_teamGearEffColor(m, maxEff)}" title="${m.bestSlot}">${_teamGearEffText(m)}</span>
+            ${nikkeIcon(m.name, 40)}
+            <span class="team-gear-card-name">${m.elem}<span class="team-gear-card-nametext">${m.name}</span></span>
+            <span class="team-gear-card-stats">
+              <span class="team-gear-card-dmg">${_teamGearDmgHtml(m, maxPot)}</span>
+              <span class="team-gear-card-sub">${_teamGearPctHtml(m)}<span class="team-gear-card-eff" style="color:${_teamGearEffColor(m, maxEff)}" title="Best slot: ${m.bestSlot}">${_teamGearEffText(m)}</span></span>
+            </span>
           </button>`,
               )
               .join("")}
         </div></div>`;
     }
-    return `<div class="roster-gap-tab">${pills}<div class="team-gap-list">
+    // Skills / Dolls / Bond: same horizontal card layout as the Gear tab, with
+    // the gap detail as the right-aligned "stat".
+    return `<div class="roster-gap-tab">${pills}<div class="team-gap-list team-gear-grid">
       ${list
           .map(
               (
                   m,
-              ) => `<button class="team-gap-item" data-nikke-id="${m.nikkeId}" onclick="goToGearNikke('${m.nikkeId}')">
+              ) => `<button class="team-gap-item team-gear-item team-gear-card" data-nikke-id="${m.nikkeId}" onclick="goToGearNikke('${m.nikkeId}')">
         ${badge(m)}
-        ${nikkeIcon(m.name, 28)}
-        <span class="team-gap-item-name">${m.elem} ${m.name}</span>
-        <span class="team-gap-item-detail">${m.detail}</span>
+        ${nikkeIcon(m.name, 40)}
+        <span class="team-gear-card-name">${m.elem}<span class="team-gear-card-nametext">${m.name}</span></span>
+        <span class="team-gear-card-stats"><span class="team-gap-item-detail">${m.detail}</span></span>
       </button>`,
           )
           .join("")}
@@ -978,15 +983,15 @@ function renderTeamSlot(raid, teamNum, slotIdx, entry, maxEntry) {
       <div class="team-slot-info">
         <span class="team-slot-name">${name}</span>
         ${elem || burst ? `<div style="display:flex;align-items:center;gap:2px;margin-top:1px">${elem}${burst}</div>` : ""}
-        <div class="team-slot-dmg-row">
-          <input class="team-slot-dmg-input" type="text" inputmode="numeric" value="${(entry.damage || 0).toLocaleString()}"
-                 onclick="event.stopPropagation()"
-                 onfocus="this.value=this.value.replace(/,/g,'');if(this.value==='0')this.value=''"
-                 oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                 onblur="commitTeamDmgInput(this,'${raid.id}',${entry.origIdx})"
-                 onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape'){this.dataset.cancel='1';this.blur();}"/>
-          <span class="team-slot-dmg-suffix">m Dmg</span>
-        </div>
+      </div>
+      <div class="team-slot-dmg-row">
+        <input class="team-slot-dmg-input" type="text" inputmode="numeric" value="${(entry.damage || 0).toLocaleString()}"
+               onclick="event.stopPropagation()"
+               onfocus="this.value=this.value.replace(/,/g,'');if(this.value==='0')this.value=''"
+               oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+               onblur="commitTeamDmgInput(this,'${raid.id}',${entry.origIdx})"
+               onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape'){this.dataset.cancel='1';this.blur();}"/>
+        <span class="team-slot-dmg-suffix">m Dmg</span>
       </div>
     </div>`;
 }
@@ -1290,10 +1295,15 @@ function getTeamName(raid, teamNum) {
 
 function renderTeamNameGroupStatic(raid, tnum) {
     const name = getTeamName(raid, tnum);
-    const weakness = rosterHasTeamWeakness(raid) ? getTeamWeakness(raid, tnum) : null;
-    const weaknessBadge = weakness
-        ? ` <span class="team-weakness-badge"> · ${elemIcon(weakness, 16)} <span class="team-weakness-text">${weakness} Weak</span></span>`
-        : "";
+    const hasWeaknessMode = rosterHasTeamWeakness(raid);
+    const weakness = hasWeaknessMode ? getTeamWeakness(raid, tnum) : null;
+    let weaknessBadge = "";
+    if (weakness) {
+        weaknessBadge = ` <span class="team-weakness-badge"> · ${elemIcon(weakness, 16)} <span class="team-weakness-text">${weakness} Weak</span></span>`;
+    } else if (hasWeaknessMode) {
+        // Per-team-weakness roster with none chosen yet — prompt the user.
+        weaknessBadge = ` <span class="team-weakness-badge team-weakness-none"> · <span class="team-weakness-text">No Weakness</span></span>`;
+    }
     return `<span class="team-label">${name}</span>${weaknessBadge}<button class="btn-sm" onclick="startEditTeamName('${raid.id}',${tnum})" title="Rename team" style="font-size:12px;padding:2px 6px;min-width:auto">✎</button>`;
 }
 
@@ -1490,7 +1500,8 @@ function _gearWorthColor(val, green, yellow) {
 // damage scales with the player's power. Blank until damage has been entered.
 function _teamGearDmgHtml(m, maxPot) {
     if (!(m.potentialM > 0)) return `<span style="color:#475569">—</span>`;
-    const c = maxPot > 0 ? _gearWorthColor(m.potentialM / maxPot, GEAR_REL_GREEN_FRAC, GEAR_REL_YELLOW_FRAC) : "#4ade80";
+    const c =
+        maxPot > 0 ? _gearWorthColor(m.potentialM / maxPot, GEAR_REL_GREEN_FRAC, GEAR_REL_YELLOW_FRAC) : "#4ade80";
     return `<span style="color:${c};font-weight:600">+${m.potentialM.toFixed(1)}m</span>`;
 }
 
