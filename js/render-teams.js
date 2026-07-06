@@ -766,8 +766,8 @@ function renderRosterGapTab(raid, cat) {
             ${nikkeIcon(m.name, 40)}
             <span class="team-gear-card-name">${m.elem}<span class="team-gear-card-nametext">${m.name}</span></span>
             <span class="team-gear-card-stats">
-              <span class="team-gear-card-dmg">${_teamGearDmgHtml(m, maxPot)}</span>
-              <span class="team-gear-card-sub">${_teamGearPctHtml(m)}<span class="team-gear-card-eff" style="color:${_teamGearEffColor(m, maxEff)}" title="Best slot: ${m.bestSlot}">${_teamGearEffText(m)}</span></span>
+              <span class="team-gear-card-dmg">${_teamGearPrimaryHtml(m, maxPot, maxEff)}</span>
+              <span class="team-gear-card-sub">${_teamGearSecondaryHtml(m, maxPot, maxEff)}</span>
             </span>
           </button>`,
               )
@@ -803,6 +803,7 @@ function selectGapTeam(tnum) {
 }
 
 function sortRosterGear(col) {
+    const colChanged = _teamGearSort.col !== col;
     if (_teamGearSort.col === col) {
         _teamGearSort.dir = _teamGearSort.dir === "desc" ? "asc" : "desc";
     } else {
@@ -811,6 +812,12 @@ function sortRosterGear(col) {
     const raid = state.teamRaids.find((r) => r.id === state.selTeamRaid);
     const panel = _rosterGapPanelEl("gear");
     if (!raid || !panel) return;
+    // When the sort column changes, the primary/secondary stat layout changes —
+    // rebuild the whole panel so the selected metric is the big top number.
+    if (colChanged) {
+        panel.innerHTML = _renderRosterTabContent(raid, "gear");
+        return;
+    }
     const listEl = panel.querySelector(".team-gap-list");
     if (!listEl) {
         panel.innerHTML = _renderRosterTabContent(raid, "gear");
@@ -1517,6 +1524,27 @@ function _teamGearPctHtml(m) {
 // Eff cell text for a gear row.
 function _teamGearEffText(m) {
     return m.bestEff > 0 ? m.bestEff.toFixed(2) + "m/rock" : "—";
+}
+
+// Primary (big) stat for gear cards — the currently selected sort column.
+function _teamGearPrimaryHtml(m, maxPot, maxEff) {
+    const col = _teamGearSort.col;
+    if (col === "pct") return _teamGearPctHtml(m);
+    if (col === "eff") return `<span style="color:${_teamGearEffColor(m, maxEff)}" title="Best slot: ${m.bestSlot}">${_teamGearEffText(m)}</span>`;
+    return _teamGearDmgHtml(m, maxPot);
+}
+
+// Secondary (small sub-line) stat for gear cards — the two non-selected columns.
+function _teamGearSecondaryHtml(m, maxPot, maxEff) {
+    const col = _teamGearSort.col;
+    if (col === "pct") {
+        return `${_teamGearDmgHtml(m, maxPot)}<span class="team-gear-card-eff" style="color:${_teamGearEffColor(m, maxEff)}" title="Best slot: ${m.bestSlot}">${_teamGearEffText(m)}</span>`;
+    }
+    if (col === "eff") {
+        return `${_teamGearDmgHtml(m, maxPot)}${_teamGearPctHtml(m)}`;
+    }
+    // default: dmg is primary, show pct + eff as secondary
+    return `${_teamGearPctHtml(m)}<span class="team-gear-card-eff" style="color:${_teamGearEffColor(m, maxEff)}" title="Best slot: ${m.bestSlot}">${_teamGearEffText(m)}</span>`;
 }
 
 // Colour for the Eff cell — dimmed when there's no upgrade, otherwise judged by
