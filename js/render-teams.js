@@ -241,7 +241,7 @@ function renderTeams() {
       <div class="form-row" id="solo-boss-row">
         <select class="form-input" id="solo-boss-select">
           <option value="">Select boss</option>
-          ${SOLO_RAID_BOSSES.map((b) => `<option value="${b.season}">S${b.season} · ${b.name}</option>`).join("")}
+          ${[...SOLO_RAID_BOSSES].reverse().map((b) => `<option value="${b.season}">S${b.season} · ${b.name} (${b.weakness} Weak)</option>`).join("")}
         </select>
       </div>
       <div class="form-row" id="tribe-tower-row" style="display:none">
@@ -458,10 +458,10 @@ function startEditRaidName(raidId) {
         const select = document.createElement("select");
         select.className = "team-raid-title-input";
         select.style.fontSize = "15px";
-        SOLO_RAID_BOSSES.forEach((b) => {
+        [...SOLO_RAID_BOSSES].reverse().forEach((b) => {
             const opt = document.createElement("option");
             opt.value = b.season;
-            opt.textContent = `S${b.season} · ${b.name}`;
+            opt.textContent = `S${b.season} · ${b.name} (${b.weakness} Weak)`;
             opt.selected = raid.bossSeason === b.season;
             select.appendChild(opt);
         });
