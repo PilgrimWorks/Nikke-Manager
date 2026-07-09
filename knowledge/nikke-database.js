@@ -1072,7 +1072,32 @@ const NIKKE_DATABASE = [
         rarity: "SSR",
         manufacturer: "Pilgrim",
         class: "Attacker",
-        build: {},
+        build: {
+            cube: { pve: ["Resilience Cube", "Bastion Cube", "Destruction Cube"] },
+            bossing: "SSS",
+            collection: { pvePriority: 10 },
+            skill: {
+                pve: {
+                    start: { s1: 4, s2: 4, s3: 4 },
+                    min: { s1: 7, s2: 7, s3: 7 },
+                    rec: { s1: 10, s2: 10, s3: 10 },
+                    max: null,
+                },
+                priority: "Meta",
+            },
+            overload: {
+                priority: "Meta",
+                ideal: [
+                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "ATK", amount: 4 },
+                    { name: "Max Ammo", amount: 4 },
+                ],
+                passable: [
+                    { name: "Critical Rate", amount: 1 },
+                    { name: "Critical Dmg", amount: 1 },
+                ],
+            },
+        },
     },
     {
         id: 842,
@@ -2930,6 +2955,19 @@ const NIKKE_DATABASE = [
                 passable: [],
             },
         },
+    },
+    {
+        id: 322,
+        name: "Marciana: Marine Study",
+        burst1: false,
+        burst2: false,
+        burst3: true,
+        element: "Iron",
+        weapon: "AR",
+        rarity: "SSR",
+        manufacturer: "Elysion",
+        class: "Attacker",
+        build: {},
     },
     {
         id: 832,
@@ -5849,7 +5887,7 @@ function statIcon(stat) {
     return `<img src="assets/stats/stat_${stat.toLowerCase()}.webp" alt="${stat}" style="width:20px;height:20px;vertical-align:middle;border-radius:3px;object-fit:contain">`;
 }
 
-// Nikke portrait icon from Prydwen CDN
+// Nikke portrait icon from local assets (scraped from Prydwen CDN into assets/nikkes/)
 function nikkeSlug(name) {
     const entry = NIKKE_DB_MAP.get(name);
     if (entry && entry.slug) return entry.slug;
@@ -5866,7 +5904,7 @@ function nikkeSlug(name) {
 function nikkeIcon(name, size) {
     const sz = size || 22;
     const slug = nikkeSlug(name);
-    return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#1e3a5f"><img src="https://cdn.prydwen.gg/images/nikke/characters/${slug}_icon.webp" alt="${name}" style="width:${sz * 1.8}px;height:${sz * 1.8}px;object-fit:cover;object-position:top center;margin-left:-${sz * 0.4}px;margin-top:-${sz * 0.05}px" onerror="this.src='https://cdn.prydwen.gg/images/nikke/characters/${slug}_card.webp';this.onerror=function(){this.parentElement.style.display='none'}"></div>`;
+    return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#1e3a5f"><img src="assets/nikkes/${slug}.webp" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.onerror=null;this.src='assets/nikkes/_placeholder.webp'"></div>`;
 }
 
 // Preload nikke icons into browser cache to prevent flicker on re-render
@@ -5877,6 +5915,6 @@ function preloadNikkeIcons() {
         _preloadedIcons.add(n.name);
         const slug = nikkeSlug(n.name);
         const img = new Image();
-        img.src = `https://cdn.prydwen.gg/images/nikke/characters/${slug}_icon.webp`;
+        img.src = `assets/nikkes/${slug}.webp`;
     });
 }
