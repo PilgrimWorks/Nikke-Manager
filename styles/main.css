@@ -2183,6 +2183,68 @@ details[open] > .verdict-title {
     outline: none;
     min-width: 200px;
 }
+
+/* ── Per-team notes (collapsible, inside each lane) ─────────── */
+.team-notes-section {
+    margin-top: 6px;
+    padding: 0 2px;
+}
+.team-notes-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 3px 5px;
+    border-radius: 4px;
+    font-family: inherit;
+}
+.team-notes-toggle:hover {
+    color: #e2e8f0;
+    background: #1e293b;
+}
+.team-notes-chevron {
+    transition: transform 0.15s ease;
+}
+.team-notes-section.open .team-notes-chevron {
+    transform: rotate(90deg);
+}
+.team-notes-indicator {
+    color: #3b82f6;
+    font-size: 8px;
+    margin-left: 2px;
+}
+.team-notes-body {
+    display: none;
+    margin-top: 4px;
+}
+.team-notes-section.open .team-notes-body {
+    display: block;
+}
+.team-notes-textarea {
+    width: 100%;
+    min-height: 60px;
+    max-height: 160px;
+    resize: vertical;
+    font-size: 12.5px;
+    font-family: inherit;
+    line-height: 1.5;
+    padding: 6px 8px;
+    background: #0f1117;
+    border: 1px solid #2d3f5e;
+    border-radius: 5px;
+    color: #e2e8f0;
+}
+.team-notes-textarea:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+.team-notes-textarea::placeholder {
+    color: #475569;
+}
 .team-view-toggle {
     display: inline-flex;
     background: #11151d;
