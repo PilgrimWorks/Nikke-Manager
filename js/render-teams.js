@@ -399,6 +399,7 @@ function deleteRosterTeam(raidId, teamNum) {
     };
     raid.teamNames = shiftKeys(raid.teamNames) || {};
     if (raid.teamWeakness) raid.teamWeakness = shiftKeys(raid.teamWeakness);
+    if (raid.teamNotes) raid.teamNotes = shiftKeys(raid.teamNotes);
     raid.teamCount = oldCount - 1;
     save();
 
@@ -447,6 +448,19 @@ function _relabelTeamLane(raid, oldT, newT) {
         if (i < members.length) _applySlotEntryIdx(slotEl, raid.id, newT, members[i].origIdx);
         else slotEl.setAttribute("onclick", `openTeamSlotPicker('${raid.id}',${newT},${i})`);
     });
+    // Relabel the per-team notes section
+    const notesSection = el.querySelector(".team-notes-section");
+    if (notesSection) {
+        notesSection.id = `team-notes-section-${raid.id}-${newT}`;
+        const notesToggle = notesSection.querySelector(".team-notes-toggle");
+        if (notesToggle) notesToggle.setAttribute("onclick", `toggleTeamNotes('${raid.id}',${newT})`);
+        const notesTa = notesSection.querySelector(".team-notes-textarea");
+        if (notesTa) {
+            notesTa.id = `team-notes-textarea-${raid.id}-${newT}`;
+            notesTa.setAttribute("onblur", `saveTeamNotes('${raid.id}',${newT})`);
+            notesTa.value = getTeamNotes(raid, newT);
+        }
+    }
 }
 
 function startEditRaidName(raidId) {
@@ -547,6 +561,45 @@ function commitRaidName(input, raidId) {
         // (hidden) Gear panel so it's current when the user opens it.
         const gearPanel = _rosterGapPanelEl("gear");
         if (gearPanel) gearPanel.innerHTML = _renderRosterTabContent(raid, "gear");
+    }
+}
+
+// ── Per-team notes ───────────────────────────────────────────
+function getTeamNotes(raid, teamNum) {
+    return (raid.teamNotes && raid.teamNotes[teamNum]) || "";
+}
+
+function toggleTeamNotes(raidId, teamNum) {
+    const section = document.getElementById(`team-notes-section-${raidId}-${teamNum}`);
+    if (!section) return;
+    section.classList.toggle("open");
+    if (section.classList.contains("open")) {
+        const ta = document.getElementById(`team-notes-textarea-${raidId}-${teamNum}`);
+        if (ta) ta.focus();
+    }
+}
+
+function saveTeamNotes(raidId, teamNum) {
+    const raid = state.teamRaids.find((r) => r.id === raidId);
+    if (!raid) return;
+    const ta = document.getElementById(`team-notes-textarea-${raidId}-${teamNum}`);
+    if (!ta) return;
+    const val = ta.value.slice(0, 2000);
+    if (getTeamNotes(raid, teamNum) !== val) {
+        if (!raid.teamNotes) raid.teamNotes = {};
+        raid.teamNotes[teamNum] = val || "";
+        save();
+    }
+    // Update the indicator dot
+    const section = document.getElementById(`team-notes-section-${raidId}-${teamNum}`);
+    if (section) {
+        const indicator = section.querySelector(".team-notes-indicator");
+        if (val && !indicator) {
+            const btn = section.querySelector(".team-notes-toggle");
+            if (btn) btn.insertAdjacentHTML("beforeend", '<span class="team-notes-indicator">●</span>');
+        } else if (!val && indicator) {
+            indicator.remove();
+        }
     }
 }
 
@@ -928,6 +981,18 @@ function _buildTeamLaneHtml(raid, tnum, members, total, maxTeam, maxEntry, isExp
         isExpandable && tnum > 1
             ? `<button class="team-del-btn" onclick="deleteRosterTeam('${raid.id}',${tnum})" title="Delete team">✕</button>`
             : "";
+    const notesVal = getTeamNotes(raid, tnum).replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const notesOpen = !!getTeamNotes(raid, tnum);
+    const notesHtml = `<div class="team-notes-section${notesOpen ? " open" : ""}" id="team-notes-section-${raid.id}-${tnum}">
+      <button type="button" class="team-notes-toggle" onclick="toggleTeamNotes('${raid.id}',${tnum})">
+        <svg class="team-notes-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <span>Notes</span>
+        ${notesVal ? '<span class="team-notes-indicator">●</span>' : ""}
+      </button>
+      <div class="team-notes-body">
+        <textarea class="team-notes-textarea" id="team-notes-textarea-${raid.id}-${tnum}" placeholder="Add notes about this team..." maxlength="2000" onblur="saveTeamNotes('${raid.id}',${tnum})">${notesVal}</textarea>
+      </div>
+    </div>`;
     return `<div class="team-lane" id="team-lane-${raid.id}-${tnum}">
     <div class="team-lane-header">
       <div class="team-name-group" id="team-name-group-${raid.id}-${tnum}">${renderTeamNameGroupStatic(raid, tnum)}</div>
@@ -936,6 +1001,7 @@ function _buildTeamLaneHtml(raid, tnum, members, total, maxTeam, maxEntry, isExp
       ${delTeamBtn}
     </div>
     <div class="team-slots">${slots.join("")}</div>
+    ${notesHtml}
   </div>`;
 }
 
