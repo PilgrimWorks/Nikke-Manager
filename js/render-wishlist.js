@@ -8,6 +8,16 @@ function renderWishlist() {
     const rosterByName = {};
     for (const n of state.nikkes ?? []) rosterByName[n.name] = n;
 
+    // Early-game gate: reaching account level 160 requires 5 SSR Nikkes at LB3.
+    // Until the player owns that many, finishing limit breaks is the top priority,
+    // so LB is promoted to the front of the sort order below.
+    let ssrLb3Count = 0;
+    for (const n of state.nikkes ?? []) {
+        const dbEntry = NIKKE_DB_MAP.get(n.name);
+        if (dbEntry?.rarity === "SSR" && (n.limitBreak ?? 0) >= 3) ssrLb3Count++;
+    }
+    const prioritizeLb = ssrLb3Count < 5;
+
     const pools = { Elysion: [], Missilis: [], Tetra: [], "Pilgrim/Over-spec": [] };
 
     for (const db of NIKKE_DATABASE) {
@@ -55,6 +65,9 @@ function renderWishlist() {
     }
 
     const sortFn = (a, b) => {
+        // When the player still needs LB3 SSRs for the lv.160 gate, rank by LB first
+        // so units closest to LB3 float to the top.
+        if (prioritizeLb && b.lb !== a.lb) return b.lb - a.lb;
         if (a.bossingIdx !== b.bossingIdx) return a.bossingIdx - b.bossingIdx;
         if (b.burstVal !== a.burstVal) return b.burstVal - a.burstVal;
         return b.power - a.power;
@@ -73,8 +86,7 @@ function renderWishlist() {
                               ? ` <span style="color:#60a5fa;font-size:11px;vertical-align:middle">★ Treasure</span>`
                               : "";
                           const lbCell = p.lb > 0 ? `${p.lb}/3` : `<span style="color:#64748b">—</span>`;
-                          const coresCell =
-                              p.cores > 0 ? `${p.cores}/7` : `<span style="color:#64748b">—</span>`;
+                          const coresCell = p.cores > 0 ? `${p.cores}/7` : `<span style="color:#64748b">—</span>`;
                           return `
                     <tr>
                         <td style="color:#64748b;width:1.5rem">${i + 1}</td>
@@ -107,9 +119,16 @@ function renderWishlist() {
             </div>`;
     }).join("");
 
+    const lb3Note = prioritizeLb
+        ? `<div style="background:#1a1530;border:1px solid #3b2a5c;border-left:3px solid #bb86fc;border-radius:8px;padding:.7rem .9rem;margin-bottom:14px;font-size:13px;color:#cbd5e1;line-height:1.5">
+                <span style="font-weight:600;color:#bb86fc">⚠ Early-game priority:</span> You own ${ssrLb3Count}/5 SSR Nikkes at max limit break. Breaking the 160 wall requires 5 SSRs at max limit break, so recommendations below are ranked by LB first.
+           </div>`
+        : "";
+
     el.innerHTML = `
         <div style="max-width:960px">
             <div class="team-raid-title" style="padding-left:9px;margin-bottom:12px">Wishlist Recommendations</div>
+            ${lb3Note}
             <div style="display:flex;flex-wrap:wrap;gap:1.5rem">
                 ${cardsHtml}
             </div>
