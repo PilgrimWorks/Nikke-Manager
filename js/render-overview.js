@@ -8,6 +8,9 @@ let _overviewView = "equipment";
 // Element filter for Equipment/Skills/Dolls/Bond views
 let _overviewElement = "";
 
+// Burst filter for Equipment/Skills/Dolls/Bond views ("" = all, "I", "II", "III", "All")
+let _overviewBurst = "";
+
 // Bossing tier ordering (best first) + the set of Nikke names that have a treasure doll.
 const BOSSING_ORDER = ["SSS", "SS", "S", "A", "B", "C", "D", "E", "F"];
 const TREASURE_NAMES = new Set(COLLECTION_DOLLS.filter((d) => d.treasure).map((d) => d.treasure));
@@ -37,15 +40,44 @@ function setOverviewElement(el) {
     renderOverview();
 }
 
-// ── Overview view: Equipment (Prydwen overload gear recommendations) ──
+function setOverviewBurst(b) {
+    _overviewBurst = b;
+    renderOverview();
+}
+
+function matchesBurstFilter(n) {
+    if (!_overviewBurst) return true;
+    return burstDisplay(n) === _overviewBurst;
+}
+
+// ── Overview view: Equipment (overload gear recommendations — DB + user-entered) ──
 function buildEquipmentView() {
     const rows = [];
     for (const n of state.nikkes) {
         if (_overviewElement && n.element !== _overviewElement) continue;
+        if (!matchesBurstFilter(n)) continue;
         const db = NIKKE_DB_MAP.get(n.name);
         const overload = db && db.build && db.build.overload;
-        if (!overload || !overload.priority) continue;
-        const { ideal = [], passable = [] } = overload;
+
+        // Gather recommended lines from DB or user-entered priorities
+        let ideal = [];
+        let passable = [];
+        let priority = null;
+
+        if (overload) {
+            // DB-sourced recommendations (skip if no priority tier assigned)
+            if (!overload.priority) continue;
+            ideal = overload.ideal || [];
+            passable = overload.passable || [];
+            priority = overload.priority;
+        } else if (Array.isArray(n.priorities) && n.priorities.length) {
+            // No DB overload entry at all — use user-entered priorities
+            ideal = n.priorities.filter((p) => p.tier === "Ideal").map((p) => ({ name: p.line, amount: p.count }));
+            passable = n.priorities.filter((p) => p.tier === "Passable").map((p) => ({ name: p.line, amount: p.count }));
+            priority = "Custom";
+        }
+
+        if (!priority) continue;
         if (!ideal.length && !passable.length) continue;
 
         // Count how many of the recommended lines the user currently has across all gear
@@ -69,7 +101,7 @@ function buildEquipmentView() {
             if (cur < rec.amount) defs.push({ name: rec.name, cur, rec: rec.amount, tier: "Passable" });
         });
         if (!defs.length) continue;
-        rows.push({ n, defs, priority: overload.priority });
+        rows.push({ n, defs, priority });
     }
     // Sort by:
     //   1. Overload priority (Meta → Very High → High → Medium → Low → Very Low)
@@ -77,7 +109,7 @@ function buildEquipmentView() {
     //   3. Burst level (3 and All tied at 0; 2 and 1 tied at 1)
     //   4. Class (Attacker first, then Supporter, then Defender)
     //   5. Power (higher first)
-    const prioOrder = { Meta: 0, "Very High": 1, High: 2, Medium: 3, Low: 4, "Very Low": 5 };
+    const prioOrder = { Meta: 0, "Very High": 1, High: 2, Medium: 3, Low: 4, "Very Low": 5, Custom: 6 };
     const classOrder = { Attacker: 0, Supporter: 1, Defender: 2 };
     const burstRank = (name) => {
         const db = NIKKE_DB_MAP.get(name);
@@ -109,6 +141,7 @@ function buildEquipmentView() {
         if (p === "Meta" || p === "Very High") return "#4ade80";
         if (p === "High") return "#86efac";
         if (p === "Medium") return "#fbbf24";
+        if (p === "Custom") return "#a78bfa";
         return "#94a3b8";
     };
     const body = rows
@@ -158,6 +191,7 @@ function buildSkillsView() {
     const rows = [];
     for (const n of state.nikkes) {
         if (_overviewElement && n.element !== _overviewElement) continue;
+        if (!matchesBurstFilter(n)) continue;
         const db = NIKKE_DB_MAP.get(n.name);
         const pve = db && db.build && db.build.skill && db.build.skill.pve;
         if (!pve) continue;
@@ -218,6 +252,7 @@ function buildDollsView() {
     const rows = [];
     for (const n of state.nikkes) {
         if (_overviewElement && n.element !== _overviewElement) continue;
+        if (!matchesBurstFilter(n)) continue;
         const db = NIKKE_DB_MAP.get(n.name);
         if (!db) continue;
         const rawIdx = bossingIdxOf(n.name);
@@ -284,6 +319,7 @@ function buildBondView() {
     const rows = [];
     for (const n of state.nikkes) {
         if (_overviewElement && n.element !== _overviewElement) continue;
+        if (!matchesBurstFilter(n)) continue;
         const max = bondMaxFor(n);
         if (max == null) continue; // R rarity → no bond
         const cur = n.bond ?? 0;
@@ -331,6 +367,10 @@ function renderOverview() {
       <select class="form-input" style="font-size:13px;padding:4px 8px;width:auto" onchange="setOverviewElement(this.value)">
         <option value="">All Elements</option>
         ${NIKKE_ELEMENTS.map((e) => `<option value="${e}" ${_overviewElement === e ? "selected" : ""}>${e}</option>`).join("")}
+      </select>
+      <select class="form-input" style="font-size:13px;padding:4px 8px;width:auto" onchange="setOverviewBurst(this.value)">
+        <option value="">All Bursts</option>
+        ${["I", "II", "III", "All"].map((b) => `<option value="${b}" ${_overviewBurst === b ? "selected" : ""}>${b}</option>`).join("")}
       </select>
     </div>`
         : "";
