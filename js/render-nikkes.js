@@ -786,7 +786,9 @@ ${nikke.doll && !isTreasureDoll ? statStepperHtml(nikke.id, "doll", nikke.doll.l
       </div>
     </div>`;
     // ── Damage Calculator Section ──
-    const dmgCalcHtml = renderDamageCalcPanel(nikke, totals);
+    // NOTE: Damage Impact card temporarily disabled. Kept renderDamageCalcPanel()
+    // below (and this call, commented out) so it can be re-enabled later.
+    // const dmgCalcHtml = renderDamageCalcPanel(nikke, totals);
 
     // ── Sub-tabs: Gear (attribute totals + slots + damage) vs Priorities ──
     const sub = _gearSubTab === "priorities" ? "priorities" : "gear";
@@ -800,7 +802,7 @@ ${nikke.doll && !isTreasureDoll ? statStepperHtml(nikke.id, "doll", nikke.doll.l
         <span>Include Elemental Dmg</span>
       </label>
     </div>`;
-    const gearTabHtml = attrTable + slots + dmgCalcHtml;
+    const gearTabHtml = attrTable + slots; // + dmgCalcHtml (Damage Impact card disabled)
     const prioTabHtml = renderPrioContent(nikke);
     const bodyHtml =
         statsPanel +
