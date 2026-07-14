@@ -5848,6 +5848,7 @@ const SOLO_RAID_BOSSES = [
     { season: 36, name: "Egovista", element: "Iron", weakness: "Electric" },
     { season: 37, name: "Ultra", element: "Fire", weakness: "Water" },
     { season: 38, name: "Annihilio", element: "Water", weakness: "Wind" },
+    { season: 39, name: "Island Eater", element: "Electric", weakness: "Iron" },
 ];
 
 // All possible overload stats
