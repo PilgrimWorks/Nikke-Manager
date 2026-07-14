@@ -787,8 +787,16 @@ function renderRosterGapTab(raid, cat) {
     }
     // Team badge only in the aggregate (Solo/Union) view — redundant per-team.
     const badge = (m) => (perTeam ? "" : `<span class="roster-team-badge">T${m.team}</span>`);
+    // Rec/Max skill-target toggle (Skills tab only) — same seg-toggle used on the
+    // Nikkes/Overview screens, driving the shared state.skillTarget. Shown even
+    // when there are no gaps, so the target can still be switched from here.
+    const skillTargetBar =
+        cat === "skills"
+            ? `<div class="roster-skill-toggle"><span class="team-gear-sortbar-label">Skill target</span><span class="seg-toggle"><button class="${state.skillTarget === "rec" ? "seg-active" : ""}" onclick="setSkillTarget('rec')">Rec</button><button class="${state.skillTarget === "max" ? "seg-active" : ""}" onclick="setSkillTarget('max')">Max</button></span></div>`
+            : "";
+    const header = pills + skillTargetBar;
     if (!list.length) {
-        return `<div class="roster-gap-tab">${pills}<div class="empty-state" style="padding:24px">✓ No ${ROSTER_GAP_LABEL[cat]} gaps — everything looks good.</div></div>`;
+        return `<div class="roster-gap-tab">${header}<div class="empty-state" style="padding:24px">✓ No ${ROSTER_GAP_LABEL[cat]} gaps — everything looks good.</div></div>`;
     }
     if (cat === "gear") {
         const sorted = [...list].sort((a, b) => {
@@ -829,7 +837,7 @@ function renderRosterGapTab(raid, cat) {
     }
     // Skills / Dolls / Bond: same horizontal card layout as the Gear tab, with
     // the gap detail as the right-aligned "stat".
-    return `<div class="roster-gap-tab">${pills}<div class="team-gap-list team-gear-grid">
+    return `<div class="roster-gap-tab">${header}<div class="team-gap-list team-gear-grid">
       ${list
           .map(
               (
@@ -838,7 +846,7 @@ function renderRosterGapTab(raid, cat) {
         ${badge(m)}
         ${nikkeIcon(m.name, 40)}
         <span class="team-gear-card-name">${m.elem}<span class="team-gear-card-nametext">${m.name}</span></span>
-        <span class="team-gear-card-stats"><span class="team-gap-item-detail">${m.detail}</span></span>
+        <span class="team-gear-card-stats">${m.detailHtml ? m.detailHtml : `<span class="team-gap-item-detail" style="color:${m.color}">${m.detail}</span>`}</span>
       </button>`,
           )
           .join("")}
@@ -1532,10 +1540,27 @@ function _computeTeamReadinessDetails(raid, members) {
                 bestSlot,
             });
         }
-        if (g.skillGaps.length)
-            details.skills.push({ ...base, detail: g.skillGaps.map((s) => `${s.label} ${s.cur}→${s.rec}`).join(", ") });
-        if (g.dollGap) details.dolls.push({ ...base, detail: `Needs ${g.dollLabel}` });
-        if (g.bondGap) details.bond.push({ ...base, detail: g.bondDetail });
+        if (g.skillGaps.length) {
+            // Mirror the Nikkes-screen skill fields: large "cur/rec" per skill with
+            // the current value coloured (yellow below target, green once met).
+            const segs = g.skillGaps
+                .map((s) => {
+                    const c = (s.cur ?? 0) >= s.rec ? "#4ade80" : "#fcd34d";
+                    return `<span class="team-gap-skill"><span class="team-gap-skill-lbl">${s.label}</span><span style="color:${c}">${s.cur}</span><span class="team-gap-skill-max">/${s.rec}</span></span>`;
+                })
+                .join(`<span class="team-gap-skill-sep">·</span>`);
+            details.skills.push({ ...base, detailHtml: `<span class="team-gap-skills">${segs}</span>` });
+        }
+        if (g.dollGap) details.dolls.push({ ...base, detail: g.dollDetail, color: _dollSevColor(g.dollSev) });
+        if (g.bondGap) {
+            // Mirror the Nikkes-screen bond field: large "cur/max" with the current
+            // value in yellow while below max (green once maxed, though gaps never are).
+            const bondColor = g.bondCur >= g.bondMax ? "#4ade80" : "#fcd34d";
+            details.bond.push({
+                ...base,
+                detailHtml: `<span class="team-gap-bond"><span style="color:${bondColor}">${g.bondCur}</span><span class="team-gap-bond-max">/${g.bondMax}</span></span>`,
+            });
+        }
     });
     return details;
 }
@@ -1575,7 +1600,7 @@ function _teamGearDmgHtml(m, maxPot) {
     if (!(m.potentialM > 0)) return `<span style="color:#475569">—</span>`;
     const c =
         maxPot > 0 ? _gearWorthColor(m.potentialM / maxPot, GEAR_REL_GREEN_FRAC, GEAR_REL_YELLOW_FRAC) : "#4ade80";
-    return `<span style="color:${c};font-weight:600">+${m.potentialM.toFixed(1)}m</span>`;
+    return `<span style="color:${c}">+${m.potentialM.toFixed(1)}m</span>`;
 }
 
 // Potential percent-gain cell (+X.X%). Coloured by absolute % breakpoints —
@@ -1622,6 +1647,15 @@ function _teamGearEffColor(m, maxEff) {
     return _gearWorthColor(m.bestEff / maxEff, GEAR_REL_GREEN_FRAC, GEAR_REL_YELLOW_FRAC);
 }
 
+// ── Dolls gap severity colour ────────────────────────────────
+// The Dolls tab only lists Nikkes with a gap, so the colour shows HOW FAR each
+// one is from the recommendation via a 3-state severity: 2 = none equipped (red),
+// 1 = wrong/under-levelled (yellow), 0 = nearly maxed (green). Skills and Bond
+// instead use the Nikkes-screen "cur/max" style — see their details below.
+function _dollSevColor(sev) {
+    return sev >= 2 ? "#f87171" : sev >= 1 ? "#fbbf24" : "#4ade80";
+}
+
 // ── READINESS VIEW ───────────────────────────────────────────
 // Mirrors the gap logic used by the Solo Raids Recommendations view, packaged per-Nikke.
 function getTeamRaidGaps(n) {
@@ -1631,20 +1665,24 @@ function getTeamRaidGaps(n) {
         const v = getVerdict(n, slot);
         if (v && v.cls !== "v-keep") badSlots.push(slot);
     });
-    // Skills
+    // Skills. Targets follow the Rec/Max toggle (state.skillTarget) via the shared
+    // skillTargetVals helper, so this tab matches the Nikkes/Overview screens.
     const skillGaps = [];
     const db = NIKKE_DB_MAP.get(n.name);
-    if (db && db.build && db.build.skill && db.build.skill.pve && db.build.skill.pve.rec) {
-        const rec = db.build.skill.pve.rec;
+    const skillTgt = db && db.build && db.build.skill && db.build.skill.pve ? skillTargetVals(db.build.skill.pve) : null;
+    if (skillTgt) {
         const cur = [n.skill1 ?? 0, n.skill2 ?? 0, n.skill3 ?? 0];
         const labels = ["S1", "S2", "Burst"];
-        [rec.s1, rec.s2, rec.s3].forEach((target, i) => {
+        [skillTgt.s1, skillTgt.s2, skillTgt.s3].forEach((target, i) => {
             if (target != null && cur[i] < target) skillGaps.push({ label: labels[i], cur: cur[i], rec: target });
         });
     }
-    // Dolls
+    // Dolls. dollSev grades how far off the recommendation is (2 = none
+    // equipped → red, 1 = wrong/under-levelled → yellow, 0 = nearly maxed → green).
+    // dollDetail is a plain-language action that matches the actual state.
     let dollGap = false,
-        dollLabel = "";
+        dollDetail = "",
+        dollSev = 0;
     if (db) {
         const isTreasure = TREASURE_NAMES.has(n.name);
         if (isTreasure) {
@@ -1652,7 +1690,10 @@ function getTeamRaidGaps(n) {
             const done = !!(n.doll && recDoll && n.doll.tid === recDoll.id);
             if (!done && recDoll) {
                 dollGap = true;
-                dollLabel = `[${recDoll.rarity}] ${recDoll.name}`;
+                dollDetail = `Equip ${recDoll.name}`;
+                // No level component for treasures — either the specific doll is
+                // equipped (done) or it isn't. Some doll on = yellow, none = red.
+                dollSev = n.doll ? 1 : 2;
             }
         } else {
             const recDoll = COLLECTION_DOLLS.find((d) => d.rarity === "SR" && d.weapon === db.weapon);
@@ -1660,19 +1701,31 @@ function getTeamRaidGaps(n) {
             const done = !!(eq && eq.rarity === "SR" && n.doll.lv === 15);
             if (!done && recDoll) {
                 dollGap = true;
-                dollLabel = "[SR] Lv15";
+                const hasSR = !!(eq && eq.rarity === "SR");
+                const eqLv = eq ? (n.doll.lv ?? 0) : 0;
+                if (!hasSR) {
+                    // Wrong rarity or nothing on → still needs the right doll.
+                    dollDetail = "Equip an SR doll";
+                    dollSev = n.doll ? 1 : 2; // wrong doll on = yellow, none = red
+                } else {
+                    // Right SR doll, just short of max level.
+                    dollDetail = "Level SR doll to 15";
+                    dollSev = eqLv >= 13 ? 0 : 1; // nearly Lv15 = green, else yellow
+                }
             }
         }
     }
     // Bond
     let bondGap = false,
-        bondDetail = "";
+        bondCur = 0,
+        bondMaxVal = 0;
     const bondMax = bondMaxFor(n);
     if (bondMax != null) {
         const curBond = n.bond ?? 0;
         if (curBond < bondMax) {
             bondGap = true;
-            bondDetail = `Bond ${curBond}/${bondMax}`;
+            bondCur = curBond;
+            bondMaxVal = bondMax;
         }
     }
     return {
@@ -1680,9 +1733,11 @@ function getTeamRaidGaps(n) {
         badSlots,
         skillGaps,
         dollGap,
-        dollLabel,
+        dollDetail,
+        dollSev,
         bondGap,
-        bondDetail,
+        bondCur,
+        bondMax: bondMaxVal,
     };
 }
 
@@ -1714,4 +1769,4 @@ function calcNikkeGearDmgData(n) {
     };
 }
 
-let _teamGearSort = { col: "dmg", dir: "desc" };
+let _teamGearSort = { col: "pct", dir: "desc" };

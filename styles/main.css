@@ -2706,6 +2706,49 @@ details[open] > .verdict-title {
     margin-left: auto;
     text-align: right;
 }
+/* Bond gap detail: larger "cur/max" mirroring the Nikkes-screen bond field —
+   current value coloured (yellow below max), the "/max" suffix dimmed. */
+.team-gap-bond {
+    margin-left: auto;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+.team-gap-bond-max {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+}
+/* Skill gap detail: larger "cur/rec" per skill mirroring the Nikkes-screen skill
+   fields — current value coloured (yellow below target), label + "/rec" dimmed. */
+.team-gap-skills {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    white-space: nowrap;
+}
+.team-gap-skill {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1;
+}
+.team-gap-skill-lbl {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    margin-right: 3px;
+}
+.team-gap-skill-max {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+}
+.team-gap-skill-sep {
+    color: #3d4a5e;
+    font-size: 13px;
+}
 .team-gear-sort-btn {
     font-family: inherit;
     font-size: 11px;
@@ -2754,6 +2797,13 @@ details[open] > .verdict-title {
     letter-spacing: 0.04em;
     margin-right: auto;
 }
+/* Rec/Max skill-target toggle row on the Skills gap tab. */
+.roster-skill-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 2px 8px;
+}
 .team-gear-card {
     flex-wrap: nowrap;
     flex-direction: row;
@@ -2778,7 +2828,7 @@ details[open] > .verdict-title {
     gap: 4px;
     flex: 1 1 auto;
     min-width: 0;
-    font-size: 12.5px;
+    font-size: 14.5px;
     font-weight: 500;
     color: #e7ecf3;
     line-height: 1.2;
@@ -3309,18 +3359,19 @@ details[open] > .verdict-title ~ * {
 .gear-dots .dot,
 .gear-dots-mini span {
     animation: nm-dot-pop 0.24s ease both;
+    animation-delay: 0.3s;
 }
 .gear-dots .dot:nth-child(2),
 .gear-dots-mini span:nth-child(2) {
-    animation-delay: 0.04s;
+    animation-delay: 0.34s;
 }
 .gear-dots .dot:nth-child(3),
 .gear-dots-mini span:nth-child(3) {
-    animation-delay: 0.08s;
+    animation-delay: 0.38s;
 }
 .gear-dots .dot:nth-child(4),
 .gear-dots-mini span:nth-child(4) {
-    animation-delay: 0.12s;
+    animation-delay: 0.42s;
 }
 
 /* ── 13. Team slots: fill scales up when hovered ── */

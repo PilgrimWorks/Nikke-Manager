@@ -2967,7 +2967,29 @@ const NIKKE_DATABASE = [
         rarity: "SSR",
         manufacturer: "Elysion",
         class: "Attacker",
-        build: {},
+        build: {
+            cube: { pve: ["Resilience Cube", "Bastion Cube"] },
+            bossing: "A",
+            collection: { pvePriority: 7 },
+            skill: {
+                pve: {
+                    start: { s1: 4, s2: 4, s3: 4 },
+                    min: { s1: 7, s2: 7, s3: 7 },
+                    rec: { s1: 10, s2: 10, s3: 7 },
+                    max: { s1: 10, s2: 10, s3: 10 },
+                },
+                priority: "Medium",
+            },
+            overload: {
+                priority: "Medium",
+                ideal: [
+                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "ATK", amount: 4 },
+                    { name: "Crit DMG", amount: 4 },
+                ],
+                passable: [],
+            },
+        },
     },
     {
         id: 832,
