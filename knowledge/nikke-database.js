@@ -2985,7 +2985,7 @@ const NIKKE_DATABASE = [
                 ideal: [
                     { name: "Elemental Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
-                    { name: "Crit DMG", amount: 4 },
+                    { name: "Critical Dmg", amount: 4 },
                 ],
                 passable: [],
             },
