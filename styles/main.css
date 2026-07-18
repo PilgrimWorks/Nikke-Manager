@@ -1812,13 +1812,17 @@ details[open] > .verdict-title {
         border: 1px solid #2d3f5e;
         color: #cbd5e1;
         cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
         transition:
             background 0.1s,
-            color 0.1s;
+            color 0.1s,
+            transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .nikke-nav-btn:active:not(:disabled) {
         background: #1e293b;
         color: #fff;
+        /* Tactile press: dip in and settle back via the transform transition. */
+        transform: scale(0.88);
     }
     .nikke-nav-btn:disabled {
         opacity: 0.35;
@@ -2080,6 +2084,9 @@ details[open] > .verdict-title {
 @media (max-width: 480px) {
     .app {
         padding: 0.75rem 0.4rem;
+        /* Re-assert the bottom reservation: the shorthand above would otherwise
+           reset padding-bottom and let the fixed bottom nav cover page content. */
+        padding-bottom: calc(72px + env(safe-area-inset-bottom));
     }
 
     .title {
