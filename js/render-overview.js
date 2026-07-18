@@ -376,9 +376,9 @@ function renderOverview() {
         : "";
     el.innerHTML = `
     <div style="display:flex;align-items:center;margin-bottom:10px">
-      <label class="elemental-toggle" title="Include Elemental Dmg in gain and verdict calculations" style="margin-left:auto">
+      <label class="elemental-toggle" title="Include Ele Dmg in gain and verdict calculations" style="margin-left:auto">
         <input type="checkbox" id="elemental-chk" onchange="toggleElementalBoss(this.checked)" ${state.elementalBoss ? "checked" : ""} style="accent-color:#3b82f6"/>
-        <span>Include Elemental Dmg</span>
+        <span>Include Ele Dmg</span>
       </label>
     </div>
     <div class="ov-grid">

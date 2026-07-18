@@ -24,35 +24,72 @@ function resetGearFilters() {
     state.gearManufacturerFilter = "";
     state.gearWeaponFilter = "";
 }
+// Whether the mobile bottom sheet is currently animated-in (has the `.show`
+// class). Distinct from _nikkeListCollapsed: during the close animation the
+// sheet is no longer "shown" but not yet collapsed (display:none). Kept in a
+// module var so sidebar re-renders while open (e.g. changing sort) re-apply
+// `.show` without replaying the slide-up.
+let _nikkeSheetShown = false;
+
 function toggleNikkeList() {
-    _nikkeListCollapsed = !_nikkeListCollapsed;
-    if (!_nikkeListCollapsed) {
-        // Opening the popup (mobile-only) — clear filters + search so it opens
-        // fresh each time. Bust the sidebar cache so the reset actually rebuilds.
-        resetGearFilters();
-        _gearSidebarCache = "";
-        renderGear();
-    }
+    if (_nikkeListCollapsed) openNikkeListPopup();
+    else closeNikkeListPopup();
+}
+
+// Open the mobile Nikke-list bottom sheet with a slide-up + backdrop fade,
+// mirroring the "More" menu. No visible effect on desktop, where the list is
+// always shown inline via CSS.
+function openNikkeListPopup() {
+    // Opening the popup (mobile-only) — clear filters + search so it opens
+    // fresh each time. Bust the sidebar cache so the reset actually rebuilds.
+    _nikkeListCollapsed = false;
+    _nikkeSheetShown = false; // render the sheet off-screen first, then animate in
+    resetGearFilters();
+    _gearSidebarCache = "";
+    renderGear();
     const sb = document.getElementById("gear-sidebar-inner");
     if (!sb) return;
-    sb.classList.toggle("nikke-list-collapsed", _nikkeListCollapsed);
-    const tog = sb.querySelector(".roster-list-toggle");
-    if (tog) tog.setAttribute("aria-expanded", String(!_nikkeListCollapsed));
-    // When the popup opens on mobile, focus the search field for quick filtering.
-    if (!_nikkeListCollapsed) {
-        const search = document.getElementById("nikke-sidebar-search");
-        if (search) search.focus();
+    sb.classList.remove("nikke-list-collapsed");
+    const coll = sb.querySelector(".nikke-list-collapsible");
+    if (coll) {
+        void coll.offsetWidth; // force reflow so the slide-up transition runs
+        _nikkeSheetShown = true;
+        coll.classList.add("show");
     }
+    const tog = sb.querySelector(".roster-list-toggle");
+    if (tog) tog.setAttribute("aria-expanded", "true");
+    // Focus the search field for quick filtering as the sheet opens.
+    const search = document.getElementById("nikke-sidebar-search");
+    if (search) search.focus();
 }
-// Explicit close for the mobile Nikke-list popup (backdrop tap / ✕ button).
-// No-op on desktop, where the list is always shown inline.
+
+// Explicit close for the mobile Nikke-list popup (backdrop tap / ✕ button /
+// swipe-down / picking a Nikke). Slides the sheet down + fades the backdrop
+// (like the "More" menu) before hiding it. No-op on desktop, where the list is
+// always shown inline.
 function closeNikkeListPopup() {
     _nikkeListCollapsed = true;
+    _nikkeSheetShown = false;
     const sb = document.getElementById("gear-sidebar-inner");
     if (!sb) return;
-    sb.classList.add("nikke-list-collapsed");
     const tog = sb.querySelector(".roster-list-toggle");
     if (tog) tog.setAttribute("aria-expanded", "false");
+    const coll = sb.querySelector(".nikke-list-collapsible");
+    if (!coll) {
+        sb.classList.add("nikke-list-collapsed");
+        return;
+    }
+    const panel = coll.querySelector(".nikke-list-panel");
+    if (panel) {
+        panel.classList.remove("dragging");
+        panel.style.transform = ""; // clear any drag offset; let CSS slide it down
+    }
+    coll.classList.remove("show"); // triggers the slide-down + backdrop fade
+    setTimeout(() => {
+        // Finish hiding only if it's still meant to be closed — a quick re-open
+        // during the animation flips _nikkeListCollapsed back to false.
+        if (_nikkeListCollapsed) sb.classList.add("nikke-list-collapsed");
+    }, 340);
 }
 // Active sub-tab within a Nikke's detail panel: "gear" or "priorities"
 let _gearSubTab = "gear";
@@ -343,7 +380,10 @@ function renderGear() {
         // On mobile the collapsible becomes a full-screen dimmed overlay (tap the
         // backdrop to close) and the inner panel is a bottom sheet. On desktop
         // both are transparent flex columns filling the sidebar.
-        const collapsibleHtml = `<div class="nikke-list-collapsible" onclick="if(event.target===this)closeNikkeListPopup()"><div class="nikke-list-panel">${popupHeader}${filterHtml}${addHtml}<div class="nikke-list">${list}</div></div></div>`;
+        // Include `show` when the sheet is already open so a re-render (e.g. a
+        // sort change) mounts it in place rather than replaying the slide-up.
+        const shownCls = !_nikkeListCollapsed && _nikkeSheetShown ? " show" : "";
+        const collapsibleHtml = `<div class="nikke-list-collapsible${shownCls}" onclick="if(event.target===this)closeNikkeListPopup()"><div class="nikke-list-panel">${popupHeader}${filterHtml}${addHtml}<div class="nikke-list">${list}</div></div></div>`;
         const sidebarEl = document.getElementById("gear-sidebar-inner");
         if (!sidebarEl) {
             el.innerHTML = `<div class="two-col">
@@ -540,6 +580,7 @@ function pickGearAddNikke(name) {
     state.nikkes.push(nikke);
     state.selGear = nikke.id;
     _nikkeListCollapsed = true; // mobile: close the list popup so the new Nikke's detail shows
+    _nikkeSheetShown = false;
     try {
         localStorage.setItem("nikke_selGear", nikke.id);
     } catch (e) {}
@@ -569,16 +610,11 @@ function setGearWeaponFilter(val) {
 function selGearNikke(id) {
     if (state.selGear === id) return;
     state.selGear = id;
-    _nikkeListCollapsed = true; // mobile: hide the list so the picked Nikke's detail shows
     try {
         localStorage.setItem("nikke_selGear", id);
     } catch (e) {}
-    const sb = document.getElementById("gear-sidebar-inner");
-    if (sb) {
-        sb.classList.add("nikke-list-collapsed");
-        const tog = sb.querySelector(".roster-list-toggle");
-        if (tog) tog.setAttribute("aria-expanded", "false");
-    }
+    // Mobile: slide the list sheet closed so the picked Nikke's detail shows.
+    closeNikkeListPopup();
     // Just update active class without re-rendering sidebar
     document.querySelectorAll("#gear .nikke-list .nikke-item").forEach((el) => {
         const isActive = el.getAttribute("onclick")?.includes(id);
@@ -626,7 +662,7 @@ function renderGearMain(nikke) {
             const statCls = cls === "ideal" ? "is-ideal" : cls === "passable" ? "is-passable" : "is-trash";
             const tot = totals[stat] || 0;
             // Match the priority the same way classifyLine does (handles stat-name
-            // aliases like "Elemental Damage" vs "Elemental Dmg")
+            // aliases like "Elemental Damage" / "Elemental Dmg" vs "Ele Dmg")
             const prio = nikke.priorities.find((p) => normStat(p.line) === normStat(stat));
             // Target's line count comes from the Line Priorities tab (count), not current gear
             const prioCount = prio ? parseInt(prio.count) || 1 : 0;
@@ -982,9 +1018,9 @@ ${tierOpts}
     <div class="gear-subtab-bar">
       <button class="gear-subtab ${sub === "gear" ? "active" : ""}" data-subtab="gear" onclick="switchGearSubTab('gear')">Gear</button>
       <button class="gear-subtab ${sub === "priorities" ? "active" : ""}" data-subtab="priorities" onclick="switchGearSubTab('priorities')">Priorities</button>
-      <label class="elemental-toggle" title="Include Elemental Dmg in gain and verdict calculations" style="margin-left:auto;align-self:center">
+      <label class="elemental-toggle" title="Include Ele Dmg in gain and verdict calculations" style="margin-left:auto;align-self:center">
         <input type="checkbox" id="elemental-chk-gear" onchange="toggleElementalBoss(this.checked)" ${state.elementalBoss ? "checked" : ""} style="accent-color:#3b82f6"/>
-        <span>Include Elemental Dmg</span>
+        <span>Include Ele Dmg</span>
       </label>
     </div>`;
     const gearTabHtml = attrTable + slots; // + dmgCalcHtml (Damage Impact card disabled)
@@ -1732,10 +1768,10 @@ function renderDamageCalcPanel(nikke, totals) {
         })
         .join("");
 
-    // Non-damage lines (Max Ammo, Charge Speed, Hit Rate, DEF)
+    // Non-damage lines (Max Ammo, Charge Spd, Hit Rate, DEF)
     const nonDmgLines = allGearLines.filter((l) => {
         const s = l.stat;
-        return s === "Max Ammo" || s === "Charge Speed" || s === "Hit Rate" || s === "DEF";
+        return s === "Max Ammo" || s === "Charge Spd" || s === "Charge Speed" || s === "Hit Rate" || s === "DEF";
     });
     const nonDmgNote = nonDmgLines.length
         ? `<div style="font-size:11px;color:#475569;margin-top:6px">${nonDmgLines.length} line(s) not shown (${[...new Set(nonDmgLines.map((l) => l.stat))].join(", ")}) — no direct per-hit damage effect.</div>`
@@ -1778,11 +1814,14 @@ function getStatColor(stat) {
     switch (stat) {
         case "ATK":
             return "#f87171";
+        case "Ele Dmg":
         case "Elemental Dmg":
         case "Elemental Damage":
             return "#60a5fa";
+        case "Crit Rate":
         case "Critical Rate":
             return "#fbbf24";
+        case "Crit Dmg":
         case "Critical Dmg":
         case "Critical Damage":
             return "#fb923c";

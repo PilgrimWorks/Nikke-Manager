@@ -153,12 +153,10 @@ function closeMoreSheet() {
         panel.classList.remove("dragging");
         const dy = e.changedTouches[0].clientY - startY;
         if (dy > 90) {
-            // Slide the sheet the rest of the way down, then close it.
-            panel.style.transform = "translateY(100%)";
-            setTimeout(() => {
-                closeNikkeListPopup();
-                panel.style.transform = "";
-            }, 240);
+            // Past the threshold — closeNikkeListPopup clears the drag offset and
+            // removes `.show`, so the sheet slides the rest of the way down and
+            // the backdrop fades out before it hides.
+            closeNikkeListPopup();
         } else {
             panel.style.transform = ""; // snap back open
         }

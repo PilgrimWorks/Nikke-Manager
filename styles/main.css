@@ -1869,6 +1869,10 @@ details[open] > .verdict-title {
         line-height: 1;
         border-radius: 8px;
         transition: color 0.15s;
+        /* Suppress the browser's default rectangular tap highlight so the tap
+           feedback comes from the rounded :active background below (which
+           respects border-radius) rather than a square box over the button. */
+        -webkit-tap-highlight-color: transparent;
     }
     .bnav-item svg {
         width: 22px;
@@ -1879,7 +1883,7 @@ details[open] > .verdict-title {
         color: #60a5fa;
     }
     .bnav-item:active {
-        background: rgba(96, 165, 250, 0.08);
+        background: rgba(96, 165, 250, 0.15);
     }
 
     /* ── "More" bottom sheet ── */
@@ -2207,7 +2211,7 @@ details[open] > .verdict-title {
 
 @media (max-width: 520px) {
     /* Weapon Overrides: reflow each row into a labeled card. The 5-column
-       table (wide "Charge Speed"/"Charge Dmg" headers) won't fit otherwise. */
+       table (wide "Charge Spd"/"Charge Dmg" headers) won't fit otherwise. */
     #weights .weapon-table,
     #weights .weapon-table tbody {
         display: block;
@@ -3635,6 +3639,15 @@ details[open] > .verdict-title {
         align-items: stretch;
         justify-content: flex-end;
         padding: 0;
+        /* Dimmed backdrop fades in/out with the sheet, mirroring the "More" menu.
+           Hidden (opacity 0) until JS adds `.show` after a reflow on open. */
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .nikke-sidebar .nikke-list-collapsible.show {
+        opacity: 1;
+        pointer-events: auto;
     }
     .nikke-sidebar .nikke-list-collapsible .nikke-list-panel {
         width: 100%;
@@ -3646,8 +3659,14 @@ details[open] > .verdict-title {
         border-bottom: none;
         padding: 8px 14px calc(14px + env(safe-area-inset-bottom));
         box-shadow: 0 -12px 44px rgba(0, 0, 0, 0.55);
-        /* Snap-back / swipe-close animate via transform; disabled mid-drag. */
-        transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        /* Starts fully off-screen (110% hides the upward shadow too); slides up
+           when `.show` is added (open) and back down when it's removed (close /
+           swipe). Disabled mid-drag so the finger drags it 1:1. */
+        transform: translateY(110%);
+        transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .nikke-sidebar .nikke-list-collapsible.show .nikke-list-panel {
+        transform: translateY(0);
     }
     .nikke-sidebar .nikke-list-collapsible .nikke-list-panel.dragging {
         transition: none;
@@ -3934,25 +3953,18 @@ details[open] > .verdict-title {
     animation: nm-pop-in 0.24s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 @media (max-width: 768px) {
-    .nikke-sidebar .nikke-list-collapsible,
+    /* Teams roster popup fades its backdrop + pops the card in on open. The
+       Nikkes list sheet is deliberately NOT animated here — it opens/closes via
+       the `.show` class (opacity + transform transitions, see the bottom-sheet
+       block above) so it can animate BOTH ways and be dragged by touch. A
+       fill-mode:both keyframe would pin the panel's transform to its end state
+       and silently override the swipe's inline transform and the close
+       transition. */
     .nikke-sidebar .roster-list-collapsible {
         animation: nm-fade-in 0.18s ease both;
     }
-    /* Teams roster popup: still a centered card that pops in. */
     .nikke-sidebar .roster-list-collapsible .nikke-list-panel {
         animation: nm-pop-in 0.24s cubic-bezier(0.34, 1.4, 0.64, 1) both;
-    }
-    /* Nikkes list: bottom sheet slides up from the bottom edge. */
-    .nikke-sidebar .nikke-list-collapsible .nikke-list-panel {
-        animation: nm-sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-}
-@keyframes nm-sheet-up {
-    from {
-        transform: translateY(100%);
-    }
-    to {
-        transform: translateY(0);
     }
 }
 

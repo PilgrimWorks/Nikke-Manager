@@ -113,11 +113,11 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Low",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
             },
@@ -177,13 +177,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Dmg", amount: 4 },
-                    { name: "Charge Speed", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
                 ],
             },
         },
@@ -238,7 +238,7 @@ const NIKKE_DATABASE = [
                 priority: "Medium",
                 ideal: [{ name: "Max Ammo", amount: 2 }],
                 passable: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
             },
@@ -288,10 +288,10 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Charge Speed", amount: 2 },
+                    { name: "Charge Spd", amount: 2 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -372,7 +372,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                 ],
@@ -431,12 +431,12 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "Hit Rate", amount: 4 },
                 ],
             },
@@ -470,13 +470,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Meta",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "Charge Dmg", amount: 4 },
                 ],
             },
@@ -539,9 +539,9 @@ const NIKKE_DATABASE = [
                 priority: "Medium",
                 ideal: [{ name: "Max Ammo", amount: 2 }],
                 passable: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
-                    { name: "Charge Speed", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
                 ],
             },
         },
@@ -573,12 +573,12 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Dmg", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
                     { name: "Hit Rate", amount: 4 },
                 ],
             },
@@ -630,8 +630,8 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -665,7 +665,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
@@ -700,7 +700,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "High",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
@@ -859,15 +859,15 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 1 },
                 ],
                 passable: [
                     { name: "Max Ammo", amount: 1 },
-                    { name: "Charge Speed", amount: 3 },
-                    { name: "Critical Rate", amount: 3 },
-                    { name: "Critical Dmg", amount: 3 },
+                    { name: "Charge Spd", amount: 3 },
+                    { name: "Crit Rate", amount: 3 },
+                    { name: "Crit Dmg", amount: 3 },
                 ],
             },
         },
@@ -919,13 +919,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Low",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                 ],
             },
@@ -1010,14 +1010,14 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                 ],
                 passable: [
                     { name: "Hit Rate", amount: 2 },
-                    { name: "Critical Rate", amount: 2 },
-                    { name: "Critical Dmg", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
+                    { name: "Crit Dmg", amount: 2 },
                 ],
             },
         },
@@ -1049,13 +1049,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Meta",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 3 },
-                    { name: "Critical Dmg", amount: 3 },
+                    { name: "Crit Rate", amount: 3 },
+                    { name: "Crit Dmg", amount: 3 },
                     { name: "Max Ammo", amount: 2 },
                 ],
             },
@@ -1088,13 +1088,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Meta",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 1 },
-                    { name: "Critical Dmg", amount: 1 },
+                    { name: "Crit Rate", amount: 1 },
+                    { name: "Crit Dmg", amount: 1 },
                 ],
             },
         },
@@ -1214,12 +1214,12 @@ const NIKKE_DATABASE = [
                 priority: "Very High",
                 ideal: [
                     { name: "Max Ammo", amount: 2 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
             },
@@ -1346,7 +1346,7 @@ const NIKKE_DATABASE = [
                 ideal: [],
                 passable: [
                     { name: "Max Ammo", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
             },
@@ -1408,13 +1408,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "High",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
                     { name: "Max Ammo", amount: 2 },
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
             },
         },
@@ -1474,7 +1474,7 @@ const NIKKE_DATABASE = [
                 priority: "Very Low",
                 ideal: [
                     { name: "ATK", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -1509,12 +1509,12 @@ const NIKKE_DATABASE = [
                 priority: "High",
                 ideal: [
                     { name: "Max Ammo", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
             },
         },
@@ -1548,13 +1548,13 @@ const NIKKE_DATABASE = [
                 priority: "Medium",
                 ideal: [
                     { name: "Max Ammo", amount: 1 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
                     { name: "Max Ammo", amount: 3 },
-                    { name: "Critical Rate", amount: 3 },
-                    { name: "Critical Dmg", amount: 3 },
+                    { name: "Crit Rate", amount: 3 },
+                    { name: "Crit Dmg", amount: 3 },
                     { name: "Hit Rate", amount: 3 },
                 ],
             },
@@ -1588,14 +1588,14 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Low",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
                     { name: "Hit Rate", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
             },
         },
@@ -1627,15 +1627,15 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                 ],
                 passable: [
                     { name: "Max Ammo", amount: 4 },
-                    { name: "Charge Speed", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
             },
         },
@@ -1668,7 +1668,7 @@ const NIKKE_DATABASE = [
                 priority: "Very Low",
                 ideal: [
                     { name: "Max Ammo", amount: 3 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -1703,14 +1703,14 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 1 },
                 ],
                 passable: [
                     { name: "Max Ammo", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
                 ],
             },
         },
@@ -1788,7 +1788,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
@@ -1819,7 +1819,7 @@ const NIKKE_DATABASE = [
                 priority: "Very Low",
                 ideal: [
                     { name: "ATK", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -1890,14 +1890,14 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                 ],
                 passable: [
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
                 ],
             },
         },
@@ -1929,12 +1929,12 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
                     { name: "Max Ammo", amount: 1 },
                 ],
             },
@@ -1968,13 +1968,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Charge Speed", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
             },
         },
@@ -2007,7 +2007,7 @@ const NIKKE_DATABASE = [
                 priority: null,
                 ideal: [
                     { name: "Max Ammo", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -2062,7 +2062,7 @@ const NIKKE_DATABASE = [
                 priority: null,
                 ideal: [
                     { name: "Max Ammo", amount: 2 },
-                    { name: "Charge Speed", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
                 ],
                 passable: [],
             },
@@ -2095,9 +2095,9 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -2130,7 +2130,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: null,
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
@@ -2166,7 +2166,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                     { name: "ATK", amount: 4 },
                 ],
@@ -2204,7 +2204,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Low",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                 ],
@@ -2235,8 +2235,8 @@ const NIKKE_DATABASE = [
                 priority: null,
                 ideal: [
                     { name: "ATK", amount: 4 },
-                    { name: "Charge Speed", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -2270,13 +2270,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Meta",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
-                    { name: "Charge Speed", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
                     { name: "Max Ammo", amount: 1 },
                 ],
             },
@@ -2357,7 +2357,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
@@ -2439,12 +2439,12 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Low",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
                     { name: "Max Ammo", amount: 1 },
-                    { name: "Critical Rate", amount: 3 },
+                    { name: "Crit Rate", amount: 3 },
                 ],
             },
         },
@@ -2476,10 +2476,10 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: null,
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
-                passable: [{ name: "Critical Dmg", amount: 4 }],
+                passable: [{ name: "Crit Dmg", amount: 4 }],
             },
         },
     },
@@ -2511,9 +2511,9 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: null,
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -2624,7 +2624,7 @@ const NIKKE_DATABASE = [
                 priority: "Low",
                 ideal: [
                     { name: "Max Ammo", amount: 3 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -2658,13 +2658,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Meta",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 1 },
                 ],
                 passable: [
-                    { name: "Charge Speed", amount: 3 },
-                    { name: "Critical Dmg", amount: 3 },
+                    { name: "Charge Spd", amount: 3 },
+                    { name: "Crit Dmg", amount: 3 },
                 ],
             },
         },
@@ -2742,12 +2742,12 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Very High",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
             },
@@ -2804,13 +2804,13 @@ const NIKKE_DATABASE = [
                 priority: "Medium",
                 ideal: [
                     { name: "Max Ammo", amount: 2 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
                     { name: "Max Ammo", amount: 2 },
-                    { name: "Critical Rate", amount: 2 },
-                    { name: "Critical Dmg", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
+                    { name: "Crit Dmg", amount: 2 },
                 ],
             },
         },
@@ -2835,7 +2835,7 @@ const NIKKE_DATABASE = [
                 priority: "Very Low",
                 ideal: [
                     { name: "ATK", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -2869,11 +2869,11 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                 ],
-                passable: [{ name: "Charge Speed", amount: 3 }],
+                passable: [{ name: "Charge Spd", amount: 3 }],
             },
         },
     },
@@ -2923,7 +2923,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -2949,7 +2949,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: null,
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -2983,9 +2983,9 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -3115,7 +3115,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 1 },
                 ],
@@ -3153,9 +3153,9 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                 ],
                 passable: [],
@@ -3251,13 +3251,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "High",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
             },
@@ -3293,7 +3293,7 @@ const NIKKE_DATABASE = [
                 ideal: [],
                 passable: [
                     { name: "Max Ammo", amount: 1 },
-                    { name: "Charge Speed", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
                 ],
             },
         },
@@ -3326,7 +3326,7 @@ const NIKKE_DATABASE = [
                 priority: "Medium",
                 ideal: [
                     { name: "Max Ammo", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -3388,7 +3388,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -3443,11 +3443,11 @@ const NIKKE_DATABASE = [
                 ideal: [
                     { name: "Max Ammo", amount: 4 },
                     { name: "ATK", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                 ],
                 passable: [
                     { name: "Hit Rate", amount: 1 },
-                    { name: "Critical Rate", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
                 ],
             },
         },
@@ -3480,12 +3480,12 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Dmg", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
                     { name: "DEF", amount: 4 },
                 ],
             },
@@ -3564,12 +3564,12 @@ const NIKKE_DATABASE = [
                 priority: "Low",
                 ideal: [
                     { name: "ATK", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
             },
         },
@@ -3601,12 +3601,12 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Very High",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "Charge Dmg", amount: 4 },
                 ],
             },
@@ -3652,7 +3652,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: null,
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
@@ -3688,8 +3688,8 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Meta",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
-                    { name: "Charge Speed", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
                     { name: "ATK", amount: 3 },
                     { name: "Max Ammo", amount: 2 },
                 ],
@@ -3739,7 +3739,7 @@ const NIKKE_DATABASE = [
                 priority: "Very Low",
                 ideal: [
                     { name: "ATK", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -3816,13 +3816,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Low",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
             },
         },
@@ -3944,14 +3944,14 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Low",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                 ],
                 passable: [
                     { name: "Hit Rate", amount: 2 },
-                    { name: "Critical Dmg", amount: 2 },
-                    { name: "Critical Rate", amount: 2 },
+                    { name: "Crit Dmg", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
                     { name: "Max Ammo", amount: 2 },
                 ],
             },
@@ -4005,8 +4005,8 @@ const NIKKE_DATABASE = [
                 priority: null,
                 ideal: [
                     { name: "ATK", amount: 4 },
-                    { name: "Charge Speed", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -4067,12 +4067,12 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Meta",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
             },
         },
@@ -4105,13 +4105,13 @@ const NIKKE_DATABASE = [
                 priority: "Low",
                 ideal: [
                     { name: "Max Ammo", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
                     { name: "Hit Rate", amount: 3 },
-                    { name: "Critical Rate", amount: 3 },
-                    { name: "Critical Dmg", amount: 3 },
+                    { name: "Crit Rate", amount: 3 },
+                    { name: "Crit Dmg", amount: 3 },
                 ],
             },
         },
@@ -4222,14 +4222,14 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                     { name: "Hit Rate", amount: 2 },
                 ],
                 passable: [
-                    { name: "Critical Dmg", amount: 2 },
-                    { name: "Critical Rate", amount: 2 },
+                    { name: "Crit Dmg", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
                     { name: "Hit Rate", amount: 1 },
                     { name: "Max Ammo", amount: 1 },
                 ],
@@ -4324,7 +4324,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Meta",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
@@ -4403,12 +4403,12 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "High",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 1 },
                 ],
             },
@@ -4441,11 +4441,11 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Very High",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                     { name: "ATK", amount: 4 },
                 ],
-                passable: [{ name: "Charge Speed", amount: 3 }],
+                passable: [{ name: "Charge Spd", amount: 3 }],
             },
         },
     },
@@ -4497,7 +4497,7 @@ const NIKKE_DATABASE = [
                 priority: "Medium",
                 ideal: [
                     { name: "ATK", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
                 passable: [],
@@ -4531,13 +4531,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Dmg", amount: 2 },
-                    { name: "Critical Rate", amount: 2 },
+                    { name: "Crit Dmg", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
                 ],
             },
         },
@@ -4570,10 +4570,10 @@ const NIKKE_DATABASE = [
                 priority: "Very Low",
                 ideal: [
                     { name: "Max Ammo", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
-                passable: [{ name: "Critical Dmg", amount: 4 }],
+                passable: [{ name: "Crit Dmg", amount: 4 }],
             },
         },
     },
@@ -4652,7 +4652,7 @@ const NIKKE_DATABASE = [
                 priority: "Medium",
                 ideal: [{ name: "Max Ammo", amount: 2 }],
                 passable: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
             },
@@ -4702,7 +4702,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: null,
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
@@ -4809,10 +4809,10 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Very Low",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
-                passable: [{ name: "Critical Dmg", amount: 4 }],
+                passable: [{ name: "Crit Dmg", amount: 4 }],
             },
         },
     },
@@ -4843,14 +4843,14 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 4 },
                 ],
                 passable: [
                     { name: "Hit Rate", amount: 2 },
-                    { name: "Critical Rate", amount: 2 },
-                    { name: "Critical Dmg", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
+                    { name: "Crit Dmg", amount: 2 },
                 ],
             },
         },
@@ -4883,11 +4883,11 @@ const NIKKE_DATABASE = [
                 priority: "Meta",
                 ideal: [
                     { name: "Max Ammo", amount: 1 },
-                    { name: "Charge Speed", amount: 1 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Charge Spd", amount: 1 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
-                passable: [{ name: "Charge Speed", amount: 3 }],
+                passable: [{ name: "Charge Spd", amount: 3 }],
             },
         },
     },
@@ -4981,9 +4981,9 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
                 passable: [],
             },
@@ -5016,13 +5016,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Meta",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
                     { name: "Max Ammo", amount: 1 },
-                    { name: "Critical Rate", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
                 ],
             },
         },
@@ -5051,7 +5051,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Low",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -5105,13 +5105,13 @@ const NIKKE_DATABASE = [
                 priority: "Medium",
                 ideal: [
                     { name: "Max Ammo", amount: 2 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
                     { name: "Hit Rate", amount: 2 },
-                    { name: "Critical Rate", amount: 2 },
-                    { name: "Critical Dmg", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
+                    { name: "Crit Dmg", amount: 2 },
                 ],
             },
         },
@@ -5192,7 +5192,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: null,
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -5226,13 +5226,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                 ],
                 passable: [
-                    { name: "Critical Dmg", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                 ],
             },
@@ -5288,7 +5288,7 @@ const NIKKE_DATABASE = [
                 priority: "Very Low",
                 ideal: [
                     { name: "Max Ammo", amount: 3 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [],
@@ -5322,14 +5322,14 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                 ],
                 passable: [
                     { name: "Hit Rate", amount: 2 },
-                    { name: "Critical Rate", amount: 2 },
-                    { name: "Critical Dmg", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
+                    { name: "Crit Dmg", amount: 2 },
                 ],
             },
         },
@@ -5390,7 +5390,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 1 },
                 ],
@@ -5425,11 +5425,11 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Low",
                 ideal: [
-                    { name: "Charge Speed", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
                     { name: "Max Ammo", amount: 3 },
                 ],
                 passable: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
             },
@@ -5462,7 +5462,7 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: null,
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
                 ],
@@ -5497,14 +5497,14 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
-                    { name: "Charge Speed", amount: 4 },
+                    { name: "Charge Spd", amount: 4 },
                 ],
                 passable: [
-                    { name: "Critical Dmg", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
                 ],
             },
         },
@@ -5531,10 +5531,10 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: null,
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
-                passable: [{ name: "Charge Speed", amount: 4 }],
+                passable: [{ name: "Charge Spd", amount: 4 }],
             },
         },
     },
@@ -5565,15 +5565,15 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Medium",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "Max Ammo", amount: 2 },
-                    { name: "Charge Speed", amount: 2 },
+                    { name: "Charge Spd", amount: 2 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
                     { name: "Max Ammo", amount: 4 },
-                    { name: "Critical Dmg", amount: 4 },
-                    { name: "Critical Rate", amount: 4 },
+                    { name: "Crit Dmg", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
                 ],
             },
         },
@@ -5609,7 +5609,7 @@ const NIKKE_DATABASE = [
                 ideal: [
                     { name: "Max Ammo", amount: 4 },
                     { name: "ATK", amount: 4 },
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                 ],
                 passable: [{ name: "Hit Rate", amount: 4 }],
             },
@@ -5735,13 +5735,13 @@ const NIKKE_DATABASE = [
             overload: {
                 priority: "Low",
                 ideal: [
-                    { name: "Elemental Dmg", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
                     { name: "ATK", amount: 4 },
                 ],
                 passable: [
                     { name: "Hit Rate", amount: 2 },
-                    { name: "Critical Rate", amount: 2 },
-                    { name: "Critical Dmg", amount: 2 },
+                    { name: "Crit Rate", amount: 2 },
+                    { name: "Crit Dmg", amount: 2 },
                 ],
             },
         },
@@ -5854,12 +5854,12 @@ const SOLO_RAID_BOSSES = [
 // All possible overload stats
 const ALL_LINES = [
     "ATK",
-    "Elemental Dmg",
+    "Ele Dmg",
     "Max Ammo",
-    "Charge Speed",
+    "Charge Spd",
     "Charge Dmg",
-    "Critical Rate",
-    "Critical Dmg",
+    "Crit Rate",
+    "Crit Dmg",
     "Hit Rate",
     "DEF",
 ];

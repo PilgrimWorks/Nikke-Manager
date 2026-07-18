@@ -5,31 +5,31 @@
 
 // Stats whose values are expressed as percentages
 const IS_PCT = new Set([
-  'ATK', 'Elemental Dmg', 'Charge Speed', 'Charge Dmg',
-  'Critical Rate', 'Critical Dmg', 'Hit Rate', 'DEF', 'Max Ammo'
+  'ATK', 'Ele Dmg', 'Charge Spd', 'Charge Dmg',
+  'Crit Rate', 'Crit Dmg', 'Hit Rate', 'DEF', 'Max Ammo'
 ]);
 
 // Prydwen minimum acceptable values per single line
 // (based on community guides — lines below this are considered weak rolls)
 const MIN_VAL = {
-  'Elemental Dmg': 19.35,
+  'Ele Dmg': 19.35,
   'Max Ammo':         52.50,
   'ATK':               9.70,
-  'Charge Speed':      4.04,
+  'Charge Spd':      4.04,
   'Hit Rate':          9.70,
 };
 
 // Exact % values per tier (T1–T15) for each stat
 // Source: in-game probability table
 const TIER_TABLE = {
-  'Elemental Dmg': [9.54,10.94,12.34,13.75,15.15,16.55,17.95,19.35,20.75,22.15,23.56,24.96,26.36,27.76,29.16],
+  'Ele Dmg': [9.54,10.94,12.34,13.75,15.15,16.55,17.95,19.35,20.75,22.15,23.56,24.96,26.36,27.76,29.16],
   'Hit Rate':         [4.77,5.47,6.18,6.88,7.59,8.29,9.00,9.70,10.40,11.11,11.81,12.52,13.22,13.93,14.63],
   'Max Ammo':         [27.84,31.95,36.06,40.17,44.28,48.39,52.50,56.60,60.71,64.82,68.93,73.04,77.15,81.26,85.37],
   'ATK':              [4.77,5.47,6.18,6.88,7.59,8.29,9.00,9.70,10.40,11.11,11.81,12.52,13.22,13.93,14.63],
   'Charge Dmg':    [4.77,5.47,6.18,6.88,7.59,8.29,9.00,9.70,10.40,11.11,11.81,12.52,13.22,13.93,14.63],
-  'Charge Speed':     [1.98,2.28,2.57,2.86,3.16,3.45,3.75,4.04,4.33,4.63,4.92,5.21,5.51,5.80,6.09],
-  'Critical Rate':    [2.30,2.64,2.98,3.32,3.66,4.00,4.35,4.69,5.03,5.37,5.71,6.05,6.39,6.73,7.07],
-  'Critical Dmg':  [6.64,7.62,8.60,9.58,10.56,11.54,12.52,13.50,14.48,15.46,16.44,17.42,18.40,19.38,20.36],
+  'Charge Spd':     [1.98,2.28,2.57,2.86,3.16,3.45,3.75,4.04,4.33,4.63,4.92,5.21,5.51,5.80,6.09],
+  'Crit Rate':    [2.30,2.64,2.98,3.32,3.66,4.00,4.35,4.69,5.03,5.37,5.71,6.05,6.39,6.73,7.07],
+  'Crit Dmg':  [6.64,7.62,8.60,9.58,10.56,11.54,12.52,13.50,14.48,15.46,16.44,17.42,18.40,19.38,20.36],
   'DEF':              [4.77,5.47,6.18,6.88,7.59,8.29,9.00,9.70,10.40,11.11,11.81,12.52,13.22,13.93,14.63],
 };
 
@@ -47,9 +47,9 @@ const LINE_CHANCE_CSS    = ['lc-100', 'lc-50', 'lc-30'];
 // Base % chance for each stat to appear on a line (sums to 100)
 // When a stat is already on the piece, the pool renormalizes across remaining stats
 const STAT_BASE_CHANCE = {
-  'ATK': 10, 'Elemental Dmg': 10, 'Max Ammo': 12,
-  'Charge Speed': 12, 'Charge Dmg': 12, 'Critical Rate': 12,
-  'Critical Dmg': 10, 'Hit Rate': 12, 'DEF': 10,
+  'ATK': 10, 'Ele Dmg': 10, 'Max Ammo': 12,
+  'Charge Spd': 12, 'Charge Dmg': 12, 'Crit Rate': 12,
+  'Crit Dmg': 10, 'Hit Rate': 12, 'DEF': 10,
 };
 
 
@@ -212,7 +212,7 @@ function expectedValAnyTier(stat) {
  * Expected value gain from Reset Attributes on a line.
  */
 function resetGain(stat, currentVal, targetTier) {
-  if (stat === 'Elemental Dmg' && !state.elementalBoss) return 0;
+  if (stat === 'Ele Dmg' && !state.elementalBoss) return 0;
   const expected = expectedValAtTarget(stat, targetTier);
   const current = parseFloat(currentVal) || 0;
   return Math.max(0, expected - current);
@@ -223,7 +223,7 @@ function resetGain(stat, currentVal, targetTier) {
  * Uses the weighted average across all good stats in the pool,
  * assuming the new line will land at the average tier (weighted by TIER_PROB).
  * targetTier is the minimum acceptable tier for the nikke's priorities.
- * Excludes Elemental Dmg from gain calculation if elementalBoss is off.
+ * Excludes Ele Dmg from gain calculation if elementalBoss is off.
  */
 function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
   const goodPrios = nikke.priorities.filter(p => p.tier === 'Essential' || p.tier === 'Ideal');
@@ -259,7 +259,7 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
       const avgAppear = sacrificedLines.reduce((s, sl) => s + (LINE_APPEAR[sl.idx !== undefined ? sl.idx : 0] || 0.6), 0) / numSacLines;
       const pComeBack = 1 - Math.pow(1 - comebackFrac * avgAppear, numSacLines);
       let effectiveLoss = currentVal - (pComeBack * evIfBack);
-      if (l.stat === 'Elemental Dmg' && !state.elementalBoss) effectiveLoss = 0;
+      if (l.stat === 'Ele Dmg' && !state.elementalBoss) effectiveLoss = 0;
       if (effectiveLoss > 0) {
         const statWeight = getStatDmgWeight(l.stat, nikke.name, nikke) || 0.01;
         totalLoss += effectiveLoss * statWeight;
@@ -287,7 +287,7 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
     const existing = currentLines.find(l => l.stat === p.line);
     const current = (existing && !sacrificedStats.has(p.line)) ? (parseFloat(existing.val) || 0) : 0;
     let gain = Math.max(0, ev - current);
-    if (p.line === 'Elemental Dmg' && !state.elementalBoss) gain = 0;
+    if (p.line === 'Ele Dmg' && !state.elementalBoss) gain = 0;
     const dmgW = getStatDmgWeight(p.line, nikke.name, nikke) || 0.01;
     gains.push({ stat: p.line, gain, weight: w, dmgW });
     totalPoolWeight += w;
@@ -308,16 +308,21 @@ function changeEffectsGain(nikke, pool, currentLines, sacrificedLines) {
 //  LINE CLASSIFICATION
 // ============================================================
 
-// Normalize stat names to handle the abbreviated vs full name inconsistency.
-// Gear lines may use "Elemental Dmg" while priorities/math use "Elemental Damage", etc.
+// Normalize stat names to the short forms used in ALL_LINES. Handles both the
+// legacy full names ("Elemental Damage") and the previous canonical forms
+// ("Elemental Dmg", "Critical Rate", …) so old saved/imported data still matches.
 const STAT_ALIASES = {
-  'Elemental Damage': 'Elemental Dmg',
-  'Critical Damage': 'Critical Dmg',
+  'Elemental Damage': 'Ele Dmg',
+  'Elemental Dmg': 'Ele Dmg',
+  'Critical Damage': 'Crit Dmg',
+  'Critical Dmg': 'Crit Dmg',
+  'Critical Rate': 'Crit Rate',
+  'Charge Speed': 'Charge Spd',
   'Charge Damage': 'Charge Dmg',
 };
 const STAT_ALIASES_REV = {
-  'Elemental Dmg': 'Elemental Damage',
-  'Critical Dmg': 'Critical Damage',
+  'Ele Dmg': 'Elemental Damage',
+  'Crit Dmg': 'Critical Damage',
   'Charge Dmg': 'Charge Damage',
 };
 function normStat(s) {
@@ -357,8 +362,8 @@ function isGoodLine(cls) {
   return cls === 'essential' || cls === 'ideal';
 }
 
-// Format a list of stat names for prose: "ATK", "ATK or Elemental Dmg",
-// "ATK, Crit Dmg or Elemental Dmg". Used in the plain-English reroll steps.
+// Format a list of stat names for prose: "ATK", "ATK or Ele Dmg",
+// "ATK, Crit Dmg or Ele Dmg". Used in the plain-English reroll steps.
 function statsOrLabel(names) {
   const arr = [...new Set((names || []).filter(Boolean))];
   if (!arr.length) return 'a good stat';
@@ -394,7 +399,7 @@ function getVerdict(nikke, slot) {
     });
     // Compute DPS-weighted gain (best single stat you could land, weighted)
     const emptyDpsGain = goodPrios.reduce((best, p) => {
-      if (p.line === 'Elemental Dmg' && !state.elementalBoss) return best;
+      if (p.line === 'Ele Dmg' && !state.elementalBoss) return best;
       const ev = expectedValAnyTier(p.line);
       const w = getStatDmgWeight(p.line, nikke.name, nikke) || 0.01;
       return Math.max(best, ev * w);
@@ -523,7 +528,7 @@ function getVerdict(nikke, slot) {
             const w = poolPass[ln] || poolPass[normStat(ln)] || 0;
             if (w <= 0) return;
             const ev = expectedValAnyTier(ln);
-            if (ln === 'Elemental Dmg' && !state.elementalBoss) return;
+            if (ln === 'Ele Dmg' && !state.elementalBoss) return;
             const dmgW = getStatDmgWeight(ln, nikke.name, nikke) || 0.01;
             passGains.push({ stat: ln, gain: ev, weight: w, dmgW });
             totalPassWeight += w;
