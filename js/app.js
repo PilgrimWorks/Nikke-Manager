@@ -24,7 +24,146 @@ function switchTab(tab, event) {
     else if (tab === "weights") renderWeights();
     else if (tab === "cubes") renderCubes();
     else if (tab === "wishlist") renderWishlist();
+    syncBottomNav(tab);
 }
+
+// ── Mobile bottom nav & "More" sheet ────────────────────────
+// Keep the fixed bottom-nav highlight in sync with the active tab. Tabs that
+// live behind "More" (cubes/wishlist/weights) light up the More button.
+function syncBottomNav(tab) {
+    const nav = document.getElementById("bottom-nav");
+    if (!nav) return;
+    const moreTabs = ["cubes", "wishlist", "weights"];
+    nav.querySelectorAll(".bnav-item").forEach((b) => b.classList.remove("active"));
+    const direct = nav.querySelector('.bnav-item[data-tab="' + tab + '"]');
+    if (direct) direct.classList.add("active");
+    else if (moreTabs.includes(tab)) {
+        const moreBtn = document.getElementById("bnav-more-btn");
+        if (moreBtn) moreBtn.classList.add("active");
+    }
+    document.querySelectorAll(".more-sheet-item[data-tab]").forEach((b) => {
+        b.classList.toggle("active", b.getAttribute("data-tab") === tab);
+    });
+}
+
+function openMoreSheet() {
+    const ov = document.getElementById("more-sheet-overlay");
+    if (!ov) return;
+    const sheet = document.getElementById("more-sheet");
+    if (sheet) sheet.style.transform = ""; // clear any leftover drag offset
+    ov.style.display = "block";
+    void ov.offsetWidth; // force reflow so the slide-up transition runs
+    ov.classList.add("show");
+}
+
+function closeMoreSheet() {
+    const ov = document.getElementById("more-sheet-overlay");
+    if (!ov) return;
+    const sheet = document.getElementById("more-sheet");
+    if (sheet) {
+        sheet.classList.remove("dragging");
+        sheet.style.transform = ""; // let CSS slide it back down
+    }
+    ov.classList.remove("show");
+    setTimeout(() => {
+        if (!ov.classList.contains("show")) ov.style.display = "none";
+    }, 320);
+}
+
+// Dismiss when tapping the backdrop (outside the sheet), + swipe-down to close.
+(function initMoreSheet() {
+    const ov = document.getElementById("more-sheet-overlay");
+    const sheet = document.getElementById("more-sheet");
+    if (!ov || !sheet) return;
+
+    ov.addEventListener("click", (e) => {
+        if (e.target === ov) closeMoreSheet();
+    });
+
+    let startY = 0;
+    let dragging = false;
+    sheet.addEventListener(
+        "touchstart",
+        (e) => {
+            startY = e.touches[0].clientY;
+            dragging = true;
+            sheet.classList.add("dragging");
+        },
+        { passive: true },
+    );
+    sheet.addEventListener(
+        "touchmove",
+        (e) => {
+            if (!dragging) return;
+            const dy = e.touches[0].clientY - startY;
+            sheet.style.transform = "translateY(" + Math.max(0, dy) + "px)";
+        },
+        { passive: true },
+    );
+    sheet.addEventListener("touchend", (e) => {
+        if (!dragging) return;
+        dragging = false;
+        sheet.classList.remove("dragging");
+        const dy = e.changedTouches[0].clientY - startY;
+        if (dy > 90) {
+            closeMoreSheet();
+        } else {
+            sheet.style.transform = ""; // snap back open
+        }
+    });
+})();
+
+// Swipe-down-to-dismiss for the mobile Nikkes-list bottom sheet. The panel is
+// re-created on every sidebar render, so the drag is wired with delegated
+// document-level listeners (attached once) rather than per-element handlers.
+// A drag only starts from the sheet's drag zone (grab handle + title row) so it
+// never fights the scrollable list below it.
+(function initNikkeListSheetSwipe() {
+    let sheet = null;
+    let startY = 0;
+    let dragging = false;
+
+    document.addEventListener(
+        "touchstart",
+        (e) => {
+            const zone = e.target.closest(".nikke-list-collapsible .sheet-drag-zone");
+            if (!zone) return;
+            sheet = zone.closest(".nikke-list-panel");
+            if (!sheet) return;
+            startY = e.touches[0].clientY;
+            dragging = true;
+            sheet.classList.add("dragging");
+        },
+        { passive: true },
+    );
+    document.addEventListener(
+        "touchmove",
+        (e) => {
+            if (!dragging || !sheet) return;
+            const dy = e.touches[0].clientY - startY;
+            sheet.style.transform = "translateY(" + Math.max(0, dy) + "px)";
+        },
+        { passive: true },
+    );
+    document.addEventListener("touchend", (e) => {
+        if (!dragging || !sheet) return;
+        dragging = false;
+        const panel = sheet;
+        sheet = null;
+        panel.classList.remove("dragging");
+        const dy = e.changedTouches[0].clientY - startY;
+        if (dy > 90) {
+            // Slide the sheet the rest of the way down, then close it.
+            panel.style.transform = "translateY(100%)";
+            setTimeout(() => {
+                closeNikkeListPopup();
+                panel.style.transform = "";
+            }, 240);
+        } else {
+            panel.style.transform = ""; // snap back open
+        }
+    });
+})();
 
 function goToGearNikke(nikkeId) {
     state.selGear = nikkeId;
@@ -42,6 +181,23 @@ function goToGearNikke(nikkeId) {
     history.replaceState(null, "", url);
     renderGear();
     // Scroll back to the top so the Nikke detail screen starts at its header
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// Step to the previous (dir -1) / next (dir +1) Nikke in the sidebar's current
+// sort order. Wired to the header's ◄ ► buttons (mobile). Clamps at the ends.
+function gearNavNikke(dir) {
+    const ordered = sortNikkesBySidebar(state.nikkes.slice());
+    if (!ordered.length) return;
+    let idx = ordered.findIndex((n) => n.id === state.selGear);
+    if (idx === -1) idx = 0;
+    const next = idx + dir;
+    if (next < 0 || next >= ordered.length) return;
+    state.selGear = ordered[next].id;
+    try {
+        localStorage.setItem("nikke_selGear", state.selGear);
+    } catch (e) {}
+    renderGear();
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -320,7 +476,9 @@ if (!_isNewUser) {
 function isBackgroundLocked() {
     // Full-screen overlays: locked only when actually laid out (getClientRects
     // is empty when the element — or an ancestor tab section — is display:none).
-    for (const o of document.querySelectorAll(".tutorial-overlay.show, .team-slot-picker-overlay.show")) {
+    for (const o of document.querySelectorAll(
+        ".tutorial-overlay.show, .team-slot-picker-overlay.show, .more-sheet-overlay.show",
+    )) {
         if (o.getClientRects().length) return true;
     }
     // Mobile list popups render their collapsible as a position:fixed modal;

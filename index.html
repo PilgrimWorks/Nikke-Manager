@@ -67,7 +67,7 @@
         <!-- ?v= is an auto-managed cache-buster: the pre-commit hook stamps it with the
              commit hash (via scripts/stamp-version.ps1) so browsers — iOS Safari in
              particular — refetch changed CSS/JS instead of serving an old cached copy. -->
-        <link rel="stylesheet" href="styles/main.css?v=6e9ce0a" />
+        <link rel="stylesheet" href="styles/main.css?v=088848c" />
     </head>
     <body>
         <div class="app">
@@ -91,7 +91,7 @@
                         target="_blank"
                         rel="noopener"
                         title="GitHub - request support or features"
-                        class="btn btn-sm"
+                        class="btn btn-sm topbar-desktop-only"
                         style="display: inline-flex; align-items: center; gap: 5px; text-decoration: none"
                         ><svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -105,7 +105,7 @@
                             /></svg
                         >GitHub</a
                     >
-                    <button class="btn btn-sm" onclick="showTutorial()" title="Show tutorial">? Guide</button>
+                    <button class="btn btn-sm topbar-desktop-only" onclick="showTutorial()" title="Show tutorial">? Guide</button>
                     <button id="mydata-btn" class="btn btn-sm" onclick="showMyData()">📋 My Data</button>
                     <input
                         type="file"
@@ -134,6 +134,74 @@
             <div id="weights" class="section"></div>
             <div id="cubes" class="section"></div>
             <div id="wishlist" class="section"></div>
+        </div>
+
+        <!-- Mobile bottom navigation (hidden on desktop) -->
+        <nav class="bottom-nav" id="bottom-nav" aria-label="Primary">
+            <button class="bnav-item active" data-tab="overview" onclick="switchTab('overview')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" />
+                </svg>
+                <span>Overview</span>
+            </button>
+            <button class="bnav-item" data-tab="gear" onclick="switchTab('gear')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>Nikkes</span>
+            </button>
+            <button class="bnav-item" data-tab="teams" onclick="switchTab('teams')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span>Teams</span>
+            </button>
+            <button class="bnav-item bnav-more" id="bnav-more-btn" onclick="openMoreSheet()" aria-haspopup="true">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                    <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
+                </svg>
+                <span>More</span>
+            </button>
+        </nav>
+
+        <!-- Mobile "More" bottom sheet (hidden on desktop) -->
+        <div class="more-sheet-overlay" id="more-sheet-overlay" role="dialog" aria-modal="true" aria-label="More menu">
+            <div class="more-sheet" id="more-sheet">
+                <div class="more-sheet-handle" aria-hidden="true"></div>
+                <button class="more-sheet-item" data-tab="cubes" onclick="switchTab('cubes'); closeMoreSheet()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" />
+                    </svg>
+                    <span>Cubes</span>
+                </button>
+                <button class="more-sheet-item" data-tab="wishlist" onclick="switchTab('wishlist'); closeMoreSheet()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                    <span>Wishlist</span>
+                </button>
+                <button class="more-sheet-item" data-tab="weights" onclick="switchTab('weights'); closeMoreSheet()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" /><line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" /><line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" /><line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
+                    </svg>
+                    <span>Weights</span>
+                </button>
+                <button class="more-sheet-item" onclick="closeMoreSheet(); showTutorial()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <span>Guide</span>
+                </button>
+                <a class="more-sheet-item" href="https://github.com/PilgrimWorks/Nikke-Manager" target="_blank" rel="noopener" onclick="closeMoreSheet()">
+                    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    <span>GitHub</span>
+                    <svg class="more-sheet-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="opens in new tab">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                </a>
+            </div>
         </div>
 
         <!-- Tutorial overlay for new users -->
@@ -277,25 +345,25 @@
         <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
         <!-- Knowledge Engine (shared across tools) -->
-        <script src="knowledge/nikke-database.js?v=6e9ce0a"></script>
-        <script src="knowledge/weights.js?v=6e9ce0a"></script>
-        <script src="knowledge/overload-math.js?v=6e9ce0a"></script>
-        <script src="knowledge/build-info.js?v=6e9ce0a"></script>
+        <script src="knowledge/nikke-database.js?v=088848c"></script>
+        <script src="knowledge/weights.js?v=088848c"></script>
+        <script src="knowledge/overload-math.js?v=088848c"></script>
+        <script src="knowledge/build-info.js?v=088848c"></script>
 
         <!-- App scripts (load order matters: state → helpers → firebase → renderers → init) -->
-        <script src="js/state.js?v=6e9ce0a"></script>
-        <script src="js/helpers.js?v=6e9ce0a"></script>
-        <script src="js/firebase.js?v=6e9ce0a"></script>
-        <script src="js/ui-actions.js?v=6e9ce0a"></script>
-        <script src="js/render-overview.js?v=6e9ce0a"></script>
-        <script src="js/render-roster.js?v=6e9ce0a"></script>
-        <script src="js/damage-calc.js?v=6e9ce0a"></script>
-        <script src="js/render-nikkes.js?v=6e9ce0a"></script>
-        <script src="js/render-priority.js?v=6e9ce0a"></script>
-        <script src="js/render-teams.js?v=6e9ce0a"></script>
-        <script src="js/render-weights.js?v=6e9ce0a"></script>
-        <script src="js/render-cubes.js?v=6e9ce0a"></script>
-        <script src="js/render-wishlist.js?v=6e9ce0a"></script>
-        <script src="js/app.js?v=6e9ce0a"></script>
+        <script src="js/state.js?v=088848c"></script>
+        <script src="js/helpers.js?v=088848c"></script>
+        <script src="js/firebase.js?v=088848c"></script>
+        <script src="js/ui-actions.js?v=088848c"></script>
+        <script src="js/render-overview.js?v=088848c"></script>
+        <script src="js/render-roster.js?v=088848c"></script>
+        <script src="js/damage-calc.js?v=088848c"></script>
+        <script src="js/render-nikkes.js?v=088848c"></script>
+        <script src="js/render-priority.js?v=088848c"></script>
+        <script src="js/render-teams.js?v=088848c"></script>
+        <script src="js/render-weights.js?v=088848c"></script>
+        <script src="js/render-cubes.js?v=088848c"></script>
+        <script src="js/render-wishlist.js?v=088848c"></script>
+        <script src="js/app.js?v=088848c"></script>
     </body>
 </html>
