@@ -96,40 +96,41 @@ function renderWeights() {
         .join("");
 
     el.innerHTML = `
-    <div style="max-width:700px">
-      <div class="section-label">Stat Damage Weights</div>
-      <div class="info-note" style="margin-bottom:1rem">
+    <div style="max-width:760px">
+      <div class="panel-page-title">Stat Damage Weights</div>
+      <div class="info-note" style="margin-bottom:14px">
         These weights approximate how much 1% of each stat translates to effective DPS gain.
         They are used to score gear lines and rank upgrade priorities.
         <span style="color:#fbbf24">Yellow</span> values differ from defaults.
       </div>
 
-      <div class="section-label" style="margin-top:1.2rem">Base Weights (weapon-independent)</div>
-      <table class="attr-table">
-        <tr><th>Stat</th><th>Weight</th><th>Default</th></tr>
-        ${baseRows}
-      </table>
-
-      <div class="section-label" style="margin-top:1.5rem">Weapon-Specific Overrides</div>
-      <div class="info-note" style="margin-bottom:.7rem">
-        These override the base weight for specific weapon types. Leave blank to use the base weight.
+      <div class="panel-card">
+        <div class="panel-card-title">Base Weights<span style="font-size:12px;font-weight:400;color:#475569">weapon-independent</span></div>
+        <table class="attr-table">
+          <tr><th>Stat</th><th>Weight</th><th>Default</th></tr>
+          ${baseRows}
+        </table>
       </div>
-      <table class="attr-table weapon-table">
-        <tr><th>Weapon</th><th>Max Ammo</th><th>Charge Spd</th><th>Charge Dmg</th><th>Hit Rate</th></tr>
-        ${weaponRows}
-      </table>
 
-      <div class="section-label" style="margin-top:1.5rem">Max Ammo Diminishing Returns</div>
-      <div class="info-note" style="margin-bottom:.7rem">
-        The first Max Ammo line is highly valuable (reduces reload frequency significantly).
-        Additional lines have sharply diminishing returns. The multiplier below is applied to the base Max Ammo weight.
+      <div class="panel-card">
+        <div class="panel-card-title">Weapon-Specific Overrides</div>
+        <div class="info-note">These override the base weight for specific weapon types. Leave blank to use the base weight.</div>
+        <table class="attr-table weapon-table">
+          <tr><th>Weapon</th><th>Max Ammo</th><th>Charge Spd</th><th>Charge Dmg</th><th>Hit Rate</th></tr>
+          ${weaponRows}
+        </table>
       </div>
-      <table class="attr-table diminish-table">
-        <tr><th>Line #</th><th>Multiplier</th><th>Default</th><th>Effect</th></tr>
-        ${diminishRows}
-      </table>
 
-      <div style="margin-top:1.5rem; display:flex; gap:10px">
+      <div class="panel-card">
+        <div class="panel-card-title">Max Ammo Diminishing Returns</div>
+        <div class="info-note">The first Max Ammo line is highly valuable (reduces reload frequency significantly). Additional lines have sharply diminishing returns. The multiplier below is applied to the base Max Ammo weight.</div>
+        <table class="attr-table diminish-table">
+          <tr><th>Line #</th><th>Multiplier</th><th>Default</th><th>Effect</th></tr>
+          ${diminishRows}
+        </table>
+      </div>
+
+      <div style="display:flex; gap:10px">
         <button class="btn" onclick="resetWeightsToDefault()">Reset All to Defaults</button>
       </div>
     </div>

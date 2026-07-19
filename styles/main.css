@@ -523,12 +523,103 @@ html.modal-open {
 .line-box {
     container-type: inline-size;
     border: 1px solid #1e2535;
+    /* Thicker left edge is tinted by the line's priority class below. */
+    border-left: 3px solid #2a3547;
     border-radius: 8px;
-    padding: 8px;
+    padding: 8px 9px;
     background: #0f1117;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
+}
+/* Left-edge colour = priority class, so each line's quality reads instantly. */
+.line-box.prio-essential,
+.line-box.prio-ideal {
+    border-left-color: #22c55e;
+}
+.line-box.prio-passable {
+    border-left-color: #f59e0b;
+}
+.line-box.prio-trash {
+    border-left-color: #ef4444;
+}
+/* Locked = a protected line: subtle green wash (lighter than the old solid fill). */
+.line-box.is-locked {
+    background: #0d1712;
+    border-color: #1c3a2a;
+}
+.line-header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+/* Drop-chance sits quietly beside the line number rather than as loud jargon. */
+.line-chance-note {
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #5d6779;
+}
+/* Compact lock toggle — replaces the old full-width Lock button under each line. */
+.lock-toggle {
+    flex-shrink: 0;
+    width: 26px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1;
+    border: 1px solid #2d3f5e;
+    border-radius: 5px;
+    background: none;
+    color: #64748b;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background 0.12s,
+        border-color 0.12s,
+        transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lock-toggle.locked {
+    background: #052e16;
+    border-color: #166534;
+    color: #4ade80;
+}
+.lock-toggle:hover:not(:disabled) {
+    border-color: #3b5a8f;
+}
+.lock-toggle:active:not(:disabled) {
+    transform: scale(0.88);
+}
+.lock-toggle:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+/* Slot header score pill — uses the shared semantic colours, not inline styles. */
+.slot-score {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+.slot-score.sc-keep {
+    background: #052e16;
+    color: #4ade80;
+}
+.slot-score.sc-ok {
+    background: #3f2a06;
+    color: #fcd34d;
+}
+.slot-score.sc-reroll {
+    background: #3f1010;
+    color: #f87171;
+}
+.slot-score.sc-none {
+    color: #475569;
 }
 @container (max-width: 240px) {
     .line-selects {
@@ -551,7 +642,7 @@ html.modal-open {
 }
 .line-label {
     font-size: 12px;
-    color: #475569;
+    color: #64748b;
     letter-spacing: 0.05em;
 }
 .line-chance {
@@ -1547,6 +1638,135 @@ details[open] > .verdict-title {
     color: #60a5fa;
     border-color: #3b82f6;
 }
+/* Button modifiers reused by the Cubes/Weights/Wishlist screens. */
+.btn-danger {
+    border-color: #7f1d1d;
+    color: #f87171;
+}
+.btn-danger:hover {
+    background: #2a1414;
+    color: #fca5a5;
+}
+.btn-track {
+    width: 100%;
+    border-style: dashed;
+    border-color: #2d4a6f;
+    color: #60a5fa;
+}
+.btn-track:hover {
+    background: #14233a;
+    color: #93c5fd;
+}
+
+/* ── Carded panels (Cubes / Weights / Wishlist) — match the Nikkes screen ──
+   Same surface as the gear slot cards: dark panel, subtle border, section-style
+   title with an underline. */
+.panel-page-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 12px;
+}
+.panel-card {
+    background: #0f1320;
+    border: 1px solid #1e2535;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 12px;
+}
+.panel-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #eef2f8;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #1e2535;
+}
+.panel-card .info-note {
+    margin-bottom: 10px;
+}
+
+/* Cubes: responsive grid of cube cards (one card per Harmony Cube). */
+.cube-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+    gap: 10px;
+}
+.cube-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #11151d;
+    border: 1px solid #1b212d;
+    /* Left edge highlights tracked cubes (mirrors the gear line accents). */
+    border-left: 3px solid #232c3b;
+    border-radius: 9px;
+    padding: 10px 12px;
+}
+.cube-card.is-tracked {
+    background: #0f1a15;
+    border-left-color: #22c55e;
+}
+.cube-card.is-untracked {
+    opacity: 0.72;
+}
+.cube-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.cube-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e7ecf3;
+}
+.cube-lv-badge {
+    font-size: 12px;
+    font-weight: 700;
+    color: #4ade80;
+    background: #052e16;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+.cube-users {
+    font-size: 12px;
+    color: #5d6779;
+    line-height: 1.4;
+}
+.cube-users .cube-user {
+    color: #94a3b8;
+}
+.cube-card-foot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+}
+.cube-card-foot .stepper {
+    flex: 1;
+}
+.cube-card-foot .btn-sm {
+    flex: none;
+    min-width: 0;
+}
+
+/* Wishlist: "Treasure" boost marker as a small pill. */
+.wl-treasure {
+    font-size: 11px;
+    font-weight: 600;
+    color: #60a5fa;
+    background: #14233a;
+    padding: 1px 6px;
+    border-radius: 5px;
+    margin-left: 6px;
+    white-space: nowrap;
+}
 
 /* ── Segmented toggle (e.g. Rec / Max skill target) ── */
 .seg-toggle {
@@ -2278,7 +2498,11 @@ details[open] > .verdict-title {
 .stats-grid-main {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    /* Each row break is a full-width zero-height .chip-break line, so a row
+       transition spans TWO row-gaps. Halving row-gap makes the effective
+       vertical gap (4+4) match the 8px horizontal column-gap. */
+    column-gap: 8px;
+    row-gap: 4px;
     align-items: stretch;
 }
 /* Single row: chips size to content (proportional) so wide values like a long
@@ -2288,13 +2512,13 @@ details[open] > .verdict-title {
     width: auto;
     flex: 1 1 auto;
 }
-/* A full-width, zero-height flex item forces the next chip onto a new row. */
+/* A full-width, zero-height flex item forces the next chip onto a new row.
+   Row spacing is handled by the container's row-gap (see .stats-grid-main). */
 .chip-break {
     display: none;
     flex-basis: 100%;
     width: 100%;
     height: 0;
-    margin: -4px 0;
 }
 /* Narrower than one row → 4/3 (break after Bond). Chips become even width. */
 @container (max-width: 899px) {
@@ -2742,14 +2966,14 @@ details[open] > .verdict-title {
 .team-lane {
     background: #0f1320;
     border: 1px solid #1e2535;
-    border-radius: 8px;
-    padding: 8px;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
 }
 .team-lane-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
     min-height: 28px;
 }
 .team-label {
@@ -2804,8 +3028,9 @@ details[open] > .verdict-title {
     gap: 5px;
     padding: 8px 6px;
     position: relative;
-    background: #1a2235;
-    border: 1px solid #2d3f5e;
+    /* Neutral dark surface matching the gear line-boxes on the Nikkes screen. */
+    background: #0f1117;
+    border: 1px solid #1e2535;
     border-radius: 8px;
     color: #e2e8f0;
     min-width: 0;
@@ -2814,14 +3039,15 @@ details[open] > .verdict-title {
 }
 .team-slot-empty {
     border-style: dashed;
-    background: #0f172a;
+    border-color: #232c3b;
+    background: #0c0f16;
     justify-content: center;
     cursor: pointer;
 }
 .team-slot-empty:hover {
-    border-color: #3d5a80;
-    border-style: solid;
-    background: #1e2d45;
+    border-color: #2d3f5e;
+    border-style: dashed;
+    background: #11151d;
 }
 .team-slot-add-btn {
     width: 34px;
@@ -2842,12 +3068,12 @@ details[open] > .verdict-title {
     color: #94a3b8;
 }
 .team-slot-filled {
-    background: #1a2235;
+    background: #0f1117;
     cursor: pointer;
 }
 .team-slot-filled:hover {
-    background: #1e2d45;
-    border-color: #3d5a80;
+    background: #141a26;
+    border-color: #2d3f5e;
 }
 .team-slot-info {
     display: flex;
@@ -2894,6 +3120,8 @@ details[open] > .verdict-title {
     color: #64748b;
     white-space: nowrap;
 }
+/* Shared overlay for centered-modal popups: the gear/team "Add" forms use this
+   as-is; the team Nikke picker overrides it into a bottom sheet via its #id. */
 .team-slot-picker-overlay {
     display: none;
     position: fixed;
@@ -2921,20 +3149,23 @@ details[open] > .verdict-title {
     max-height: 50vh;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
+/* Match the Nikkes-list item style (.nikke-item). */
 .team-slot-picker-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 8px;
-    border-radius: 6px;
+    padding: 8px 11px;
+    border: 1px solid transparent;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
     color: #e2e8f0;
+    transition: background 0.1s;
 }
 .team-slot-picker-item:hover {
-    background: #1e3a5f;
+    background: #1a2235;
 }
 .team-slot-picker-remove {
     color: #f87171;
@@ -2944,6 +3175,82 @@ details[open] > .verdict-title {
 }
 .team-slot-picker-remove:hover {
     background: #2d1515;
+}
+
+/* ── Team Nikke picker → behaves like the Nikkes-list menu ──
+   Scoped to the picker's #id so the shared "Add" forms (gear + roster), which
+   reuse .team-slot-picker-* classes, keep their centered-modal styling. The
+   backdrop fades via opacity (always laid out, click-through until `.show`) and
+   the panel is a bottom sheet on mobile. `animation:none` opts out of the shared
+   fade/pop-in keyframes — a fill-mode:both keyframe would pin the panel and
+   break the swipe/close transition. */
+#team-slot-picker-overlay {
+    display: flex;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s ease;
+    animation: none;
+}
+#team-slot-picker-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+#team-slot-picker-overlay .team-slot-picker-modal {
+    animation: none;
+}
+#team-slot-picker-overlay .sheet-drag-zone {
+    display: block;
+    flex-shrink: 0;
+    touch-action: none;
+    cursor: grab;
+}
+#team-slot-picker-overlay .sheet-drag-handle {
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: #334155;
+    margin: 2px auto 10px;
+}
+@media (max-width: 768px) {
+    #team-slot-picker-overlay {
+        /* Column so justify-content:flex-end anchors the sheet to the BOTTOM
+           (the base overlay is a row flex container). */
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-end;
+        /* Sit just BELOW the fixed bottom nav (z-index 900): the backdrop can't
+           dim the nav, and the sheet slides up from BEHIND the nav (which stays
+           on top) rather than in front of it. */
+        z-index: 890;
+    }
+    #team-slot-picker-overlay .team-slot-picker-modal {
+        width: 100%;
+        max-width: none;
+        height: 85vh;
+        max-height: 85vh;
+        border-radius: 18px 18px 0 0;
+        border-bottom: none;
+        /* Extra bottom padding clears the nav overlapping the sheet's lower edge,
+           so list content isn't hidden behind it. */
+        padding: 8px 14px calc(14px + 57px + env(safe-area-inset-bottom));
+        box-shadow: 0 -12px 44px rgba(0, 0, 0, 0.55);
+        /* Off-screen until `.show`; slides up on open, back down on close/swipe. */
+        transform: translateY(110%);
+        transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #team-slot-picker-overlay.show .team-slot-picker-modal {
+        transform: translateY(0);
+    }
+    #team-slot-picker-overlay .team-slot-picker-modal.dragging {
+        transition: none;
+    }
+    /* Inside the sheet the list fills the remaining height and scrolls. */
+    #team-slot-picker-overlay .team-slot-picker-list {
+        max-height: none;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
 }
 .team-readiness-list {
     display: flex;
@@ -3281,13 +3588,14 @@ details[open] > .verdict-title {
     text-align: left;
     padding: 10px 12px;
     margin-bottom: 0; /* grid gap handles spacing */
-    background: #1a2235;
-    border-color: #2d3f5e;
+    /* Match the neutral card surface used by .team-gap-item (and cube cards). */
+    background: #0f1320;
+    border-color: #1b212d;
     position: relative;
 }
 .team-gear-card:hover {
-    background: #1e2d45;
-    border-color: #3d5a80;
+    background: #131826;
+    border-color: #2d3f5e;
 }
 .team-gear-card-name {
     display: flex;
@@ -3637,11 +3945,12 @@ details[open] > .verdict-title {
         color: #f1f5f9;
     }
 
-    /* ── Nikkes list as a bottom sheet (like the "More" menu) ──
-       Scoped under .nikke-list-collapsible so the Teams roster popup, which
-       reuses .nikke-list-panel inside .roster-list-collapsible, keeps its
-       centered-modal styling. */
-    .nikke-sidebar .nikke-list-collapsible {
+    /* ── Nikkes & Teams-roster lists as a bottom sheet (like the "More" menu) ──
+       Both the gear Nikkes popup (.nikke-list-collapsible) and the Teams roster
+       popup (.roster-list-collapsible) open as a slide-up bottom sheet that can be
+       swiped down to dismiss. */
+    .nikke-sidebar .nikke-list-collapsible,
+    .nikke-sidebar .roster-list-collapsible {
         flex-direction: column;
         align-items: stretch;
         justify-content: flex-end;
@@ -3652,11 +3961,13 @@ details[open] > .verdict-title {
         pointer-events: none;
         transition: opacity 0.3s ease;
     }
-    .nikke-sidebar .nikke-list-collapsible.show {
+    .nikke-sidebar .nikke-list-collapsible.show,
+    .nikke-sidebar .roster-list-collapsible.show {
         opacity: 1;
         pointer-events: auto;
     }
-    .nikke-sidebar .nikke-list-collapsible .nikke-list-panel {
+    .nikke-sidebar .nikke-list-collapsible .nikke-list-panel,
+    .nikke-sidebar .roster-list-collapsible .nikke-list-panel {
         width: 100%;
         max-width: none;
         /* Fixed height (not max-height) so the sheet stays put while searching /
@@ -3672,20 +3983,24 @@ details[open] > .verdict-title {
         transform: translateY(110%);
         transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .nikke-sidebar .nikke-list-collapsible.show .nikke-list-panel {
+    .nikke-sidebar .nikke-list-collapsible.show .nikke-list-panel,
+    .nikke-sidebar .roster-list-collapsible.show .nikke-list-panel {
         transform: translateY(0);
     }
-    .nikke-sidebar .nikke-list-collapsible .nikke-list-panel.dragging {
+    .nikke-sidebar .nikke-list-collapsible .nikke-list-panel.dragging,
+    .nikke-sidebar .roster-list-collapsible .nikke-list-panel.dragging {
         transition: none;
     }
-    /* Drag zone = grab handle + title row; the swipe-down-to-dismiss target. */
-    .nikke-sidebar .nikke-list-collapsible .sheet-drag-zone {
+    /* Drag zone = grab handle; the swipe-down-to-dismiss target. */
+    .nikke-sidebar .nikke-list-collapsible .sheet-drag-zone,
+    .nikke-sidebar .roster-list-collapsible .sheet-drag-zone {
         display: block;
         flex-shrink: 0;
         touch-action: none;
         cursor: grab;
     }
-    .nikke-sidebar .nikke-list-collapsible .sheet-drag-handle {
+    .nikke-sidebar .nikke-list-collapsible .sheet-drag-handle,
+    .nikke-sidebar .roster-list-collapsible .sheet-drag-handle {
         display: block;
         width: 40px;
         height: 4px;
@@ -3949,8 +4264,9 @@ details[open] > .verdict-title {
 }
 
 /* ── 5. Modals: backdrop fades, dialog pops in ──
-   Tutorial, My Data, team-slot picker, and the mobile Nikke/roster
-   list popup all share this. */
+   Tutorial + the gear/roster "Add" forms share this centered-modal animation.
+   The team Nikke picker (#team-slot-picker-overlay) opts out via `animation:none`
+   — it slides/fades through its own `.show` transitions instead. */
 .tutorial-overlay.show,
 .team-slot-picker-overlay.show {
     animation: nm-fade-in 0.18s ease both;
@@ -3959,21 +4275,12 @@ details[open] > .verdict-title {
 .team-slot-picker-overlay.show .team-slot-picker-modal {
     animation: nm-pop-in 0.24s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
-@media (max-width: 768px) {
-    /* Teams roster popup fades its backdrop + pops the card in on open. The
-       Nikkes list sheet is deliberately NOT animated here — it opens/closes via
-       the `.show` class (opacity + transform transitions, see the bottom-sheet
-       block above) so it can animate BOTH ways and be dragged by touch. A
-       fill-mode:both keyframe would pin the panel's transform to its end state
-       and silently override the swipe's inline transform and the close
-       transition. */
-    .nikke-sidebar .roster-list-collapsible {
-        animation: nm-fade-in 0.18s ease both;
-    }
-    .nikke-sidebar .roster-list-collapsible .nikke-list-panel {
-        animation: nm-pop-in 0.24s cubic-bezier(0.34, 1.4, 0.64, 1) both;
-    }
-}
+/* Both the Nikkes list and the Teams roster list open/close via the `.show`
+   class (opacity + transform transitions, see the bottom-sheet block above) so
+   they animate BOTH ways and can be dragged by touch. They are deliberately NOT
+   given a fill-mode:both keyframe here — that would pin the panel's transform to
+   its end state and silently override the swipe's inline transform and the close
+   transition. */
 
 /* ── 6. Tutorial steps: gentle staggered rise on open ── */
 .tutorial-overlay.show .tut-step {

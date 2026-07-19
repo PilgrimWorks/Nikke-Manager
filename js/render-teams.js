@@ -54,6 +54,10 @@ let _newRosterMode = "solo";
 // is always shown inline via CSS. Starts closed and auto-closes when a roster is
 // selected so the team lanes take focus on small screens.
 let _rosterListCollapsed = true;
+// Whether the mobile roster sheet is animated-in (has the `.show` class). Mirrors
+// the Nikkes menu's _nikkeSheetShown so re-renders while open re-apply `.show`
+// without replaying the slide-up.
+let _rosterSheetShown = false;
 // Current roster-list search text (persisted across re-renders).
 let _rosterSearch = "";
 // Clear the roster list's type filter + search back to their defaults. Not
@@ -63,33 +67,58 @@ function resetRosterFilters() {
     state.teamModeFilter = "";
 }
 function toggleRosterList() {
-    _rosterListCollapsed = !_rosterListCollapsed;
-    if (!_rosterListCollapsed) {
-        // Opening the popup (mobile-only) — clear the filter + search so it opens
-        // fresh each time. renderTeams fully rebuilds, so the reset takes effect.
-        resetRosterFilters();
-        renderTeams();
-    }
+    if (_rosterListCollapsed) openRosterListPopup();
+    else closeRosterListPopup();
+}
+// Open the mobile roster-list bottom sheet with a slide-up + backdrop fade,
+// mirroring the Nikkes menu. No visible effect on desktop (list is inline).
+function openRosterListPopup() {
+    // Opening the popup (mobile-only) — clear the filter + search so it opens
+    // fresh each time. renderTeams fully rebuilds, so the reset takes effect.
+    _rosterListCollapsed = false;
+    _rosterSheetShown = false; // render the sheet off-screen first, then animate in
+    resetRosterFilters();
+    renderTeams();
     const sb = document.querySelector("#teams .nikke-sidebar");
     if (!sb) return;
-    sb.classList.toggle("roster-collapsed", _rosterListCollapsed);
-    const tog = sb.querySelector(".roster-list-toggle");
-    if (tog) tog.setAttribute("aria-expanded", String(!_rosterListCollapsed));
-    // When the popup opens on mobile, focus the search field for quick filtering.
-    if (!_rosterListCollapsed) {
-        const search = document.getElementById("roster-sidebar-search");
-        if (search) search.focus();
+    sb.classList.remove("roster-collapsed");
+    const coll = sb.querySelector(".roster-list-collapsible");
+    if (coll) {
+        void coll.offsetWidth; // force reflow so the slide-up transition runs
+        _rosterSheetShown = true;
+        coll.classList.add("show");
     }
+    const tog = sb.querySelector(".roster-list-toggle");
+    if (tog) tog.setAttribute("aria-expanded", "true");
+    // Focus the search field for quick filtering as the sheet opens.
+    const search = document.getElementById("roster-sidebar-search");
+    if (search) search.focus();
 }
-// Explicit close for the mobile roster-list popup (backdrop tap / ✕ button).
+// Explicit close for the mobile roster-list popup (backdrop tap / swipe-down /
+// picking a roster). Slides the sheet down + fades the backdrop before hiding.
 // No-op on desktop, where the list is always shown inline.
 function closeRosterListPopup() {
     _rosterListCollapsed = true;
+    _rosterSheetShown = false;
     const sb = document.querySelector("#teams .nikke-sidebar");
     if (!sb) return;
-    sb.classList.add("roster-collapsed");
     const tog = sb.querySelector(".roster-list-toggle");
     if (tog) tog.setAttribute("aria-expanded", "false");
+    const coll = sb.querySelector(".roster-list-collapsible");
+    if (!coll) {
+        sb.classList.add("roster-collapsed");
+        return;
+    }
+    const panel = coll.querySelector(".nikke-list-panel");
+    if (panel) {
+        panel.classList.remove("dragging");
+        panel.style.transform = ""; // clear any drag offset; let CSS slide it down
+    }
+    coll.classList.remove("show"); // triggers the slide-down + backdrop fade
+    setTimeout(() => {
+        // Finish hiding only if it's still meant to be closed.
+        if (_rosterListCollapsed) sb.classList.add("roster-collapsed");
+    }, 340);
 }
 // Filter the roster list by type (Solo / Union / Tribe / Campaign). Persisted in
 // state and rebuilds the list, like the Nikkes tab's dropdown filters.
@@ -206,13 +235,13 @@ function renderTeams() {
     el.innerHTML = `<div class="two-col">
     <div class="nikke-sidebar${_rosterListCollapsed ? " roster-collapsed" : ""}">
       <button type="button" class="roster-list-toggle is-popout" onclick="toggleRosterList()" aria-haspopup="dialog" aria-expanded="${!_rosterListCollapsed}">
-        <svg class="nikke-list-toggle-icon" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.5" y2="15.5"/></svg>
-        <span>Search Roster</span>
+        <svg class="nikke-list-toggle-icon" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <span>Rosters</span>
         <span class="roster-list-count">${state.teamRaids.length}</span>
       </button>
-      <div class="roster-list-collapsible" onclick="if(event.target===this)closeRosterListPopup()">
+      <div class="roster-list-collapsible${!_rosterListCollapsed && _rosterSheetShown ? " show" : ""}" onclick="if(event.target===this)closeRosterListPopup()">
         <div class="nikke-list-panel">
-          <div class="nikke-list-popup-header"><span>Rosters</span><button type="button" class="del-btn" onclick="closeRosterListPopup()" style="font-size:16px">✕</button></div>
+          <div class="sheet-drag-zone"><div class="sheet-drag-handle" aria-hidden="true"></div></div>
           <input id="roster-sidebar-search" class="form-input" placeholder="Search roster..." value="${_rosterSearch.replace(/"/g, "&quot;")}" oninput="filterRosterList()" style="font-size:13px;padding:4px 8px;width:100%"/>
           <div style="display:flex;flex-direction:column;gap:2px">
             <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Type</span>
@@ -274,8 +303,15 @@ function selTeamRaid(id) {
     state.selTeamRaid = id;
     state.teamRaidGap = null;
     _rosterGapTeam = 1; // gap tabs default to Team 1 for the newly-picked roster
-    _rosterListCollapsed = true; // mobile: hide the list so the picked roster's lanes show
-    renderTeams();
+    // Mobile: slide the roster sheet closed so the picked roster's lanes show.
+    closeRosterListPopup();
+    // Update the active highlight in place — a full rebuild would cut the close
+    // animation short (mirrors the Nikkes list's selGearNikke).
+    document.querySelectorAll("#teams .nikke-list .nikke-item").forEach((elm) => {
+        elm.classList.toggle("active", (elm.getAttribute("onclick") || "").includes("'" + id + "'"));
+    });
+    const raid = state.teamRaids.find((r) => r.id === id);
+    if (raid) renderTeamRaidMain(raid);
     // Jump to the top so the picked roster's lanes start at their header.
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1080,10 +1116,7 @@ function renderTeamSlot(raid, teamNum, slotIdx, entry, maxEntry) {
 function renderTeamSlotPickerOverlay() {
     return `<div class="team-slot-picker-overlay" id="team-slot-picker-overlay" onclick="if(event.target===this)closeTeamSlotPicker()">
       <div class="team-slot-picker-modal">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:14px;font-weight:600;color:#f1f5f9">Pick a Nikke</span>
-          <button class="del-btn" onclick="closeTeamSlotPicker()" style="font-size:16px">✕</button>
-        </div>
+        <div class="sheet-drag-zone"><div class="sheet-drag-handle" aria-hidden="true"></div></div>
         <input class="form-input" id="team-slot-picker-search" placeholder="Search..." oninput="filterTeamSlotPicker()" data-kbnav-list="#team-slot-picker-list" style="margin-bottom:8px"/>
         <div id="team-slot-picker-list" class="team-slot-picker-list"></div>
       </div>
@@ -1097,6 +1130,7 @@ function openTeamSlotPicker(raidId, teamNum, slotIdx) {
     _teamSlotPickerState = { raidId, team: teamNum, slot: slotIdx, entryIdx: null };
     const overlay = document.getElementById("team-slot-picker-overlay");
     if (overlay) {
+        void overlay.offsetWidth; // commit the closed state so the slide-up runs
         overlay.classList.add("show");
         const search = document.getElementById("team-slot-picker-search");
         if (search) {
@@ -1111,6 +1145,7 @@ function openTeamSlotPickerEdit(raidId, teamNum, entryIdx) {
     _teamSlotPickerState = { raidId, team: teamNum, slot: null, entryIdx };
     const overlay = document.getElementById("team-slot-picker-overlay");
     if (overlay) {
+        void overlay.offsetWidth; // commit the closed state so the slide-up runs
         overlay.classList.add("show");
         const search = document.getElementById("team-slot-picker-search");
         if (search) {
@@ -1123,7 +1158,14 @@ function openTeamSlotPickerEdit(raidId, teamNum, entryIdx) {
 
 function closeTeamSlotPicker() {
     const overlay = document.getElementById("team-slot-picker-overlay");
-    if (overlay) overlay.classList.remove("show");
+    if (overlay) {
+        const modal = overlay.querySelector(".team-slot-picker-modal");
+        if (modal) {
+            modal.classList.remove("dragging");
+            modal.style.transform = ""; // clear any drag offset; let CSS slide it down
+        }
+        overlay.classList.remove("show"); // fade backdrop + slide the sheet down
+    }
     _teamSlotPickerState = { raidId: null, team: null, slot: null, entryIdx: null };
 }
 

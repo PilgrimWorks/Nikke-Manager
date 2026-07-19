@@ -83,7 +83,7 @@ function renderWishlist() {
                 : picks
                       .map((p, i) => {
                           const treasureBadge = p.lbBoosted
-                              ? ` <span style="color:#60a5fa;font-size:11px;vertical-align:middle">★ Treasure</span>`
+                              ? `<span class="wl-treasure">★ Treasure</span>`
                               : "";
                           const lbCell = p.lb > 0 ? `${p.lb}/3` : `<span style="color:#64748b">—</span>`;
                           const coresCell = p.cores > 0 ? `${p.cores}/7` : `<span style="color:#64748b">—</span>`;
@@ -97,8 +97,8 @@ function renderWishlist() {
                       })
                       .join("");
         return `
-            <div style="flex:1 1 380px;min-width:0;background:#0f1320;border:1px solid #1e2535;border-radius:10px;padding:0.9rem">
-                <div style="font-size:15px;font-weight:600;color:#f1f5f9;margin-bottom:.6rem;padding-bottom:.45rem;border-bottom:1px solid #1e2535">${mfr}</div>
+            <div class="panel-card" style="flex:1 1 380px;min-width:0;margin-bottom:0">
+                <div class="panel-card-title">${mfr}</div>
                 <table class="attr-table" style="width:100%;table-layout:fixed;min-width:0">
                     <colgroup>
                         <col style="width:2rem">
@@ -127,7 +127,7 @@ function renderWishlist() {
 
     el.innerHTML = `
         <div style="max-width:960px">
-            <div class="team-raid-title" style="padding-left:9px;margin-bottom:12px">Wishlist Recommendations</div>
+            <div class="panel-page-title">Wishlist Recommendations</div>
             ${lb3Note}
             <div style="display:flex;flex-wrap:wrap;gap:1.5rem">
                 ${cardsHtml}

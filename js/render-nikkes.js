@@ -372,11 +372,11 @@ function renderGear() {
           <span>Nikkes</span>
           <span class="roster-list-count">${state.nikkes.length}</span>
         </button>`;
-        // Mobile-only header (hidden on desktop) shown at the top of the popup.
-        // On mobile the popup is a bottom sheet: the drag zone (grab handle +
-        // title row) is the swipe-down-to-dismiss area (see the swipe handler in
-        // app.js). Desktop hides this whole block via CSS.
-        const popupHeader = `<div class="sheet-drag-zone"><div class="sheet-drag-handle" aria-hidden="true"></div><div class="nikke-list-popup-header"><span>Nikkes</span><button type="button" class="del-btn" onclick="closeNikkeListPopup()" style="font-size:16px">✕</button></div></div>`;
+        // Mobile-only grab handle (hidden on desktop) at the top of the popup.
+        // On mobile the popup is a bottom sheet: this drag zone is the
+        // swipe-down-to-dismiss area (see the swipe handler in app.js). Close by
+        // swiping down or tapping the backdrop. Desktop hides this via CSS.
+        const popupHeader = `<div class="sheet-drag-zone"><div class="sheet-drag-handle" aria-hidden="true"></div></div>`;
         // On mobile the collapsible becomes a full-screen dimmed overlay (tap the
         // backdrop to close) and the inner panel is a bottom sheet. On desktop
         // both are transparent flex columns filling the sidebar.
@@ -710,9 +710,10 @@ function renderGearMain(nikke) {
         const v = getVerdict(nikke, slot);
         const sc = scorePiece(nikke, slot);
 
+        const scoreCls = !v ? "sc-keep" : v.cls === "v-keep" ? "sc-keep" : v.cls === "v-ok" ? "sc-ok" : "sc-reroll";
         const badge = sc
-            ? `<span style="font-size:13px;padding:2px 8px;border-radius:5px;font-weight:600;background:${v.cls === "v-keep" ? "#052e16" : v.cls === "v-ok" ? "#3f2a06" : "#3f1010"};color:${v.cls === "v-keep" ? "#4ade80" : v.cls === "v-ok" ? "#fcd34d" : "#f87171"}">${sc.good} good · ${sc.trash} trash</span>`
-            : `<span style="font-size:13px;color:#334155">Not entered</span>`;
+            ? `<span class="slot-score ${scoreCls}">${sc.good} good · ${sc.trash} trash</span>`
+            : `<span class="slot-score sc-none">Not entered</span>`;
 
         const lineBoxes = gear.lines
             .map((line, i) => {
@@ -725,14 +726,18 @@ function renderGearMain(nikke) {
                 const prioText =
                     !cls || cls === "unset"
                         ? ""
-                        : cls === "ideal"
-                          ? "Ideal"
-                          : cls === "passable"
-                            ? "Passable"
-                            : cls === "trash"
-                              ? "Trash"
-                              : "";
+                        : cls === "essential"
+                          ? "Essential"
+                          : cls === "ideal"
+                            ? "Ideal"
+                            : cls === "passable"
+                              ? "Passable"
+                              : cls === "trash"
+                                ? "Trash"
+                                : "";
                 const prioCls = prioText ? `prio-${cls}` : "";
+                // Priority class also colours the line's left edge (at-a-glance read).
+                const lineCls = cls && cls !== "unset" ? ` prio-${cls}` : "";
                 // A stat can't appear twice on the same piece — hide stats already used on the other lines
                 const usedOnOtherLines = new Set(
                     gear.lines
@@ -754,10 +759,18 @@ function renderGearMain(nikke) {
                               })
                               .join("")
                         : "";
-                return `<div class="line-box" style="${line.locked ? "border-color:#166534;background:#052e16" : ""}">
+                return `<div class="line-box${lineCls}${line.locked ? " is-locked" : ""}">
         <div class="line-header">
-          <span class="line-label">Line ${i + 1} - ${LINE_CHANCE_LABELS[i]}</span>
-          ${prioText ? `<span class="prio-tag ${prioCls}">${prioText}</span>` : ""}
+          <span class="line-label">Line ${i + 1}<span class="line-chance-note">${LINE_CHANCE_LABELS[i]}</span></span>
+          <div class="line-header-right">
+            ${prioText ? `<span class="prio-tag ${prioCls}">${prioText}</span>` : ""}
+            <button class="lock-toggle ${line.locked ? "locked" : ""}"
+              onclick="toggleLock('${nikke.id}','${slot}',${i})"
+              ${!line.stat ? "disabled" : ""} tabindex="-1"
+              aria-pressed="${line.locked ? "true" : "false"}"
+              aria-label="${line.locked ? "Unlock this line" : "Lock this line"}"
+              title="${line.locked ? "Locked — tap to unlock" : "Lock this line"}">${line.locked ? "🔒" : "🔓"}</button>
+          </div>
         </div>
         <div class="line-selects">
           <select onchange="updateStat('${nikke.id}','${slot}',${i},this.value)" onkeydown="gearSelectKeydown(event,'${nikke.id}','${slot}',${i})" data-gear-select="${nikke.id}-${slot}-${i}" tabindex="${i * 2 + 1}" style="flex:1;min-width:0">
@@ -779,11 +792,6 @@ ${tierOpts}
         </div>
         ${line.stat && line.val && !aboveMin ? `<div class="warn-text">⚠ Below min ${MIN_VAL[line.stat]}%</div>` : ""}
         ${line.stat && line.val && aboveMin && !atTarget && isGoodLine(cls) ? `<div class="below-text">Below target T${targetTier}</div>` : ""}
-        <button class="lock-btn ${line.locked ? "locked" : ""}"
-          onclick="toggleLock('${nikke.id}','${slot}',${i})"
-          ${!line.stat ? "disabled" : ""} tabindex="-1">
-          ${line.locked ? "🔒 Locked" : "Lock"}
-        </button>
       </div>`;
             })
             .join("");

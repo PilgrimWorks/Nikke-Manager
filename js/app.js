@@ -113,23 +113,32 @@ function closeMoreSheet() {
     });
 })();
 
-// Swipe-down-to-dismiss for the mobile Nikkes-list bottom sheet. The panel is
-// re-created on every sidebar render, so the drag is wired with delegated
+// Swipe-down-to-dismiss for the mobile bottom sheets — the gear Nikkes list and
+// the Teams roster list, which share the same structure and behaviour. The panel
+// is re-created on every sidebar render, so the drag is wired with delegated
 // document-level listeners (attached once) rather than per-element handlers.
-// A drag only starts from the sheet's drag zone (grab handle + title row) so it
-// never fights the scrollable list below it.
-(function initNikkeListSheetSwipe() {
+// A drag only starts from the sheet's drag zone (grab handle) so it never fights
+// the scrollable list below it.
+(function initListSheetSwipe() {
     let sheet = null;
+    let closeFn = null;
     let startY = 0;
     let dragging = false;
 
     document.addEventListener(
         "touchstart",
         (e) => {
-            const zone = e.target.closest(".nikke-list-collapsible .sheet-drag-zone");
+            const zone = e.target.closest(
+                ".nikke-list-collapsible .sheet-drag-zone, .roster-list-collapsible .sheet-drag-zone, #team-slot-picker-overlay .sheet-drag-zone",
+            );
             if (!zone) return;
-            sheet = zone.closest(".nikke-list-panel");
+            sheet = zone.closest(".nikke-list-panel, .team-slot-picker-modal");
             if (!sheet) return;
+            closeFn = zone.closest(".roster-list-collapsible")
+                ? closeRosterListPopup
+                : zone.closest("#team-slot-picker-overlay")
+                  ? closeTeamSlotPicker
+                  : closeNikkeListPopup;
             startY = e.touches[0].clientY;
             dragging = true;
             sheet.classList.add("dragging");
@@ -149,14 +158,16 @@ function closeMoreSheet() {
         if (!dragging || !sheet) return;
         dragging = false;
         const panel = sheet;
+        const close = closeFn || closeNikkeListPopup;
         sheet = null;
+        closeFn = null;
         panel.classList.remove("dragging");
         const dy = e.changedTouches[0].clientY - startY;
         if (dy > 90) {
-            // Past the threshold — closeNikkeListPopup clears the drag offset and
-            // removes `.show`, so the sheet slides the rest of the way down and
-            // the backdrop fades out before it hides.
-            closeNikkeListPopup();
+            // Past the threshold — the close fn clears the drag offset and removes
+            // `.show`, so the sheet slides the rest of the way down and the
+            // backdrop fades out before it hides.
+            close();
         } else {
             panel.style.transform = ""; // snap back open
         }
