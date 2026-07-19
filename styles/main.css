@@ -196,6 +196,28 @@ html.modal-open {
     font-weight: 400;
 }
 
+/* Mobile: on the Nikkes-screen list, put the name on the left and the gear
+   dots + element/burst icons on a single row to its right (right-aligned),
+   instead of stacked beneath the name. Scoped to #gear so the Teams roster
+   list (which reuses .nikke-item) keeps its stacked layout. */
+@media (max-width: 768px) {
+    #gear .nikke-item-body {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+    #gear .nikke-item-name {
+        flex: 1;
+        min-width: 0;
+    }
+    #gear .nikke-item-sub {
+        margin-top: 0;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+}
+
 /* Keyboard focus highlight for arrow/Tab-navigable Nikke lists — reuses each
    list's own hover/active styling instead of a separate ring, so keyboard
    navigation looks native to the rest of the app. */
@@ -2075,6 +2097,11 @@ details[open] > .verdict-title {
         border-top: 1px solid #1e2535;
         padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
         box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.35);
+        /* Promote to its own compositing layer so its z-index is honoured over
+           the "More" overlay, which is GPU-composited by its backdrop-filter.
+           Without this the backdrop-filtered sheet can paint OVER the nav during
+           the hide animation despite the nav's higher z-index. */
+        transform: translateZ(0);
     }
     .bnav-item {
         flex: 1 1 0;
@@ -2115,7 +2142,10 @@ details[open] > .verdict-title {
         display: none; /* toggled to block via inline style on open */
         position: fixed;
         inset: 0;
-        z-index: 1100;
+        /* Sit BELOW the fixed bottom nav (z-index 900): the nav stays visible,
+           crisp and on top, and the sheet slides up from / down behind it — so
+           the show/hide animation happens beneath the bottom row, not over it. */
+        z-index: 890;
         background: rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(4px);
         opacity: 0;
@@ -2132,7 +2162,9 @@ details[open] > .verdict-title {
         background: #151c2b;
         border-top: 1px solid #2d3f5e;
         border-radius: 18px 18px 0 0;
-        padding: 8px 12px calc(18px + env(safe-area-inset-bottom));
+        /* Extra bottom padding (~57px nav height) lifts the menu items above the
+           bottom nav, which stays on top; the sheet's lower edge tucks behind it. */
+        padding: 8px 12px calc(18px + 57px + env(safe-area-inset-bottom));
         box-shadow: 0 -12px 44px rgba(0, 0, 0, 0.55);
         transform: translateY(110%);
         transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -3127,6 +3159,9 @@ details[open] > .verdict-title {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
+    /* Blur the page behind the menu, mirroring the "More" bottom sheet. */
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -3906,6 +3941,9 @@ details[open] > .verdict-title {
         inset: 0;
         z-index: 1000;
         background: rgba(0, 0, 0, 0.6);
+        /* Blur the page behind the menu, mirroring the "More" bottom sheet. */
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
         display: flex;
         align-items: center;
         justify-content: center;

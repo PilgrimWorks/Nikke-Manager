@@ -25,6 +25,8 @@ function switchTab(tab, event) {
     else if (tab === "cubes") renderCubes();
     else if (tab === "wishlist") renderWishlist();
     syncBottomNav(tab);
+    // The nav sits above the "More" sheet; tapping any tab also dismisses it.
+    closeMoreSheet();
 }
 
 // ── Mobile bottom nav & "More" sheet ────────────────────────
@@ -44,6 +46,13 @@ function syncBottomNav(tab) {
     document.querySelectorAll(".more-sheet-item[data-tab]").forEach((b) => {
         b.classList.toggle("active", b.getAttribute("data-tab") === tab);
     });
+}
+
+// Tapping the More button toggles the sheet: open it, or close it if already open.
+function toggleMoreSheet() {
+    const ov = document.getElementById("more-sheet-overlay");
+    if (ov && ov.classList.contains("show")) closeMoreSheet();
+    else openMoreSheet();
 }
 
 function openMoreSheet() {

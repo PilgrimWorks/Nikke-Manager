@@ -58,9 +58,10 @@ function openNikkeListPopup() {
     }
     const tog = sb.querySelector(".roster-list-toggle");
     if (tog) tog.setAttribute("aria-expanded", "true");
-    // Focus the search field for quick filtering as the sheet opens.
+    // Focus the search field for quick filtering as the sheet opens — but not on
+    // mobile, where it would pop the on-screen keyboard over the sheet.
     const search = document.getElementById("nikke-sidebar-search");
-    if (search) search.focus();
+    if (search && !isMobileView()) search.focus();
 }
 
 // Explicit close for the mobile Nikke-list popup (backdrop tap / ✕ button /
@@ -254,8 +255,12 @@ function renderGear() {
                 const badge = n.unrecognized
                     ? `<span class="nikke-badge" title="Not in database — burst, element and weapon are unknown. Edit in the Roster to fill them in.">not in DB</span>`
                     : "";
+                // Burst icon (I / II / III / All) alongside the element icon.
+                const bd = burstDisplay(n);
+                const burstNum = bd === "All" ? "All" : bd === "III" ? 3 : bd === "II" ? 2 : bd === "I" ? 1 : null;
+                const burst = burstNum ? burstIcon(burstNum, 20) : "";
                 return `<div class="nikke-item js-kbnav-item ${state.selGear === n.id ? "active" : ""}" data-id="${n.id}" data-name="${n.name.toLowerCase()}" tabindex="0" role="button" onclick="selGearNikke('${n.id}')" style="display:flex;align-items:center;gap:8px">
-      ${nikkeIcon(n.name, 34)}<div style="min-width:0"><div>${n.name}${badge}</div><div class="nikke-item-sub" style="display:flex;align-items:center;gap:6px"><span class="gear-dots-mini">${dots}</span>${elemIcon(n.element, 14)}</div></div>
+      ${nikkeIcon(n.name, 34)}<div class="nikke-item-body" style="min-width:0"><div class="nikke-item-name">${n.name}${badge}</div><div class="nikke-item-sub" style="display:flex;align-items:center;gap:6px"><span class="gear-dots-mini">${dots}</span>${elemIcon(n.element, 20)}${burst}</div></div>
     </div>`;
                 } catch (e) {
                     console.error("Error rendering nikke sidebar item:", n.name || n.id, e);
@@ -513,7 +518,7 @@ function showGearAddForm() {
     const search = document.getElementById("gear-nn-search");
     if (search) {
         search.value = "";
-        search.focus();
+        if (!isMobileView()) search.focus(); // mobile: don't pop the keyboard over the sheet
     }
     filterGearNikkeList();
 }
@@ -536,7 +541,7 @@ function renderGearAddList() {
                 const burstNum = bd === "All" ? "All" : bd === "III" ? 3 : bd === "II" ? 2 : bd === "I" ? 1 : null;
                 const burst = burstNum ? burstIcon(burstNum) : "";
                 return `<div class="team-slot-picker-item js-kbnav-item" data-name="${n.name.toLowerCase().replace(/"/g, "&quot;")}" tabindex="0" role="button" onclick="pickGearAddNikke('${n.name.replace(/'/g, "\\'")}')">
-      ${nikkeIcon(n.name, 28)}
+      ${nikkeIcon(n.name, 34)}
       <span>${n.name}</span>
       <span style="display:flex;align-items:center;gap:4px;margin-left:auto">${elem} ${burst}</span>
     </div>`;

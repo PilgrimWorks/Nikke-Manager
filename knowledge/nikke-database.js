@@ -5878,9 +5878,9 @@ function weaponIcon(weapon) {
 }
 
 // Pass 1/2/3 for a single burst type, or "All" for a nikke that covers all bursts.
-function burstIcon(burst) {
+function burstIcon(burst, size = 20) {
     if (!burst) return "";
-    return `<img src="assets/bursts/burst_${String(burst).toLowerCase()}.webp" alt="Burst ${burst}" style="width:20px;height:20px;vertical-align:middle;border-radius:3px;object-fit:contain">`;
+    return `<img src="assets/bursts/burst_${String(burst).toLowerCase()}.webp" alt="Burst ${burst}" style="width:${size}px;height:${size}px;vertical-align:middle;border-radius:3px;object-fit:contain">`;
 }
 
 function classIcon(cls) {

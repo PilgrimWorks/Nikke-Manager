@@ -67,7 +67,7 @@
         <!-- ?v= is an auto-managed cache-buster: the pre-commit hook stamps it with the
              commit hash (via scripts/stamp-version.ps1) so browsers — iOS Safari in
              particular — refetch changed CSS/JS instead of serving an old cached copy. -->
-        <link rel="stylesheet" href="styles/main.css?v=88ee231" />
+        <link rel="stylesheet" href="styles/main.css?v=66126bf" />
     </head>
     <body>
         <div class="app">
@@ -156,7 +156,7 @@
                 </svg>
                 <span>Teams</span>
             </button>
-            <button class="bnav-item bnav-more" id="bnav-more-btn" onclick="openMoreSheet()" aria-haspopup="true">
+            <button class="bnav-item bnav-more" id="bnav-more-btn" onclick="toggleMoreSheet()" aria-haspopup="true">
                 <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
                     <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
                 </svg>
@@ -345,25 +345,25 @@
         <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
         <!-- Knowledge Engine (shared across tools) -->
-        <script src="knowledge/nikke-database.js?v=88ee231"></script>
-        <script src="knowledge/weights.js?v=88ee231"></script>
-        <script src="knowledge/overload-math.js?v=88ee231"></script>
-        <script src="knowledge/build-info.js?v=88ee231"></script>
+        <script src="knowledge/nikke-database.js?v=66126bf"></script>
+        <script src="knowledge/weights.js?v=66126bf"></script>
+        <script src="knowledge/overload-math.js?v=66126bf"></script>
+        <script src="knowledge/build-info.js?v=66126bf"></script>
 
         <!-- App scripts (load order matters: state → helpers → firebase → renderers → init) -->
-        <script src="js/state.js?v=88ee231"></script>
-        <script src="js/helpers.js?v=88ee231"></script>
-        <script src="js/firebase.js?v=88ee231"></script>
-        <script src="js/ui-actions.js?v=88ee231"></script>
-        <script src="js/render-overview.js?v=88ee231"></script>
-        <script src="js/render-roster.js?v=88ee231"></script>
-        <script src="js/damage-calc.js?v=88ee231"></script>
-        <script src="js/render-nikkes.js?v=88ee231"></script>
-        <script src="js/render-priority.js?v=88ee231"></script>
-        <script src="js/render-teams.js?v=88ee231"></script>
-        <script src="js/render-weights.js?v=88ee231"></script>
-        <script src="js/render-cubes.js?v=88ee231"></script>
-        <script src="js/render-wishlist.js?v=88ee231"></script>
-        <script src="js/app.js?v=88ee231"></script>
+        <script src="js/state.js?v=66126bf"></script>
+        <script src="js/helpers.js?v=66126bf"></script>
+        <script src="js/firebase.js?v=66126bf"></script>
+        <script src="js/ui-actions.js?v=66126bf"></script>
+        <script src="js/render-overview.js?v=66126bf"></script>
+        <script src="js/render-roster.js?v=66126bf"></script>
+        <script src="js/damage-calc.js?v=66126bf"></script>
+        <script src="js/render-nikkes.js?v=66126bf"></script>
+        <script src="js/render-priority.js?v=66126bf"></script>
+        <script src="js/render-teams.js?v=66126bf"></script>
+        <script src="js/render-weights.js?v=66126bf"></script>
+        <script src="js/render-cubes.js?v=66126bf"></script>
+        <script src="js/render-wishlist.js?v=66126bf"></script>
+        <script src="js/app.js?v=66126bf"></script>
     </body>
 </html>
