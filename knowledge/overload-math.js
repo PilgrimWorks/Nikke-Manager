@@ -556,6 +556,37 @@ function getVerdict(nikke, slot) {
         }
       }
 
+      // ── Locked trash/sac lines blocking progress ──────────────
+      // If there are no fishable (unlocked) lines but there ARE locked trash/sac lines,
+      // the user locked a bad line unnecessarily. Tell them to unlock it.
+      const lockedSacLines = ann.filter(l => l.isSac && l.stat && l.locked);
+      if (lockedSacLines.length > 0) {
+        const steps2 = [];
+        steps2.push(`Trash/non-ideal line(s) are locked — unlock to continue improving:`);
+        lockedSacLines.forEach(l => steps2.push(`  → Unlock ${l.stat} on Line ${l.idx + 1} (${l.cls || 'trash'})`));
+        steps2.push(`Keep good lines locked, then Change Effects the unlocked trash line(s)`);
+        const trashStatNames = lockedSacLines.map(l => l.stat);
+        // Estimate rocks after unlocking: good lines stay locked, trash unlocked
+        const postUnlockLocked = goodLines.filter(l => l.locked).length;
+        const gfAfter = goodFrac(goodLines.map(l => l.stat));
+        const flAfter = lockedSacLines.map(l => ({ appear: l.appear }));
+        const rocksAfter = gfAfter > 0 ? estChangeEffectsRocks(flAfter, gfAfter, postUnlockLocked) : 999;
+        // Determine what to roll for (3rd ideal or passable)
+        const targetLabel = gfThird > 0
+          ? statsOrLabel(goodPrioNames)
+          : statsOrLabel(nikke.priorities.filter(p => p.tier === 'Passable').map(p => p.line).filter(ln => !usedStats.has(ln) && !usedStats.has(normStat(ln))));
+        return {
+          label: `${goodLines.length} good lines at target — unlock trash to reroll`,
+          action: `Unlock Line ${lockedSacLines[0].idx + 1} + roll for better`,
+          simpleSteps: [
+            `Unlock ${lockedSacLines.map(l => `${l.stat} (Line ${l.idx + 1})`).join(' & ')} — it's ${lockedSacLines[0].cls || 'trash'}, no reason to keep it`,
+            `Keep good lines locked`,
+            `Change Effects until ${targetLabel || 'a better stat'} rolls`,
+          ],
+          steps: steps2, cls: 'v-ok', rocks: rocksAfter,
+        };
+      }
+
       if (!steps.length) steps.push('This piece is complete — no action needed.');
       return { label: `Keep — ${goodLines.length} good lines at target`, action: `Keep · ${goodLines.length} good lines`, steps, cls: 'v-keep', rocks: 0 };
     }
@@ -577,6 +608,33 @@ function getVerdict(nikke, slot) {
 
     const toReset = goodBelowTgt.filter(l => !l.locked && !(l.tier && l.tier >= 12));
     const sacUnlocked = ann.filter(l => l.isSac && !l.locked);
+
+    // ── Sub-case 2x: Good lines below target but ALL locked ─────
+    // The user locked a line that still needs value improvement. Tell them to unlock it.
+    const lockedBelowTgt = goodBelowTgt.filter(l => l.locked);
+    if (toReset.length === 0 && lockedBelowTgt.length > 0) {
+      // Good lines are below target but locked — user needs to unlock them to reset
+      const goodAtTgt = goodLines.filter(l => l.atTarget);
+      const steps = [];
+      steps.push(`${lockedBelowTgt.length === 1 ? 'Line' : 'Lines'} below target but locked — unlock to continue improving:`);
+      lockedBelowTgt.forEach(l => steps.push(`  → Unlock ${l.stat} on Line ${l.idx + 1}: T${l.tier || '?'} at ${l.val}%, needs T${l.targetTier}+`));
+      if (goodAtTgt.length > 0) {
+        steps.push(`Keep locked: ${goodAtTgt.map(l => `${l.stat} (Line ${l.idx + 1}, T${l.tier})`).join(', ')}`);
+      }
+      steps.push(`Then Reset Attributes until the unlocked line(s) hit target tier`);
+      const unlockNames = lockedBelowTgt.map(l => l.stat);
+      const keepLockedCount = lockedCount - lockedBelowTgt.length;
+      return {
+        label: `${goodLines.length} good lines — unlock ${statsOrLabel(unlockNames)} to fix value`,
+        action: `Unlock Line ${lockedBelowTgt[0].idx + 1} + Reset to fix ${statsOrLabel(unlockNames)}`,
+        simpleSteps: [
+          `Unlock ${lockedBelowTgt.map(l => `${l.stat} (Line ${l.idx + 1})`).join(' & ')} — value is below target`,
+          ...(goodAtTgt.length ? [`Keep ${goodAtTgt.map(l => `${l.stat} (Line ${l.idx + 1})`).join(' & ')} locked`] : []),
+          `Reset Attributes until ${statsOrLabel(unlockNames)} reaches T${lockedBelowTgt[0].targetTier}+`,
+        ],
+        steps, cls: 'v-ok', rocks: estResetAttributesRocks(lockedBelowTgt.length, keepLockedCount, probHitTargetTier(lockedBelowTgt[0].targetTier)),
+      };
+    }
 
     // ── Sub-case 2a: Good lines exist but values below target ──
     if (toReset.length > 0) {
@@ -765,6 +823,17 @@ function getVerdict(nikke, slot) {
         steps, cls: 'v-ok', rocks: fishRocks, gain: ceGainLabel, dpsGain: ceGainDps,
       };
     }
+
+    // ── Catch-all: good lines exist but no actionable sub-case matched ──
+    // This can happen if all good lines are locked at target with no fishable lines.
+    // Never fall through to CASE 3 "Reroll freely" when good lines exist.
+    return {
+      label: `Keep — ${goodLines.length} good line${goodLines.length > 1 ? 's' : ''}`,
+      action: `Keep · ${goodLines.length} good line${goodLines.length > 1 ? 's' : ''}`,
+      simpleSteps: ['This gear has good lines — no further action needed.'],
+      steps: ['No further rolling needed — good lines are locked and at acceptable values.'],
+      cls: 'v-keep', rocks: 0,
+    };
   }
 
   // ── CASE 3: No good lines at all ─────────────────────────
