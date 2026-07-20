@@ -375,6 +375,53 @@ function migrateState() {
             });
         });
     });
+
+    // Migrate legacy stat names to the current short canonical forms so old
+    // cloud/backup data keeps matching after the stat-name rename.
+    // (Elemental Dmg → Ele Dmg, Critical Rate → Crit Rate, Critical Dmg →
+    //  Crit Dmg, Charge Speed → Charge Spd; long "Damage" variants included.)
+    const STAT_NAME_RENAME = {
+        "Elemental Damage": "Ele Dmg",
+        "Elemental Dmg": "Ele Dmg",
+        "Critical Rate": "Crit Rate",
+        "Critical Damage": "Crit Dmg",
+        "Critical Dmg": "Crit Dmg",
+        "Charge Speed": "Charge Spd",
+    };
+    const renameStat = (s) => (s && STAT_NAME_RENAME[s]) || s;
+    state.nikkes.forEach((n) => {
+        if (n.gear) {
+            SLOTS.forEach((s) => {
+                if (n.gear[s] && Array.isArray(n.gear[s].lines)) {
+                    n.gear[s].lines.forEach((l) => {
+                        if (l.stat) l.stat = renameStat(l.stat);
+                    });
+                }
+            });
+        }
+        if (Array.isArray(n.priorities)) {
+            n.priorities.forEach((p) => {
+                if (p.line) p.line = renameStat(p.line);
+            });
+        }
+    });
+    // Migrate custom weight keys too, if the user customised any.
+    if (state.customWeights) {
+        const renameKeys = (obj) => {
+            if (!obj || typeof obj !== "object") return;
+            for (const [oldK, newK] of Object.entries(STAT_NAME_RENAME)) {
+                if (obj[oldK] !== undefined && obj[newK] === undefined) {
+                    obj[newK] = obj[oldK];
+                    delete obj[oldK];
+                }
+            }
+        };
+        renameKeys(state.customWeights.base);
+        if (state.customWeights.weapon) {
+            Object.values(state.customWeights.weapon).forEach(renameKeys);
+        }
+    }
+
     state.nikkes.forEach((n) => {
         // Leave unrecognized (not-in-database) Nikkes' weapon genuinely unknown
         // rather than backfilling a guessed "AR" default.
@@ -448,18 +495,22 @@ function _applyScraperImport(scraperData, opts) {
 
     const STAT_MAP = {
         ATK: "ATK",
-        "Element DMG": "Elemental Dmg",
-        "Elemental Damage": "Elemental Dmg",
-        "Elemental Dmg": "Elemental Dmg",
+        "Element DMG": "Ele Dmg",
+        "Elemental Damage": "Ele Dmg",
+        "Elemental Dmg": "Ele Dmg",
+        "Ele Dmg": "Ele Dmg",
         "Max Ammo": "Max Ammo",
-        "Charge Speed": "Charge Speed",
+        "Charge Speed": "Charge Spd",
+        "Charge Spd": "Charge Spd",
         "Charge DMG": "Charge Dmg",
         "Charge Damage": "Charge Dmg",
         "Charge Dmg": "Charge Dmg",
-        "Critical Rate": "Critical Rate",
-        "Critical DMG": "Critical Dmg",
-        "Critical Damage": "Critical Dmg",
-        "Critical Dmg": "Critical Dmg",
+        "Critical Rate": "Crit Rate",
+        "Crit Rate": "Crit Rate",
+        "Critical DMG": "Crit Dmg",
+        "Critical Damage": "Crit Dmg",
+        "Critical Dmg": "Crit Dmg",
+        "Crit Dmg": "Crit Dmg",
         "Hit Rate": "Hit Rate",
         DEF: "DEF",
     };

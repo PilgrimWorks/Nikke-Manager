@@ -152,14 +152,17 @@ const DamageCalc = (() => {
         const v = parseFloat(l.val) / 100; // convert 10.4% → 0.104
         switch (l.stat) {
           case 'ATK': opts.gearATKPercent += v; break;
+          case 'Crit Rate':
           case 'Critical Rate': opts.gearCritRate += v; break;
+          case 'Crit Dmg':
           case 'Critical Dmg':
           case 'Critical Damage': opts.gearCritDmg += v; break;
+          case 'Ele Dmg':
           case 'Elemental Dmg':
           case 'Elemental Damage': opts.gearElementDmg += v; break;
           case 'Charge Dmg':
           case 'Charge Damage': opts.gearChargeDmg += v; break;
-          // Max Ammo, Charge Speed, Hit Rate, DEF — no direct per-hit damage effect
+          // Max Ammo, Charge Spd, Hit Rate, DEF — no direct per-hit damage effect
         }
       });
       return opts;

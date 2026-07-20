@@ -112,7 +112,8 @@ function showAddForm() {
         return;
     }
     f.classList.add("show");
-    document.getElementById("nn-search").focus();
+    // Skip auto-focus on mobile so the on-screen keyboard doesn't pop over the sheet.
+    if (!isMobileView()) document.getElementById("nn-search").focus();
 }
 function hideAddForm() {
     document.getElementById("add-form").classList.remove("show");

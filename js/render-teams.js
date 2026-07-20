@@ -54,6 +54,10 @@ let _newRosterMode = "solo";
 // is always shown inline via CSS. Starts closed and auto-closes when a roster is
 // selected so the team lanes take focus on small screens.
 let _rosterListCollapsed = true;
+// Whether the mobile roster sheet is animated-in (has the `.show` class). Mirrors
+// the Nikkes menu's _nikkeSheetShown so re-renders while open re-apply `.show`
+// without replaying the slide-up.
+let _rosterSheetShown = false;
 // Current roster-list search text (persisted across re-renders).
 let _rosterSearch = "";
 // Clear the roster list's type filter + search back to their defaults. Not
@@ -63,33 +67,59 @@ function resetRosterFilters() {
     state.teamModeFilter = "";
 }
 function toggleRosterList() {
-    _rosterListCollapsed = !_rosterListCollapsed;
-    if (!_rosterListCollapsed) {
-        // Opening the popup (mobile-only) — clear the filter + search so it opens
-        // fresh each time. renderTeams fully rebuilds, so the reset takes effect.
-        resetRosterFilters();
-        renderTeams();
-    }
+    if (_rosterListCollapsed) openRosterListPopup();
+    else closeRosterListPopup();
+}
+// Open the mobile roster-list bottom sheet with a slide-up + backdrop fade,
+// mirroring the Nikkes menu. No visible effect on desktop (list is inline).
+function openRosterListPopup() {
+    // Opening the popup (mobile-only) — clear the filter + search so it opens
+    // fresh each time. renderTeams fully rebuilds, so the reset takes effect.
+    _rosterListCollapsed = false;
+    _rosterSheetShown = false; // render the sheet off-screen first, then animate in
+    resetRosterFilters();
+    renderTeams();
     const sb = document.querySelector("#teams .nikke-sidebar");
     if (!sb) return;
-    sb.classList.toggle("roster-collapsed", _rosterListCollapsed);
-    const tog = sb.querySelector(".roster-list-toggle");
-    if (tog) tog.setAttribute("aria-expanded", String(!_rosterListCollapsed));
-    // When the popup opens on mobile, focus the search field for quick filtering.
-    if (!_rosterListCollapsed) {
-        const search = document.getElementById("roster-sidebar-search");
-        if (search) search.focus();
+    sb.classList.remove("roster-collapsed");
+    const coll = sb.querySelector(".roster-list-collapsible");
+    if (coll) {
+        void coll.offsetWidth; // force reflow so the slide-up transition runs
+        _rosterSheetShown = true;
+        coll.classList.add("show");
     }
+    const tog = sb.querySelector(".roster-list-toggle");
+    if (tog) tog.setAttribute("aria-expanded", "true");
+    // Focus the search field for quick filtering as the sheet opens — but not on
+    // mobile, where it would pop the on-screen keyboard over the sheet.
+    const search = document.getElementById("roster-sidebar-search");
+    if (search && !isMobileView()) search.focus();
 }
-// Explicit close for the mobile roster-list popup (backdrop tap / ✕ button).
+// Explicit close for the mobile roster-list popup (backdrop tap / swipe-down /
+// picking a roster). Slides the sheet down + fades the backdrop before hiding.
 // No-op on desktop, where the list is always shown inline.
 function closeRosterListPopup() {
     _rosterListCollapsed = true;
+    _rosterSheetShown = false;
     const sb = document.querySelector("#teams .nikke-sidebar");
     if (!sb) return;
-    sb.classList.add("roster-collapsed");
     const tog = sb.querySelector(".roster-list-toggle");
     if (tog) tog.setAttribute("aria-expanded", "false");
+    const coll = sb.querySelector(".roster-list-collapsible");
+    if (!coll) {
+        sb.classList.add("roster-collapsed");
+        return;
+    }
+    const panel = coll.querySelector(".nikke-list-panel");
+    if (panel) {
+        panel.classList.remove("dragging");
+        panel.style.transform = ""; // clear any drag offset; let CSS slide it down
+    }
+    coll.classList.remove("show"); // triggers the slide-down + backdrop fade
+    setTimeout(() => {
+        // Finish hiding only if it's still meant to be closed.
+        if (_rosterListCollapsed) sb.classList.add("roster-collapsed");
+    }, 340);
 }
 // Filter the roster list by type (Solo / Union / Tribe / Campaign). Persisted in
 // state and rebuilds the list, like the Nikkes tab's dropdown filters.
@@ -206,13 +236,13 @@ function renderTeams() {
     el.innerHTML = `<div class="two-col">
     <div class="nikke-sidebar${_rosterListCollapsed ? " roster-collapsed" : ""}">
       <button type="button" class="roster-list-toggle is-popout" onclick="toggleRosterList()" aria-haspopup="dialog" aria-expanded="${!_rosterListCollapsed}">
-        <svg class="nikke-list-toggle-icon" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.5" y2="15.5"/></svg>
-        <span>Search Roster</span>
+        <svg class="nikke-list-toggle-icon" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <span>Rosters</span>
         <span class="roster-list-count">${state.teamRaids.length}</span>
       </button>
-      <div class="roster-list-collapsible" onclick="if(event.target===this)closeRosterListPopup()">
+      <div class="roster-list-collapsible${!_rosterListCollapsed && _rosterSheetShown ? " show" : ""}" onclick="if(event.target===this)closeRosterListPopup()">
         <div class="nikke-list-panel">
-          <div class="nikke-list-popup-header"><span>Rosters</span><button type="button" class="del-btn" onclick="closeRosterListPopup()" style="font-size:16px">✕</button></div>
+          <div class="sheet-drag-zone"><div class="sheet-drag-handle" aria-hidden="true"></div></div>
           <input id="roster-sidebar-search" class="form-input" placeholder="Search roster..." value="${_rosterSearch.replace(/"/g, "&quot;")}" oninput="filterRosterList()" style="font-size:13px;padding:4px 8px;width:100%"/>
           <div style="display:flex;flex-direction:column;gap:2px">
             <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Type</span>
@@ -220,7 +250,7 @@ function renderTeams() {
               <option value="">All</option>${modeFilterOpts}
             </select>
           </div>
-          <button class="add-line-btn" onclick="showAddTeamRaidForm()" style="margin-top:12px;width:100%">+ New Roster</button>
+          <button class="add-line-btn add-nikke-cta" onclick="showAddTeamRaidForm()" style="margin-top:12px;width:100%">+ New Roster</button>
           <div class="nikke-list">
             ${raidList}
           </div>
@@ -274,8 +304,15 @@ function selTeamRaid(id) {
     state.selTeamRaid = id;
     state.teamRaidGap = null;
     _rosterGapTeam = 1; // gap tabs default to Team 1 for the newly-picked roster
-    _rosterListCollapsed = true; // mobile: hide the list so the picked roster's lanes show
-    renderTeams();
+    // Mobile: slide the roster sheet closed so the picked roster's lanes show.
+    closeRosterListPopup();
+    // Update the active highlight in place — a full rebuild would cut the close
+    // animation short (mirrors the Nikkes list's selGearNikke).
+    document.querySelectorAll("#teams .nikke-list .nikke-item").forEach((elm) => {
+        elm.classList.toggle("active", (elm.getAttribute("onclick") || "").includes("'" + id + "'"));
+    });
+    const raid = state.teamRaids.find((r) => r.id === id);
+    if (raid) renderTeamRaidMain(raid);
     // Jump to the top so the picked roster's lanes start at their header.
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1080,28 +1117,233 @@ function renderTeamSlot(raid, teamNum, slotIdx, entry, maxEntry) {
 function renderTeamSlotPickerOverlay() {
     return `<div class="team-slot-picker-overlay" id="team-slot-picker-overlay" onclick="if(event.target===this)closeTeamSlotPicker()">
       <div class="team-slot-picker-modal">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:14px;font-weight:600;color:#f1f5f9">Pick a Nikke</span>
-          <button class="del-btn" onclick="closeTeamSlotPicker()" style="font-size:16px">✕</button>
-        </div>
+        <div class="sheet-drag-zone"><div class="sheet-drag-handle" aria-hidden="true"></div></div>
         <input class="form-input" id="team-slot-picker-search" placeholder="Search..." oninput="filterTeamSlotPicker()" data-kbnav-list="#team-slot-picker-list" style="margin-bottom:8px"/>
+        <div id="team-picker-filter-bar">${renderTeamPickerFilterBar()}</div>
         <div id="team-slot-picker-list" class="team-slot-picker-list"></div>
       </div>
     </div>`;
 }
 
+// Sort + filter controls for the "Add a Nikke" picker, mirroring the Nikke
+// (gear) sidebar's controls. State is held in the module vars below (see the
+// slot-picker section) and is transient — it persists across opens within a
+// session but is not saved. Reuses the gear-filter-* CSS classes for styling.
+function renderTeamPickerFilterBar() {
+    const elemOpts = NIKKE_ELEMENTS.map(
+        (e) => `<option value="${e}" ${_teamPickerElementFilter === e ? "selected" : ""}>${e}</option>`,
+    ).join("");
+    const mfrOpts = NIKKE_MANUFACTURERS.map(
+        (m) => `<option value="${m}" ${_teamPickerManufacturerFilter === m ? "selected" : ""}>${m}</option>`,
+    ).join("");
+    const weaponOpts = Object.keys(NIKKE_WEAPONS)
+        .map((code) => `<option value="${code}" ${_teamPickerWeaponFilter === code ? "selected" : ""}>${code}</option>`)
+        .join("");
+    const sortDir = _teamPickerSortDir;
+    const sortBy = _teamPickerSort;
+
+    // Active filters → pills, each with the setter call that clears just it.
+    const activeFilters = [];
+    if (_teamPickerElementFilter)
+        activeFilters.push({ label: _teamPickerElementFilter, clear: "setTeamPickerElementFilter('')" });
+    if (_teamPickerBurstFilter)
+        activeFilters.push({ label: "Burst " + _teamPickerBurstFilter, clear: "setTeamPickerBurstFilter('')" });
+    if (_teamPickerManufacturerFilter)
+        activeFilters.push({ label: _teamPickerManufacturerFilter, clear: "setTeamPickerManufacturerFilter('')" });
+    if (_teamPickerWeaponFilter)
+        activeFilters.push({ label: _teamPickerWeaponFilter, clear: "setTeamPickerWeaponFilter('')" });
+    const activeCount = activeFilters.length;
+    const pillsHtml = activeFilters
+        .map(
+            (f) =>
+                `<span class="gear-filter-pill">${f.label}<button type="button" class="gear-filter-pill-x" title="Clear filter" onclick="${f.clear}">✕</button></span>`,
+        )
+        .join("");
+
+    return `<div class="gear-filter-bar" style="margin-bottom:8px">
+    <div class="gear-controls-row">
+      <select id="team-picker-sort-select" style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;flex:1;min-width:0" onchange="setTeamPickerSort(this.value)">
+        <option value="power" ${sortBy === "power" ? "selected" : ""}>Power</option>
+        <option value="alpha" ${sortBy === "alpha" ? "selected" : ""}>Alphabetical</option>
+        <option value="lb" ${sortBy === "lb" ? "selected" : ""}>Limit Break</option>
+        <option value="bond" ${sortBy === "bond" ? "selected" : ""}>Bond</option>
+      </select>
+      <button id="team-picker-sort-dir" onclick="toggleTeamPickerSortDir()" title="Toggle sort direction" style="font-size:16px;padding:2px 7px;background:#0f1117;color:#94a3b8;border:1px solid #2d3f5e;border-radius:5px;cursor:pointer;flex-shrink:0;line-height:1;transition:color 0.1s,background 0.1s" onmouseover="this.style.background='#1a2235';this.style.color='#e2e8f0'" onmouseout="this.style.background='#0f1117';this.style.color='#94a3b8'">${sortDir === "asc" ? "↑" : "↓"}</button>
+      <button type="button" class="gear-filter-chip${activeCount ? " has-active" : ""}" onclick="toggleTeamPickerFilterPanel()" aria-expanded="${_teamPickerFiltersExpanded}" title="Filters" aria-label="Filters">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      </button>
+    </div>
+    <div class="gear-filter-chips">${pillsHtml}</div>
+    <div class="gear-filter-panel${_teamPickerFiltersExpanded ? " show" : ""}">
+      <div style="display:flex;gap:4px;margin-bottom:6px">
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+          <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Element</span>
+          <select id="team-picker-filter-element" style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%" onchange="setTeamPickerElementFilter(this.value)">
+            <option value="">All</option>${elemOpts}
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+          <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Burst</span>
+          <select id="team-picker-filter-burst" style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%" onchange="setTeamPickerBurstFilter(this.value)">
+            <option value="">All</option>
+            <option value="I" ${_teamPickerBurstFilter === "I" ? "selected" : ""}>I</option>
+            <option value="II" ${_teamPickerBurstFilter === "II" ? "selected" : ""}>II</option>
+            <option value="III" ${_teamPickerBurstFilter === "III" ? "selected" : ""}>III</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:6px">
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+          <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Manufacturer</span>
+          <select id="team-picker-filter-manufacturer" style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%" onchange="setTeamPickerManufacturerFilter(this.value)">
+            <option value="">All</option>${mfrOpts}
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+          <span style="font-size:11px;color:#475569;letter-spacing:0.05em;padding:0 2px">Weapon</span>
+          <select id="team-picker-filter-weapon" style="font-size:13px;padding:3px 6px;background:#0f1117;color:#e2e8f0;border:1px solid #2d3f5e;border-radius:5px;width:100%" onchange="setTeamPickerWeaponFilter(this.value)">
+            <option value="">All</option>${weaponOpts}
+          </select>
+        </div>
+      </div>
+      <button type="button" class="gear-filter-clear" onclick="clearTeamPickerFilters()"${activeCount ? "" : " disabled"}>Clear all filters</button>
+    </div>
+  </div>`;
+}
+
 // ── Slot picker ──────────────────────────────────────────────
 let _teamSlotPickerState = { raidId: null, team: null, slot: null, entryIdx: null };
+
+// Sort + filter state for the "Add a Nikke" picker (mirrors the gear sidebar).
+// Transient: persists across opens within a session but is not saved.
+let _teamPickerSort = "power";
+let _teamPickerSortDir = "desc";
+let _teamPickerElementFilter = "";
+let _teamPickerBurstFilter = "";
+let _teamPickerManufacturerFilter = "";
+let _teamPickerWeaponFilter = "";
+let _teamPickerFiltersExpanded = false;
+
+// Does this nikke pass the picker's element/burst/manufacturer/weapon filters?
+function nikkePassesTeamPickerFilters(n) {
+    if (!n) return false;
+    if (_teamPickerElementFilter && n.element !== _teamPickerElementFilter) return false;
+    if (_teamPickerBurstFilter) {
+        const bk = { I: "burst1", II: "burst2", III: "burst3" }[_teamPickerBurstFilter];
+        if (bk && !n[bk]) return false;
+    }
+    if (
+        _teamPickerManufacturerFilter &&
+        (NIKKE_DB_MAP.get(n.name) || {}).manufacturer !== _teamPickerManufacturerFilter
+    )
+        return false;
+    if (
+        _teamPickerWeaponFilter &&
+        (n.weapon || (NIKKE_DB_MAP.get(n.name) || {}).weapon) !== _teamPickerWeaponFilter
+    )
+        return false;
+    return true;
+}
+
+// Sort nikkes by the picker's current sort field + direction (same rules as the
+// gear sidebar), tie-breaking on power.
+function sortTeamPickerNikkes(nikkes) {
+    const by = _teamPickerSort || "power";
+    const asc = (_teamPickerSortDir || "desc") === "asc";
+    return [...nikkes].sort((a, b) => {
+        let diff = 0;
+        if (by === "alpha") {
+            diff = a.name.localeCompare(b.name);
+            if (diff !== 0) return asc ? diff : -diff;
+            return (b.power ?? -1) - (a.power ?? -1);
+        } else if (by === "power") {
+            diff = (a.power ?? -1) - (b.power ?? -1);
+        } else if (by === "lb") {
+            diff = (a.limitBreak ?? 0) + (a.cores ?? 0) - ((b.limitBreak ?? 0) + (b.cores ?? 0));
+        } else if (by === "bond") {
+            diff = (a.bond ?? -1) - (b.bond ?? -1);
+        }
+        if (diff !== 0) return asc ? diff : -diff;
+        return (b.power ?? -1) - (a.power ?? -1);
+    });
+}
+
+// Rebuild the filter bar in place (pills, chip badge, control values) after a
+// sort/filter change. The bar is a self-contained block, so replacing its HTML
+// re-syncs every control; the expanded state is preserved via the module var.
+function refreshTeamPickerFilterBar() {
+    const bar = document.getElementById("team-picker-filter-bar");
+    if (bar) bar.innerHTML = renderTeamPickerFilterBar();
+}
+
+function setTeamPickerSort(val) {
+    _teamPickerSort = val;
+    _teamPickerSortDir = val === "alpha" ? "asc" : "desc";
+    refreshTeamPickerFilterBar();
+    filterTeamSlotPicker();
+}
+
+function toggleTeamPickerSortDir() {
+    _teamPickerSortDir = _teamPickerSortDir === "asc" ? "desc" : "asc";
+    refreshTeamPickerFilterBar();
+    filterTeamSlotPicker();
+}
+
+// Toggle the collapsible filter panel with a direct class flip (no rebuild) so
+// it feels instant; the module var keeps state for the next bar render.
+function toggleTeamPickerFilterPanel() {
+    _teamPickerFiltersExpanded = !_teamPickerFiltersExpanded;
+    const panel = document.querySelector("#team-slot-picker-overlay .gear-filter-panel");
+    const chip = document.querySelector("#team-slot-picker-overlay .gear-filter-chip");
+    if (panel) panel.classList.toggle("show", _teamPickerFiltersExpanded);
+    if (chip) chip.setAttribute("aria-expanded", String(_teamPickerFiltersExpanded));
+}
+
+function setTeamPickerElementFilter(val) {
+    _teamPickerElementFilter = val;
+    refreshTeamPickerFilterBar();
+    filterTeamSlotPicker();
+}
+
+function setTeamPickerBurstFilter(val) {
+    _teamPickerBurstFilter = val;
+    refreshTeamPickerFilterBar();
+    filterTeamSlotPicker();
+}
+
+function setTeamPickerManufacturerFilter(val) {
+    _teamPickerManufacturerFilter = val;
+    refreshTeamPickerFilterBar();
+    filterTeamSlotPicker();
+}
+
+function setTeamPickerWeaponFilter(val) {
+    _teamPickerWeaponFilter = val;
+    refreshTeamPickerFilterBar();
+    filterTeamSlotPicker();
+}
+
+// Clear all four dropdown filters at once (the panel's "Clear all" button).
+// Leaves the search box and sort order untouched.
+function clearTeamPickerFilters() {
+    _teamPickerElementFilter = "";
+    _teamPickerBurstFilter = "";
+    _teamPickerManufacturerFilter = "";
+    _teamPickerWeaponFilter = "";
+    refreshTeamPickerFilterBar();
+    filterTeamSlotPicker();
+}
 
 function openTeamSlotPicker(raidId, teamNum, slotIdx) {
     _teamSlotPickerState = { raidId, team: teamNum, slot: slotIdx, entryIdx: null };
     const overlay = document.getElementById("team-slot-picker-overlay");
     if (overlay) {
+        void overlay.offsetWidth; // commit the closed state so the slide-up runs
         overlay.classList.add("show");
         const search = document.getElementById("team-slot-picker-search");
         if (search) {
             search.value = "";
-            search.focus();
+            if (!isMobileView()) search.focus(); // mobile: don't pop the keyboard over the sheet
         }
         filterTeamSlotPicker();
     }
@@ -1111,11 +1353,12 @@ function openTeamSlotPickerEdit(raidId, teamNum, entryIdx) {
     _teamSlotPickerState = { raidId, team: teamNum, slot: null, entryIdx };
     const overlay = document.getElementById("team-slot-picker-overlay");
     if (overlay) {
+        void overlay.offsetWidth; // commit the closed state so the slide-up runs
         overlay.classList.add("show");
         const search = document.getElementById("team-slot-picker-search");
         if (search) {
             search.value = "";
-            search.focus();
+            if (!isMobileView()) search.focus(); // mobile: don't pop the keyboard over the sheet
         }
         filterTeamSlotPicker();
     }
@@ -1123,7 +1366,14 @@ function openTeamSlotPickerEdit(raidId, teamNum, entryIdx) {
 
 function closeTeamSlotPicker() {
     const overlay = document.getElementById("team-slot-picker-overlay");
-    if (overlay) overlay.classList.remove("show");
+    if (overlay) {
+        const modal = overlay.querySelector(".team-slot-picker-modal");
+        if (modal) {
+            modal.classList.remove("dragging");
+            modal.style.transform = ""; // clear any drag offset; let CSS slide it down
+        }
+        overlay.classList.remove("show"); // fade backdrop + slide the sheet down
+    }
     _teamSlotPickerState = { raidId: null, team: null, slot: null, entryIdx: null };
 }
 
@@ -1151,14 +1401,15 @@ function filterTeamSlotPicker() {
     if (currentNikkeId) assignedIds.delete(currentNikkeId);
     // Tribe Tower rosters only admit Nikkes eligible for the roster's tower.
     const isTribe = raid.mode === "tribe";
-    const available = state.nikkes
-        .filter(
+    const available = sortTeamPickerNikkes(
+        state.nikkes.filter(
             (n) =>
                 !assignedIds.has(n.id) &&
                 n.name.toLowerCase().includes(q) &&
-                (!isTribe || nikkeEligibleForTower(n, raid.tower)),
-        )
-        .sort((a, b) => a.name.localeCompare(b.name));
+                (!isTribe || nikkeEligibleForTower(n, raid.tower)) &&
+                nikkePassesTeamPickerFilters(n),
+        ),
+    );
     const removeBtn =
         entryIdx != null
             ? `<div class="team-slot-picker-item team-slot-picker-remove js-kbnav-item" tabindex="0" role="button" onclick="removeTeamSlotFromPicker()">
@@ -1171,13 +1422,25 @@ function filterTeamSlotPicker() {
         (available
             .map((n) => {
                 const elem = n.element ? elemIcon(n.element) : "";
+                // Burst icon (I / II / III / All) instead of plain text.
+                const bd = burstDisplay(n);
+                const burstNum = bd === "All" ? "All" : bd === "III" ? 3 : bd === "II" ? 2 : bd === "I" ? 1 : null;
+                const burst = burstNum ? burstIcon(burstNum) : "";
                 return `<div class="team-slot-picker-item js-kbnav-item" tabindex="0" role="button" onclick="pickTeamSlotNikke('${n.id}')">
-      ${nikkeIcon(n.name, 28)}
+      ${nikkeIcon(n.name, 34)}
       <span>${n.name}</span>
-      <span style="font-size:12px;color:#64748b;margin-left:auto">${elem} ${burstDisplay(n)}</span>
+      <span style="display:flex;align-items:center;gap:4px;margin-left:auto">${elem}${burst}</span>
     </div>`;
             })
-            .join("") || '<div style="padding:8px;color:#475569;font-size:13px">No available Nikkes</div>');
+            .join("") ||
+            `<div style="padding:8px;color:#475569;font-size:13px">${
+                _teamPickerElementFilter ||
+                _teamPickerBurstFilter ||
+                _teamPickerManufacturerFilter ||
+                _teamPickerWeaponFilter
+                    ? "No Nikkes matching filters"
+                    : "No available Nikkes"
+            }</div>`);
 }
 
 function removeTeamSlotFromPicker() {

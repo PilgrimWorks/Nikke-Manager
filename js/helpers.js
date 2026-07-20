@@ -2,6 +2,15 @@
 //  HELPER FUNCTIONS
 // ============================================================
 
+// True on small ("mobile") layouts, where menus/pickers render as bottom-sheet
+// popups. Matches the ≤768px CSS breakpoint. Used to skip auto-focusing search
+// fields on open — on mobile that pops the on-screen keyboard over the sheet.
+function isMobileView() {
+    return typeof window !== "undefined" && window.matchMedia
+        ? window.matchMedia("(max-width: 768px)").matches
+        : false;
+}
+
 // Returns the skill target values {s1, s2, s3} from a pve object based on state.skillTarget.
 // "rec" uses pve.rec directly; "max" takes the highest value across all four tiers.
 function skillTargetVals(pve) {

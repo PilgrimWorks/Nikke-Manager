@@ -35,7 +35,7 @@ html.modal-open {
 
 /* ── Layout ── */
 .app {
-    max-width: 1100px;
+    max-width: 1250px;
     margin: 0 auto;
     padding: 1.5rem 1rem;
 }
@@ -100,6 +100,15 @@ html.modal-open {
     font-weight: 500;
     border-bottom: 2px solid #3b82f6;
 }
+/* ── Mobile bottom navigation & "More" sheet ──
+   Hidden on desktop; revealed inside the max-width:768px media query below,
+   where the desktop `.tabs` bar is hidden in turn. */
+.bottom-nav {
+    display: none;
+}
+.more-sheet-overlay {
+    display: none;
+}
 .section {
     display: none;
 }
@@ -126,9 +135,13 @@ html.modal-open {
 .roster-list-collapsible .nikke-list {
     margin-top: 6px;
 }
-/* Popup header is only shown inside the mobile Nikke-list modal (see the
-   ≤768px block below); hidden everywhere else. */
+/* Popup header + its drag zone are only shown inside the mobile Nikke-list
+   bottom sheet (see the ≤768px block below); hidden everywhere else. */
 .nikke-list-popup-header {
+    display: none;
+}
+.sheet-drag-zone,
+.sheet-drag-handle {
     display: none;
 }
 .nikke-list::-webkit-scrollbar,
@@ -181,6 +194,28 @@ html.modal-open {
     color: #64748b;
     margin-top: 2px;
     font-weight: 400;
+}
+
+/* Mobile: on the Nikkes-screen list, put the name on the left and the gear
+   dots + element/burst icons on a single row to its right (right-aligned),
+   instead of stacked beneath the name. Scoped to #gear so the Teams roster
+   list (which reuses .nikke-item) keeps its stacked layout. */
+@media (max-width: 768px) {
+    #gear .nikke-item-body {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+    #gear .nikke-item-name {
+        flex: 1;
+        min-width: 0;
+    }
+    #gear .nikke-item-sub {
+        margin-top: 0;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
 }
 
 /* Keyboard focus highlight for arrow/Tab-navigable Nikke lists — reuses each
@@ -510,12 +545,103 @@ html.modal-open {
 .line-box {
     container-type: inline-size;
     border: 1px solid #1e2535;
+    /* Thicker left edge is tinted by the line's priority class below. */
+    border-left: 3px solid #2a3547;
     border-radius: 8px;
-    padding: 8px;
+    padding: 8px 9px;
     background: #0f1117;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
+}
+/* Left-edge colour = priority class, so each line's quality reads instantly. */
+.line-box.prio-essential,
+.line-box.prio-ideal {
+    border-left-color: #22c55e;
+}
+.line-box.prio-passable {
+    border-left-color: #f59e0b;
+}
+.line-box.prio-trash {
+    border-left-color: #ef4444;
+}
+/* Locked = a protected line: subtle green wash (lighter than the old solid fill). */
+.line-box.is-locked {
+    background: #0d1712;
+    border-color: #1c3a2a;
+}
+.line-header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+/* Drop-chance sits quietly beside the line number rather than as loud jargon. */
+.line-chance-note {
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #5d6779;
+}
+/* Compact lock toggle — replaces the old full-width Lock button under each line. */
+.lock-toggle {
+    flex-shrink: 0;
+    width: 26px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1;
+    border: 1px solid #2d3f5e;
+    border-radius: 5px;
+    background: none;
+    color: #64748b;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background 0.12s,
+        border-color 0.12s,
+        transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lock-toggle.locked {
+    background: #052e16;
+    border-color: #166534;
+    color: #4ade80;
+}
+.lock-toggle:hover:not(:disabled) {
+    border-color: #3b5a8f;
+}
+.lock-toggle:active:not(:disabled) {
+    transform: scale(0.88);
+}
+.lock-toggle:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+/* Slot header score pill — uses the shared semantic colours, not inline styles. */
+.slot-score {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+.slot-score.sc-keep {
+    background: #052e16;
+    color: #4ade80;
+}
+.slot-score.sc-ok {
+    background: #3f2a06;
+    color: #fcd34d;
+}
+.slot-score.sc-reroll {
+    background: #3f1010;
+    color: #f87171;
+}
+.slot-score.sc-none {
+    color: #475569;
 }
 @container (max-width: 240px) {
     .line-selects {
@@ -538,7 +664,7 @@ html.modal-open {
 }
 .line-label {
     font-size: 12px;
-    color: #475569;
+    color: #64748b;
     letter-spacing: 0.05em;
 }
 .line-chance {
@@ -918,10 +1044,6 @@ details[open] > .verdict-title {
 /* ── Attribute totals card (design-system styling) ── */
 .attr-summary {
     margin-bottom: 11px;
-    background: #0f1320;
-    border: 1px solid #1b212d;
-    border-radius: 13px;
-    padding: 14px 16px;
 }
 .at-head {
     display: flex;
@@ -1040,7 +1162,29 @@ details[open] > .verdict-title {
     color: #f87171;
 }
 
-/* Compact the attribute totals card so all columns fit without scrolling on mobile */
+/* Attribute totals as chips: stat name · total (coloured) · status pill. */
+.attr-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.attr-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 10px 5px 11px;
+    background: #1a2234;
+    border: 1px solid #2a3547;
+    border-radius: 8px;
+}
+.attr-chip .at-stat {
+    flex: none;
+}
+.attr-chip .at-total {
+    line-height: 1;
+}
+
+/* Compact the attribute chips a touch on mobile */
 @media (max-width: 520px) {
     .attr-summary {
         padding: 12px 11px;
@@ -1052,23 +1196,15 @@ details[open] > .verdict-title {
         font-size: 10px;
         padding: 1px 6px;
     }
-    .at-colhead,
-    .at-row {
-        grid-template-columns: minmax(0, 1fr) 30px 56px 58px 64px;
-        gap: 5px;
-    }
-    .at-colhead {
-        font-size: 9px;
-        letter-spacing: 0.02em;
+    .attr-chip {
+        gap: 7px;
+        padding: 4px 8px;
     }
     .at-stat {
         font-size: 12px;
     }
-    .at-num {
-        font-size: 11px;
-    }
     .at-total {
-        font-size: 11.5px;
+        font-size: 12px;
     }
     .at-pill {
         font-size: 9.5px;
@@ -1169,6 +1305,17 @@ details[open] > .verdict-title {
 }
 .add-line-btn:hover {
     background: #1a2235;
+}
+/* "+ Add Nikke" — a touch more visible than the plain add-line button. */
+.add-nikke-cta {
+    color: #93c5fd;
+    border-color: #3b5a8f;
+    background: #131c2c;
+}
+.add-nikke-cta:hover {
+    background: #1c2942;
+    border-color: #4a6ca8;
+    color: #bfdbfe;
 }
 .prio-hint {
     font-size: 13px;
@@ -1402,10 +1549,37 @@ details[open] > .verdict-title {
 }
 .nikke-hdr {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 9px;
     margin-bottom: 12px;
     padding-left: 9px;
+}
+.nikke-hdr-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.nikke-hdr-name {
+    font-size: 25px;
+    font-weight: 700;
+    color: #f1f5f9;
+    line-height: 1.15;
+}
+.nikke-hdr-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px 14px;
+    font-size: 15px;
+    color: #cbd5e1;
+    margin-top: 5px;
+}
+.nikke-hdr-meta .meta-label {
+    color: #64748b;
+    margin-right: 5px;
+}
+/* Prev/next Nikke buttons: mobile-only (revealed in the ≤768px block). */
+.nikke-nav-btn {
+    display: none;
 }
 .avatar {
     width: 34px;
@@ -1485,6 +1659,135 @@ details[open] > .verdict-title {
     background: #1e3a5f;
     color: #60a5fa;
     border-color: #3b82f6;
+}
+/* Button modifiers reused by the Cubes/Weights/Wishlist screens. */
+.btn-danger {
+    border-color: #7f1d1d;
+    color: #f87171;
+}
+.btn-danger:hover {
+    background: #2a1414;
+    color: #fca5a5;
+}
+.btn-track {
+    width: 100%;
+    border-style: dashed;
+    border-color: #2d4a6f;
+    color: #60a5fa;
+}
+.btn-track:hover {
+    background: #14233a;
+    color: #93c5fd;
+}
+
+/* ── Carded panels (Cubes / Weights / Wishlist) — match the Nikkes screen ──
+   Same surface as the gear slot cards: dark panel, subtle border, section-style
+   title with an underline. */
+.panel-page-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 12px;
+}
+.panel-card {
+    background: #0f1320;
+    border: 1px solid #1e2535;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 12px;
+}
+.panel-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #eef2f8;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #1e2535;
+}
+.panel-card .info-note {
+    margin-bottom: 10px;
+}
+
+/* Cubes: responsive grid of cube cards (one card per Harmony Cube). */
+.cube-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+    gap: 10px;
+}
+.cube-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #11151d;
+    border: 1px solid #1b212d;
+    /* Left edge highlights tracked cubes (mirrors the gear line accents). */
+    border-left: 3px solid #232c3b;
+    border-radius: 9px;
+    padding: 10px 12px;
+}
+.cube-card.is-tracked {
+    background: #0f1a15;
+    border-left-color: #22c55e;
+}
+.cube-card.is-untracked {
+    opacity: 0.72;
+}
+.cube-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.cube-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e7ecf3;
+}
+.cube-lv-badge {
+    font-size: 12px;
+    font-weight: 700;
+    color: #4ade80;
+    background: #052e16;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+.cube-users {
+    font-size: 12px;
+    color: #5d6779;
+    line-height: 1.4;
+}
+.cube-users .cube-user {
+    color: #94a3b8;
+}
+.cube-card-foot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+}
+.cube-card-foot .stepper {
+    flex: 1;
+}
+.cube-card-foot .btn-sm {
+    flex: none;
+    min-width: 0;
+}
+
+/* Wishlist: "Treasure" boost marker as a small pill. */
+.wl-treasure {
+    font-size: 11px;
+    font-weight: 600;
+    color: #60a5fa;
+    background: #14233a;
+    padding: 1px 6px;
+    border-radius: 5px;
+    margin-left: 6px;
+    white-space: nowrap;
 }
 
 /* ── Segmented toggle (e.g. Rec / Max skill target) ── */
@@ -1680,6 +1983,8 @@ details[open] > .verdict-title {
 @media (max-width: 768px) {
     .app {
         padding: 1rem 0.5rem;
+        /* Reserve space so the fixed bottom nav never covers page content */
+        padding-bottom: calc(72px + env(safe-area-inset-bottom));
     }
 
     /* Topbar: stack title left, actions below */
@@ -1693,17 +1998,229 @@ details[open] > .verdict-title {
         flex-wrap: wrap;
     }
 
-    /* Tabs: horizontal scroll, no wrapping */
-    .tabs {
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        flex-wrap: nowrap;
+    /* Hide the top header on every tab except Overview to reclaim vertical space
+       (the bottom nav handles navigation). Keyed off the active section so it
+       holds however the tab was switched — switchTab(), goToGearNikke(), etc. */
+    .app:has(.section.active:not(#overview)) .topbar {
+        display: none;
     }
-    .tab {
+
+    /* Nikke detail header: centered, with ◄ ► buttons flanking it to step
+       through the roster. */
+    .nikke-hdr {
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        padding-left: 0;
+    }
+    .nikke-hdr-main {
+        flex: 1;
+        min-width: 0;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 6px;
+    }
+    .nikke-hdr-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 0;
+    }
+    /* Drop the "Element:" / "Burst:" labels and join the values with middot
+       separators to fit the centered header on a phone. */
+    .nikke-hdr-meta {
+        justify-content: center;
+        gap: 2px 0;
+        font-size: 13px;
+    }
+    .nikke-hdr-meta .meta-label {
+        display: none;
+    }
+    .nikke-hdr-meta .meta-item:not(:last-child)::after {
+        content: "·";
+        color: #64748b;
+        margin: 0 6px;
+    }
+    .nikke-nav-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         flex-shrink: 0;
-        padding: 7px 12px;
-        font-size: 14px;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #151c2b;
+        border: 1px solid #2d3f5e;
+        color: #cbd5e1;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+            background 0.1s,
+            color 0.1s,
+            transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .nikke-nav-btn:active:not(:disabled) {
+        background: #1e293b;
+        color: #fff;
+        /* Tactile press: dip in and settle back via the transform transition. */
+        transform: scale(0.88);
+    }
+    .nikke-nav-btn:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
+    /* Desktop tab bar is replaced by the fixed bottom nav on mobile */
+    .tabs {
+        display: none;
+    }
+
+    /* GitHub & Guide live in the "More" sheet on mobile, so drop them from the
+       top bar (!important overrides the GitHub link's inline display). */
+    .topbar-desktop-only {
+        display: none !important;
+    }
+
+    /* ── Fixed bottom navigation ── */
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 900;
+        justify-content: space-around;
+        align-items: stretch;
+        gap: 2px;
+        background: #151c2b;
+        border-top: 1px solid #1e2535;
+        padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+        box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.35);
+        /* Promote to its own compositing layer so its z-index is honoured over
+           the "More" overlay, which is GPU-composited by its backdrop-filter.
+           Without this the backdrop-filtered sheet can paint OVER the nav during
+           the hide animation despite the nav's higher z-index. */
+        transform: translateZ(0);
+    }
+    .bnav-item {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        border: none;
+        background: none;
+        color: #64748b;
+        cursor: pointer;
+        padding: 4px 2px;
+        font-size: 11px;
+        line-height: 1;
+        border-radius: 8px;
+        transition: color 0.15s;
+        /* Suppress the browser's default rectangular tap highlight so the tap
+           feedback comes from the rounded :active background below (which
+           respects border-radius) rather than a square box over the button. */
+        -webkit-tap-highlight-color: transparent;
+    }
+    .bnav-item svg {
+        width: 22px;
+        height: 22px;
+        display: block;
+    }
+    .bnav-item.active {
+        color: #60a5fa;
+    }
+    .bnav-item:active {
+        background: rgba(96, 165, 250, 0.15);
+    }
+
+    /* ── "More" bottom sheet ── */
+    .more-sheet-overlay {
+        display: none; /* toggled to block via inline style on open */
+        position: fixed;
+        inset: 0;
+        /* Sit BELOW the fixed bottom nav (z-index 900): the nav stays visible,
+           crisp and on top, and the sheet slides up from / down behind it — so
+           the show/hide animation happens beneath the bottom row, not over it. */
+        z-index: 890;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+    .more-sheet-overlay.show {
+        opacity: 1;
+    }
+    .more-sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #151c2b;
+        border-top: 1px solid #2d3f5e;
+        border-radius: 18px 18px 0 0;
+        /* Extra bottom padding (~57px nav height) lifts the menu items above the
+           bottom nav, which stays on top; the sheet's lower edge tucks behind it. */
+        padding: 8px 12px calc(18px + 57px + env(safe-area-inset-bottom));
+        box-shadow: 0 -12px 44px rgba(0, 0, 0, 0.55);
+        transform: translateY(110%);
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        touch-action: none;
+    }
+    .more-sheet-overlay.show .more-sheet {
+        transform: translateY(0);
+    }
+    .more-sheet.dragging {
+        transition: none;
+    }
+    .more-sheet-handle {
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: #334155;
+        margin: 4px auto 12px;
+    }
+    .more-sheet-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+        border: none;
+        background: none;
+        color: #e2e8f0;
+        cursor: pointer;
+        padding: 14px 8px;
+        font-size: 16px;
+        text-align: left;
+        text-decoration: none;
+        border-radius: 10px;
+    }
+    .more-sheet-item + .more-sheet-item {
+        border-top: 1px solid #1e2535;
+    }
+    .more-sheet-item svg {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+        color: #94a3b8;
+    }
+    .more-sheet-item.active {
+        color: #60a5fa;
+    }
+    .more-sheet-item.active svg {
+        color: #60a5fa;
+    }
+    .more-sheet-item:active {
+        background: rgba(96, 165, 250, 0.08);
+    }
+    .more-sheet-item .more-sheet-ext {
+        width: 15px;
+        height: 15px;
+        margin-left: auto;
+        color: #64748b;
     }
 
     /* Overview metrics: 2x2 grid */
@@ -1819,6 +2336,9 @@ details[open] > .verdict-title {
 @media (max-width: 480px) {
     .app {
         padding: 0.75rem 0.4rem;
+        /* Re-assert the bottom reservation: the shorthand above would otherwise
+           reset padding-bottom and let the fixed bottom nav cover page content. */
+        padding-bottom: calc(72px + env(safe-area-inset-bottom));
     }
 
     .title {
@@ -1950,7 +2470,7 @@ details[open] > .verdict-title {
 
 @media (max-width: 520px) {
     /* Weapon Overrides: reflow each row into a labeled card. The 5-column
-       table (wide "Charge Speed"/"Charge Dmg" headers) won't fit otherwise. */
+       table (wide "Charge Spd"/"Charge Dmg" headers) won't fit otherwise. */
     #weights .weapon-table,
     #weights .weapon-table tbody {
         display: block;
@@ -2000,48 +2520,55 @@ details[open] > .verdict-title {
 }
 
 /* ── Nikke stats panel grids ── */
+/* Seven chips, restricted to exactly three layouts — one row, 4/3, or 3/2/2 —
+   never any other split. Conditional break elements (toggled by container width)
+   force the wrap points; within each row the chips grow content-proportionally
+   to fill the width. */
+.nikke-stats-edit {
+    container-type: inline-size;
+}
 .stats-grid-main {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    /* Each row break is a full-width zero-height .chip-break line, so a row
+       transition spans TWO row-gaps. Halving row-gap makes the effective
+       vertical gap (4+4) match the 8px horizontal column-gap. */
+    column-gap: 8px;
+    row-gap: 4px;
+    align-items: stretch;
 }
-.stats-grid-skills {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-    column-gap: 10px;
-    row-gap: 3px;
-    margin-top: 8px;
+/* Single row: chips size to content (proportional) so wide values like a long
+   cube name don't squeeze the label. In the 4/3 and 3/2/2 layouts they're made
+   even width instead (see the container queries below). */
+.nikke-stats-edit .field-chip.block {
+    width: auto;
+    flex: 1 1 auto;
 }
-.stats-grid-accessories {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 10px;
-    margin-top: 8px;
+/* A full-width, zero-height flex item forces the next chip onto a new row.
+   Row spacing is handled by the container's row-gap (see .stats-grid-main). */
+.chip-break {
+    display: none;
+    flex-basis: 100%;
+    width: 100%;
+    height: 0;
 }
-@media (max-width: 520px) {
-    .stats-grid-main {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+/* Narrower than one row → 4/3 (break after Bond). Chips become even width. */
+@container (max-width: 899px) {
+    .chip-break-b {
+        display: block;
     }
-    .stats-grid-skills {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+    .nikke-stats-edit .field-chip.block {
+        flex: 1 1 0;
     }
-    /* Hide the desktop 4th-column placeholder so steppers align under their labels */
-    .stats-grid-skills > span:empty {
+}
+/* Narrower than 4/3 → 3/2/2 (breaks after Cores and Skills; drop the 4/3 break). */
+@container (max-width: 469px) {
+    .chip-break-b {
         display: none;
     }
-    .stats-grid-skills .seg-toggle {
-        grid-column: 1 / -1;
-        display: flex;
-        width: 100%;
-        margin-top: 4px;
-    }
-    .stats-grid-skills .seg-toggle button {
-        flex: 1;
-        padding-top: 5px;
-        padding-bottom: 5px;
-    }
-    .stats-grid-accessories {
-        grid-template-columns: 1fr;
+    .chip-break-a,
+    .chip-break-c {
+        display: block;
     }
 }
 
@@ -2153,6 +2680,203 @@ details[open] > .verdict-title {
 .stepper .stepper-input:disabled {
     opacity: 0.3;
     cursor: not-allowed;
+}
+
+/* ── Labelled value chips (every editable field opens a popover editor) ── */
+.field-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+    padding: 5px 10px;
+    background: #1a2234;
+    border: 1px solid #2d3f5e;
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-size: 14px;
+    line-height: 1.1;
+    cursor: pointer;
+    text-align: left;
+    transition:
+        border-color 0.12s,
+        background 0.12s;
+}
+.field-chip.block {
+    width: 100%;
+}
+.field-chip:hover {
+    border-color: #3b5a8f;
+    background: #212c42;
+}
+.field-chip {
+    overflow: hidden;
+}
+/* Label sits to the LEFT of the value, pushed apart within the chip. */
+.field-chip-body {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+.field-chip-label {
+    font-size: 11px;
+    color: #94a3b8;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 0 1 auto;
+    min-width: 0;
+}
+.field-chip-hint {
+    font-size: 11px;
+}
+.field-chip-val {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Never shrink the value — the label (always short) ellipsizes first, so the
+       value stays fully visible even on very narrow screens. */
+    flex: 0 0 auto;
+    min-width: 0;
+}
+.field-chip.is-disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+/* Compact variant (gear tier/level in the slot header): label + value inline. */
+.field-chip.compact {
+    min-height: 0;
+    padding: 3px 8px;
+    gap: 5px;
+}
+.field-chip.compact .field-chip-body {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 5px;
+    flex: 0 0 auto;
+}
+.field-chip.compact .field-chip-label {
+    font-size: 12px;
+}
+.field-chip.compact .field-chip-val {
+    font-size: 13px;
+}
+/* Doll cell: rarity chip + level chip side by side */
+.accessory-doll {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.accessory-doll .field-chip {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.stepper-popover {
+    position: fixed;
+    z-index: 1200;
+    display: none;
+    background: #151c2b;
+    border: 1px solid #2d3f5e;
+    border-radius: 10px;
+    padding: 8px 10px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55);
+}
+.stepper-popover .stepper {
+    width: 118px;
+}
+.stepper-popover-label {
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    text-align: center;
+    margin-bottom: 6px;
+    white-space: nowrap;
+}
+/* Skills editor: Rec/Max toggle + one stepper per skill inside the popover */
+.skills-pop {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.skills-pop-toggle {
+    display: flex;
+    margin-bottom: 2px;
+}
+.skills-pop-toggle button {
+    flex: 1;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+.skills-pop-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+.skills-pop-label {
+    font-size: 12px;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+.skills-pop .stepper {
+    width: 104px;
+    flex-shrink: 0;
+}
+/* Combined doll editor: rarity list + level stepper */
+.doll-pop {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.doll-pop .stepper {
+    width: 104px;
+    flex-shrink: 0;
+}
+/* Text editor (Power) inside the popover */
+.field-text-edit .field-text-input {
+    width: 150px;
+    text-align: center;
+    padding: 5px 8px;
+    background: #0f1117;
+    border: 1px solid #2d3f5e;
+    border-radius: 5px;
+    color: #e2e8f0;
+}
+/* Options editor (Cube / Doll / priority Stat & Priority) */
+.field-options {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 260px;
+    overflow-y: auto;
+    min-width: 150px;
+    max-width: 260px;
+}
+.field-option {
+    text-align: left;
+    padding: 7px 10px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.field-option:hover {
+    background: #1a2235;
+}
+.field-option.selected {
+    background: #1e3357;
+    color: #dbeafe;
 }
 
 /* ============================================================
@@ -2274,14 +2998,14 @@ details[open] > .verdict-title {
 .team-lane {
     background: #0f1320;
     border: 1px solid #1e2535;
-    border-radius: 8px;
-    padding: 8px;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
 }
 .team-lane-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
     min-height: 28px;
 }
 .team-label {
@@ -2336,8 +3060,9 @@ details[open] > .verdict-title {
     gap: 5px;
     padding: 8px 6px;
     position: relative;
-    background: #1a2235;
-    border: 1px solid #2d3f5e;
+    /* Neutral dark surface matching the gear line-boxes on the Nikkes screen. */
+    background: #0f1117;
+    border: 1px solid #1e2535;
     border-radius: 8px;
     color: #e2e8f0;
     min-width: 0;
@@ -2346,14 +3071,15 @@ details[open] > .verdict-title {
 }
 .team-slot-empty {
     border-style: dashed;
-    background: #0f172a;
+    border-color: #232c3b;
+    background: #0c0f16;
     justify-content: center;
     cursor: pointer;
 }
 .team-slot-empty:hover {
-    border-color: #3d5a80;
-    border-style: solid;
-    background: #1e2d45;
+    border-color: #2d3f5e;
+    border-style: dashed;
+    background: #11151d;
 }
 .team-slot-add-btn {
     width: 34px;
@@ -2374,12 +3100,12 @@ details[open] > .verdict-title {
     color: #94a3b8;
 }
 .team-slot-filled {
-    background: #1a2235;
+    background: #0f1117;
     cursor: pointer;
 }
 .team-slot-filled:hover {
-    background: #1e2d45;
-    border-color: #3d5a80;
+    background: #141a26;
+    border-color: #2d3f5e;
 }
 .team-slot-info {
     display: flex;
@@ -2426,11 +3152,16 @@ details[open] > .verdict-title {
     color: #64748b;
     white-space: nowrap;
 }
+/* Shared overlay for centered-modal popups: the gear/team "Add" forms use this
+   as-is; the team Nikke picker overrides it into a bottom sheet via its #id. */
 .team-slot-picker-overlay {
     display: none;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
+    /* Blur the page behind the menu, mirroring the "More" bottom sheet. */
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -2453,20 +3184,23 @@ details[open] > .verdict-title {
     max-height: 50vh;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
+/* Match the Nikkes-list item style (.nikke-item). */
 .team-slot-picker-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 8px;
-    border-radius: 6px;
+    padding: 8px 11px;
+    border: 1px solid transparent;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
     color: #e2e8f0;
+    transition: background 0.1s;
 }
 .team-slot-picker-item:hover {
-    background: #1e3a5f;
+    background: #1a2235;
 }
 .team-slot-picker-remove {
     color: #f87171;
@@ -2476,6 +3210,82 @@ details[open] > .verdict-title {
 }
 .team-slot-picker-remove:hover {
     background: #2d1515;
+}
+
+/* ── Team Nikke picker → behaves like the Nikkes-list menu ──
+   Scoped to the picker's #id so the shared "Add" forms (gear + roster), which
+   reuse .team-slot-picker-* classes, keep their centered-modal styling. The
+   backdrop fades via opacity (always laid out, click-through until `.show`) and
+   the panel is a bottom sheet on mobile. `animation:none` opts out of the shared
+   fade/pop-in keyframes — a fill-mode:both keyframe would pin the panel and
+   break the swipe/close transition. */
+#team-slot-picker-overlay {
+    display: flex;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s ease;
+    animation: none;
+}
+#team-slot-picker-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+#team-slot-picker-overlay .team-slot-picker-modal {
+    animation: none;
+}
+#team-slot-picker-overlay .sheet-drag-zone {
+    display: block;
+    flex-shrink: 0;
+    touch-action: none;
+    cursor: grab;
+}
+#team-slot-picker-overlay .sheet-drag-handle {
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: #334155;
+    margin: 2px auto 10px;
+}
+@media (max-width: 768px) {
+    #team-slot-picker-overlay {
+        /* Column so justify-content:flex-end anchors the sheet to the BOTTOM
+           (the base overlay is a row flex container). */
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-end;
+        /* Sit just BELOW the fixed bottom nav (z-index 900): the backdrop can't
+           dim the nav, and the sheet slides up from BEHIND the nav (which stays
+           on top) rather than in front of it. */
+        z-index: 890;
+    }
+    #team-slot-picker-overlay .team-slot-picker-modal {
+        width: 100%;
+        max-width: none;
+        height: 85vh;
+        max-height: 85vh;
+        border-radius: 18px 18px 0 0;
+        border-bottom: none;
+        /* Extra bottom padding clears the nav overlapping the sheet's lower edge,
+           so list content isn't hidden behind it. */
+        padding: 8px 14px calc(14px + 57px + env(safe-area-inset-bottom));
+        box-shadow: 0 -12px 44px rgba(0, 0, 0, 0.55);
+        /* Off-screen until `.show`; slides up on open, back down on close/swipe. */
+        transform: translateY(110%);
+        transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #team-slot-picker-overlay.show .team-slot-picker-modal {
+        transform: translateY(0);
+    }
+    #team-slot-picker-overlay .team-slot-picker-modal.dragging {
+        transition: none;
+    }
+    /* Inside the sheet the list fills the remaining height and scrolls. */
+    #team-slot-picker-overlay .team-slot-picker-list {
+        max-height: none;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
 }
 .team-readiness-list {
     display: flex;
@@ -2813,13 +3623,14 @@ details[open] > .verdict-title {
     text-align: left;
     padding: 10px 12px;
     margin-bottom: 0; /* grid gap handles spacing */
-    background: #1a2235;
-    border-color: #2d3f5e;
+    /* Match the neutral card surface used by .team-gap-item (and cube cards). */
+    background: #0f1320;
+    border-color: #1b212d;
     position: relative;
 }
 .team-gear-card:hover {
-    background: #1e2d45;
-    border-color: #3d5a80;
+    background: #131826;
+    border-color: #2d3f5e;
 }
 .team-gear-card-name {
     display: flex;
@@ -2914,6 +3725,140 @@ details[open] > .verdict-title {
     display: none;
 }
 
+/* ── Nikkes sidebar: sort controls + icon filter button + active-filter pills ──
+   One row: [sort select (flex:1)] [sort dir] [filter icon]. Pills wrap below. */
+.gear-controls-row {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+}
+.gear-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+}
+.gear-filter-chips:not(:empty) {
+    margin-top: 6px;
+}
+/* Sort-direction and filter buttons share one square width sitting beside the
+   sort dropdown. */
+#gear-sort-dir,
+.gear-controls-row .gear-filter-chip {
+    width: 36px;
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+    justify-content: center;
+}
+/* Filter button — just the funnel icon, sitting beside the sort direction btn. */
+.gear-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex-shrink: 0;
+    padding: 2px 8px;
+    background: #0f1117;
+    color: #94a3b8;
+    border: 1px solid #2d3f5e;
+    border-radius: 5px;
+    cursor: pointer;
+    line-height: 1;
+    transition:
+        color 0.1s,
+        background 0.1s,
+        border-color 0.1s;
+}
+.gear-filter-chip:hover {
+    background: #1a2235;
+    color: #e2e8f0;
+}
+.gear-filter-chip.has-active {
+    color: #93c5fd;
+    border-color: #3b5a8f;
+}
+.gear-filter-chip .gear-filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    color: #eff6ff;
+    background: #2563eb;
+    border-radius: 999px;
+}
+/* Active-filter pill with an inline ✕ to clear that one filter */
+.gear-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    padding: 3px 4px 3px 9px;
+    color: #dbeafe;
+    background: #1e3357;
+    border: 1px solid #2d4a7c;
+    border-radius: 999px;
+    line-height: 1;
+}
+.gear-filter-pill-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    color: #93b4e6;
+    background: none;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    line-height: 1;
+    transition:
+        color 0.1s,
+        background 0.1s;
+}
+.gear-filter-pill-x:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+}
+/* The dropdown-style filter panel; hidden until the chip is toggled open. */
+.gear-filter-panel {
+    display: none;
+    margin-top: 6px;
+    padding: 8px;
+    background: #0f1117;
+    border: 1px solid #1e2535;
+    border-radius: 8px;
+}
+.gear-filter-panel.show {
+    display: block;
+}
+.gear-filter-clear {
+    width: 100%;
+    font-size: 12px;
+    padding: 6px;
+    color: #94a3b8;
+    background: #1a2235;
+    border: 1px solid #2d3f5e;
+    border-radius: 5px;
+    cursor: pointer;
+    transition:
+        color 0.1s,
+        background 0.1s;
+}
+.gear-filter-clear:hover:not(:disabled) {
+    background: #22304a;
+    color: #e2e8f0;
+}
+.gear-filter-clear:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
 /* Campaign per-team delete button (Teams tab) */
 .team-del-btn {
     flex-shrink: 0;
@@ -2996,6 +3941,9 @@ details[open] > .verdict-title {
         inset: 0;
         z-index: 1000;
         background: rgba(0, 0, 0, 0.6);
+        /* Blur the page behind the menu, mirroring the "More" bottom sheet. */
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -3033,6 +3981,70 @@ details[open] > .verdict-title {
         font-size: 14px;
         font-weight: 600;
         color: #f1f5f9;
+    }
+
+    /* ── Nikkes & Teams-roster lists as a bottom sheet (like the "More" menu) ──
+       Both the gear Nikkes popup (.nikke-list-collapsible) and the Teams roster
+       popup (.roster-list-collapsible) open as a slide-up bottom sheet that can be
+       swiped down to dismiss. */
+    .nikke-sidebar .nikke-list-collapsible,
+    .nikke-sidebar .roster-list-collapsible {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-end;
+        padding: 0;
+        /* Dimmed backdrop fades in/out with the sheet, mirroring the "More" menu.
+           Hidden (opacity 0) until JS adds `.show` after a reflow on open. */
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .nikke-sidebar .nikke-list-collapsible.show,
+    .nikke-sidebar .roster-list-collapsible.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .nikke-sidebar .nikke-list-collapsible .nikke-list-panel,
+    .nikke-sidebar .roster-list-collapsible .nikke-list-panel {
+        width: 100%;
+        max-width: none;
+        /* Fixed height (not max-height) so the sheet stays put while searching /
+           filtering — only the inner list changes; the sheet never resizes. */
+        height: 85vh;
+        border-radius: 18px 18px 0 0;
+        border-bottom: none;
+        padding: 8px 14px calc(14px + env(safe-area-inset-bottom));
+        box-shadow: 0 -12px 44px rgba(0, 0, 0, 0.55);
+        /* Starts fully off-screen (110% hides the upward shadow too); slides up
+           when `.show` is added (open) and back down when it's removed (close /
+           swipe). Disabled mid-drag so the finger drags it 1:1. */
+        transform: translateY(110%);
+        transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .nikke-sidebar .nikke-list-collapsible.show .nikke-list-panel,
+    .nikke-sidebar .roster-list-collapsible.show .nikke-list-panel {
+        transform: translateY(0);
+    }
+    .nikke-sidebar .nikke-list-collapsible .nikke-list-panel.dragging,
+    .nikke-sidebar .roster-list-collapsible .nikke-list-panel.dragging {
+        transition: none;
+    }
+    /* Drag zone = grab handle; the swipe-down-to-dismiss target. */
+    .nikke-sidebar .nikke-list-collapsible .sheet-drag-zone,
+    .nikke-sidebar .roster-list-collapsible .sheet-drag-zone {
+        display: block;
+        flex-shrink: 0;
+        touch-action: none;
+        cursor: grab;
+    }
+    .nikke-sidebar .nikke-list-collapsible .sheet-drag-handle,
+    .nikke-sidebar .roster-list-collapsible .sheet-drag-handle {
+        display: block;
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: #334155;
+        margin: 2px auto 10px;
     }
     /* Nikkes & Teams tabs (mobile): the sidebar only holds the pop-out toggle
        button here — the list lives in the popup — so drop the sidebar's card
@@ -3290,8 +4302,9 @@ details[open] > .verdict-title {
 }
 
 /* ── 5. Modals: backdrop fades, dialog pops in ──
-   Tutorial, My Data, team-slot picker, and the mobile Nikke/roster
-   list popup all share this. */
+   Tutorial + the gear/roster "Add" forms share this centered-modal animation.
+   The team Nikke picker (#team-slot-picker-overlay) opts out via `animation:none`
+   — it slides/fades through its own `.show` transitions instead. */
 .tutorial-overlay.show,
 .team-slot-picker-overlay.show {
     animation: nm-fade-in 0.18s ease both;
@@ -3300,15 +4313,12 @@ details[open] > .verdict-title {
 .team-slot-picker-overlay.show .team-slot-picker-modal {
     animation: nm-pop-in 0.24s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
-@media (max-width: 768px) {
-    .nikke-sidebar .nikke-list-collapsible,
-    .nikke-sidebar .roster-list-collapsible {
-        animation: nm-fade-in 0.18s ease both;
-    }
-    .nikke-sidebar .nikke-list-panel {
-        animation: nm-pop-in 0.24s cubic-bezier(0.34, 1.4, 0.64, 1) both;
-    }
-}
+/* Both the Nikkes list and the Teams roster list open/close via the `.show`
+   class (opacity + transform transitions, see the bottom-sheet block above) so
+   they animate BOTH ways and can be dragged by touch. They are deliberately NOT
+   given a fill-mode:both keyframe here — that would pin the panel's transform to
+   its end state and silently override the swipe's inline transform and the close
+   transition. */
 
 /* ── 6. Tutorial steps: gentle staggered rise on open ── */
 .tutorial-overlay.show .tut-step {
@@ -3372,6 +4382,12 @@ details[open] > .verdict-title ~ * {
 .gear-dots .dot:nth-child(4),
 .gear-dots-mini span:nth-child(4) {
     animation-delay: 0.42s;
+}
+/* Suppress the pop-in while the list is only being re-sorted (reordering the
+   existing nodes re-triggers the animation); it should play when the list is
+   opened/rendered, not on every sort. */
+.nikke-list.no-dot-anim .gear-dots-mini span {
+    animation: none;
 }
 
 /* ── 13. Team slots: fill scales up when hovered ── */

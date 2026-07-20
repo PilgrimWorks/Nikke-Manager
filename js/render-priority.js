@@ -40,20 +40,16 @@ function renderPrioContent(nikke) {
       <div class="prio-inner">
         <div class="prio-fields">
           <div class="prio-field">
-            <span class="prio-col-label">Stat</span>
-            <select onchange="updatePrioLine('${nikke.id}',${i},this.value)"><option value="">— select —</option>${statOpts}</select>
+            ${fieldChipHtml({ nid: nikke.id, editor: "options", optType: "prioLine", field: "prioLine", index: i, block: true, label: "Stat", valueText: p.line || "— select —" })}
           </div>
           <div class="prio-field">
-            <span class="prio-col-label">Priority</span>
-            <select onchange="updatePrioTier('${nikke.id}',${i},this.value)">${tierOpts}</select>
+            ${fieldChipHtml({ nid: nikke.id, editor: "options", optType: "prioTier", field: "prioTier", index: i, block: true, label: "Priority", valueText: p.tier || "Ideal" })}
           </div>
           <div class="prio-field">
-            <span class="prio-col-label">Count</span>
-            ${prioStepperHtml(nikke.id, i, count, 1, 4, "stepPrioCount", "updatePrioCount")}
+            ${fieldChipHtml({ nid: nikke.id, editor: "stepper", kind: "prio", index: i, field: "count", value: count, min: 1, max: 4, block: true, label: "Count", valueText: chipNumText(count) })}
           </div>
           <div class="prio-field">
-            <span class="prio-col-label">Target Tier</span>
-            ${prioStepperHtml(nikke.id, i, targetTier, 1, 15, "stepPrioTargetTier", "updatePrioTargetTier")}
+            ${fieldChipHtml({ nid: nikke.id, editor: "stepper", kind: "prio", index: i, field: "targetTier", value: targetTier, min: 1, max: 15, block: true, label: "Target Tier", valueText: chipNumText(targetTier) })}
           </div>
         </div>
         <button class="small-del-btn" onclick="delPrio('${nikke.id}',${i})" title="Remove">✕</button>

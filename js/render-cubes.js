@@ -15,50 +15,37 @@ function renderCubes() {
         }
     });
 
-    const rows = Object.entries(HARMONY_CUBES)
+    const cards = Object.entries(HARMONY_CUBES)
         .map(([tid, name]) => {
             const tidNum = parseInt(tid, 10);
             const hasLevel = levels[tid] != null;
             const level = levels[tid];
             const users = (cubeUsers[tidNum] || []).slice().sort((a, b) => a.localeCompare(b));
-            const userCell = users.length
-                ? `<span style="color:#94a3b8;font-size:14px">${users.join(", ")}</span>`
-                : `<span style="color:#334155;font-size:14px">—</span>`;
+            const usersHtml = users.length
+                ? users.map((u) => `<span class="cube-user">${u}</span>`).join(", ")
+                : "Not equipped";
+            const lvBadge = hasLevel ? `<span class="cube-lv-badge">Lv ${level}</span>` : "";
             const minDis = hasLevel && level <= 1 ? " disabled" : "";
             const maxDis = hasLevel && level >= 15 ? " disabled" : "";
-            const levelCell = hasLevel
-                ? `<div class="stepper" style="width:96px">
+            const foot = hasLevel
+                ? `<div class="stepper">
                 <button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="stepCubeLevel(${tid},-1)"${minDis}>−</button>
-                <input class="stepper-input" type="number" inputmode="numeric" min="1" max="15" step="1" placeholder="—" value="${level}" onchange="updateCubeLevel(${tid},this.value)"/>
+                <input class="stepper-input" type="number" inputmode="numeric" min="1" max="15" step="1" value="${level}" onchange="updateCubeLevel(${tid},this.value)"/>
                 <button type="button" class="stepper-btn" tabindex="-1" onmousedown="event.preventDefault()" onclick="stepCubeLevel(${tid},1)"${maxDis}>+</button>
-              </div>`
-                : `<span style="color:#475569;font-size:14px">not tracked</span>`;
-            const actionCell = hasLevel
-                ? `<button class="btn" style="padding:2px 8px;font-size:13px;background:#7f1d1d;border-color:#991b1b"
-                onclick="removeCubeLevel(${tid})">Remove</button>`
-                : `<button class="btn" style="padding:2px 8px;font-size:13px"
-                onclick="addCubeLevel(${tid})">Add</button>`;
-            return `<tr>
-            <td style="font-weight:600">${name}</td>
-            <td>${levelCell}</td>
-            <td>${actionCell}</td>
-            <td style="white-space:normal;word-break:break-word">${userCell}</td>
-        </tr>`;
+              </div>
+              <button class="btn-sm btn-danger" onclick="removeCubeLevel(${tid})">Remove</button>`
+                : `<button class="btn-sm btn-track" onclick="addCubeLevel(${tid})">+ Track level</button>`;
+            return `<div class="cube-card ${hasLevel ? "is-tracked" : "is-untracked"}">
+          <div class="cube-card-head"><span class="cube-name">${name}</span>${lvBadge}</div>
+          <div class="cube-users">${usersHtml}</div>
+          <div class="cube-card-foot">${foot}</div>
+        </div>`;
         })
         .join("");
 
     el.innerHTML = `
-        <div>
-            <table class="attr-table cube-table" style="table-layout:fixed;width:100%">
-                <tr>
-                    <th style="width:140px">Cube</th>
-                    <th style="width:110px">Level</th>
-                    <th style="width:80px"></th>
-                    <th>Equipped By</th>
-                </tr>
-                ${rows}
-            </table>
-        </div>
+        <div class="panel-page-title">Harmony Cubes</div>
+        <div class="cube-grid">${cards}</div>
     `;
 }
 
