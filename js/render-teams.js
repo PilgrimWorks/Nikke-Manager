@@ -852,8 +852,8 @@ function renderRosterGapTab(raid, cat) {
           <div class="team-gear-sortbar">
             <span class="team-gear-sortbar-label">Sort by</span>
             <button class="team-gear-sort-btn${_teamGearSort.col === "dmg" ? " active" : ""}" data-col="dmg" onclick="sortRosterGear('dmg')">Dmg${arrow("dmg")}</button>
-            <button class="team-gear-sort-btn${_teamGearSort.col === "pct" ? " active" : ""}" data-col="pct" onclick="sortRosterGear('pct')">%${arrow("pct")}</button>
             <button class="team-gear-sort-btn${_teamGearSort.col === "eff" ? " active" : ""}" data-col="eff" onclick="sortRosterGear('eff')">Eff${arrow("eff")}</button>
+            <button class="team-gear-sort-btn${_teamGearSort.col === "pct" ? " active" : ""}" data-col="pct" onclick="sortRosterGear('pct')">%${arrow("pct")}</button>
           </div>
           ${sorted
               .map(
