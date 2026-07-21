@@ -20,6 +20,7 @@ const db = firebase.firestore();
 db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
 let currentUser = null;
+let _wasSignedIn = false; // tracks whether user was signed in this session (to detect sign-out vs cold load)
 let _saveTimeout = null;
 const DEBOUNCE_MS = 1500; // debounce cloud saves
 
@@ -98,7 +99,9 @@ async function uploadLocalToCloud() {
 // the handler here but defer registering it until DOMContentLoaded (see below),
 // by which point every script — including app.js's initial load()/render() — has run.
 async function onAuthChanged(user) {
+    const wasSignedIn = _wasSignedIn;
     currentUser = user;
+    _wasSignedIn = !!user;
     updateAuthUI();
     if (user) {
         // User signed in — always prefer cloud data
@@ -183,28 +186,32 @@ async function onAuthChanged(user) {
         }
         setSyncStatus("saved", "☁ online");
     } else {
-        // User signed out — clear local data so stale state can't overwrite cloud later
-        state = {
-            nikkes: [],
-            selGear: null,
-            selPrio: null,
-            elementalBoss: true,
-            rankSort: "efficiency",
-            rankSortAsc: false,
-            skillTarget: "rec",
-            gearElementFilter: "",
-            gearSidebarSort: "power",
-            gearSidebarSortDir: "desc",
-            cubeLevels: {},
-            teamRaids: [],
-            selTeamRaid: null,
-            teamRaidView: "teams",
-            teamRaidGap: null,
-        };
-        try {
-            localStorage.removeItem("nikke_v8");
-        } catch (e) {}
-        render();
+        // User signed out — only wipe local data if this is an actual sign-out
+        // (transition from signed-in to signed-out). On a cold page load where
+        // no user was ever present, keep localStorage intact so restored data survives.
+        if (wasSignedIn) {
+            state = {
+                nikkes: [],
+                selGear: null,
+                selPrio: null,
+                elementalBoss: true,
+                rankSort: "efficiency",
+                rankSortAsc: false,
+                skillTarget: "rec",
+                gearElementFilter: "",
+                gearSidebarSort: "power",
+                gearSidebarSortDir: "desc",
+                cubeLevels: {},
+                teamRaids: [],
+                selTeamRaid: null,
+                teamRaidView: "teams",
+                teamRaidGap: null,
+            };
+            try {
+                localStorage.removeItem("nikke_v8");
+            } catch (e) {}
+            render();
+        }
         setSyncStatus("offline", "");
     }
 }

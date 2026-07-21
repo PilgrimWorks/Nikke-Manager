@@ -616,28 +616,69 @@ function getVerdict(nikke, slot) {
 
     // ── Sub-case 2x: Good lines below target but ALL locked ─────
     // The user locked a line that still needs value improvement. Tell them to unlock it.
+    // We also need to lock other good-at-target lines that aren't locked yet to protect them.
     const lockedBelowTgt = goodBelowTgt.filter(l => l.locked);
     if (toReset.length === 0 && lockedBelowTgt.length > 0) {
       // Good lines are below target but locked — user needs to unlock them to reset
       const goodAtTgt = goodLines.filter(l => l.atTarget);
+      // Find good-at-target lines that need to be locked to protect during reset
+      const needLock = goodAtTgt.filter(l => !l.locked);
+      // Lines that are already locked and at target — keep them locked
+      const alreadyLockedAtTgt = goodAtTgt.filter(l => l.locked);
+      // Trash/passable lines that are currently unlocked (potential fishing targets after reset)
+      const sacAfterReset = ann.filter(l => l.isSac && !l.locked && !lockedBelowTgt.some(bl => bl.idx === l.idx));
+
       const steps = [];
+      // Step: unlock below-target lines
       steps.push(`${lockedBelowTgt.length === 1 ? 'Line' : 'Lines'} below target but locked — unlock to continue improving:`);
       lockedBelowTgt.forEach(l => steps.push(`  → Unlock ${l.stat} on Line ${l.idx + 1}: T${l.tier || '?'} at ${l.val}%, needs T${l.targetTier}+`));
-      if (goodAtTgt.length > 0) {
-        steps.push(`Keep locked: ${goodAtTgt.map(l => `${l.stat} (Line ${l.idx + 1}, T${l.tier})`).join(', ')}`);
+      // Step: lock good-at-target lines that aren't locked yet
+      if (needLock.length > 0) {
+        steps.push(`Lock good lines to protect during reset:`);
+        needLock.forEach(l => steps.push(`  → Lock ${l.stat} on Line ${l.idx + 1} (T${l.tier}) — at target T${l.targetTier} ✓`));
+      }
+      if (alreadyLockedAtTgt.length > 0) {
+        steps.push(`Keep locked: ${alreadyLockedAtTgt.map(l => `${l.stat} (Line ${l.idx + 1}, T${l.tier})`).join(', ')}`);
       }
       steps.push(`Then Reset Attributes until the unlocked line(s) hit target tier`);
+
+      // Calculate rock cost: after unlocking below-target and locking good-at-target,
+      // total locked = (already locked at target) + (newly locked at target)
+      const effectiveLockedCount = alreadyLockedAtTgt.length + needLock.length;
+      const tProb = probHitTargetTier(lockedBelowTgt[0].targetTier);
+      const resetRocks = estResetAttributesRocks(lockedBelowTgt.length, effectiveLockedCount, tProb);
+
+      // After reset succeeds, consider fishing for additional good lines if < 2 good total
+      let fishRocks = 0;
+      if (goodLines.length < 2) {
+        const postResetLocked = effectiveLockedCount + lockedBelowTgt.length;
+        const gf = goodFrac([...goodAtTgt.map(l => l.stat), ...lockedBelowTgt.map(l => l.stat)]);
+        const fl = sacAfterReset.map(l => ({ appear: l.appear }));
+        fishRocks = estChangeEffectsRocks(fl, gf, postResetLocked);
+        if (fl.length && fishRocks < 999) {
+          steps.push(`Then Change Effects for a 2nd good line — ~${fishRocks} rocks`);
+        }
+      }
+
       const unlockNames = lockedBelowTgt.map(l => l.stat);
-      const keepLockedCount = lockedCount - lockedBelowTgt.length;
+      const lockPrefix = needLock.length === 0
+        ? ''
+        : needLock.length === 1
+          ? `Lock ${needLock[0].idx + 1} + `
+          : `Lock ${needLock.length} + `;
+      const actionTitle = `Unlock Line ${lockedBelowTgt[0].idx + 1} + ${lockPrefix}Reset to fix ${statsOrLabel(unlockNames)}`;
+
       return {
         label: `${goodLines.length} good lines — unlock ${statsOrLabel(unlockNames)} to fix value`,
-        action: `Unlock Line ${lockedBelowTgt[0].idx + 1} + Reset to fix ${statsOrLabel(unlockNames)}`,
+        action: actionTitle,
         simpleSteps: [
           `Unlock ${lockedBelowTgt.map(l => `${l.stat} (Line ${l.idx + 1})`).join(' & ')} — value is below target`,
-          ...(goodAtTgt.length ? [`Keep ${goodAtTgt.map(l => `${l.stat} (Line ${l.idx + 1})`).join(' & ')} locked`] : []),
+          ...(needLock.length ? [`Lock ${needLock.map(l => `${l.stat} (Line ${l.idx + 1})`).join(' & ')} — protect during reset`] : []),
+          ...(alreadyLockedAtTgt.length ? [`Keep ${alreadyLockedAtTgt.map(l => `${l.stat} (Line ${l.idx + 1})`).join(' & ')} locked`] : []),
           `Reset Attributes until ${statsOrLabel(unlockNames)} reaches T${lockedBelowTgt[0].targetTier}+`,
+          ...(fishRocks > 0 && fishRocks < 999 ? [`Then Change Effects for a 2nd ${statsOrLabel(goodPrioNames)} line`] : []),
         ],
-        steps, cls: 'v-ok', rocks: estResetAttributesRocks(lockedBelowTgt.length, keepLockedCount, probHitTargetTier(lockedBelowTgt[0].targetTier)),
+        steps, cls: 'v-ok', rocks: resetRocks + fishRocks,
       };
     }
 
