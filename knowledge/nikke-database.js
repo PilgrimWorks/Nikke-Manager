@@ -2597,6 +2597,44 @@ const NIKKE_DATABASE = [
         },
     },
     {
+        id: 103,
+        name: "Laplace: Ultimate Hero",
+        burst1: false,
+        burst2: false,
+        burst3: true,
+        element: "Wind",
+        weapon: "RL",
+        rarity: "SSR",
+        manufacturer: "Missilis",
+        class: "Attacker",
+        build: {
+            cube: { pve: ["Vigor Cube", "Destruction Cube", "Resilience Cube"] },
+            bossing: "S",
+            collection: { pvePriority: 7 },
+            skill: {
+                pve: {
+                    start: { s1: 4, s2: 4, s3: 4 },
+                    min: { s1: 7, s2: 7, s3: 7 },
+                    rec: { s1: 10, s2: 7, s3: 10 },
+                    max: { s1: 10, s2: 10, s3: 10 },
+                },
+                priority: "High",
+            },
+            overload: {
+                priority: null,
+                ideal: [
+                    { name: "Max Ammo", amount: 4 },
+                    { name: "Ele Dmg", amount: 4 },
+                ],
+                passable: [
+                    { name: "ATK", amount: 4 },
+                    { name: "Crit Rate", amount: 4 },
+                    { name: "Crit DMG", amount: 4 },
+                ],
+            },
+        },
+    },
+    {
         id: 382,
         name: "Leona",
         burst1: false,
