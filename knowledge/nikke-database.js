@@ -5965,12 +5965,26 @@ function nikkeSlug(name) {
 function nikkeIcon(name, size) {
     const sz = size || 22;
     const slug = nikkeSlug(name);
-    return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#1e3a5f"><img src="assets/nikkes/${slug}.webp" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.onerror=null;this.src='assets/nikkes/_placeholder.webp'"></div>`;
+    // The placeholder sits behind the portrait as a CSS background rather than
+    // being swapped in by onerror alone. A missing portrait then reveals the
+    // avatar even if the error handler never runs — an inline handler can be
+    // blocked by CSP, and a cached non-image response can leave the <img>
+    // broken without a usable fallback. Both cases previously rendered the
+    // browser's broken-image alt text inside the circle.
+    // alt is empty because every call site prints the Nikke's name as adjacent
+    // text, so the image is decorative and alt text would only ever be visual noise.
+    return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#1e3a5f url('assets/nikkes/_placeholder.webp') center/cover no-repeat"><img src="assets/nikkes/${slug}.webp" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.style.display='none'"></div>`;
 }
 
 // Preload nikke icons into browser cache to prevent flicker on re-render
 const _preloadedIcons = new Set();
 function preloadNikkeIcons() {
+    // Warm the fallback too, so a Nikke with no portrait shows the avatar
+    // immediately instead of flashing the flat background first.
+    if (!_preloadedIcons.has("_placeholder")) {
+        _preloadedIcons.add("_placeholder");
+        new Image().src = "assets/nikkes/_placeholder.webp";
+    }
     state.nikkes.forEach((n) => {
         if (_preloadedIcons.has(n.name)) return;
         _preloadedIcons.add(n.name);
