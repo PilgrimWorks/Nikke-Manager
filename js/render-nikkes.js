@@ -253,7 +253,7 @@ function renderGear() {
                     (s) => `<span class="${dotStatus(n, s)}" title="${s}" data-slot="${s}"></span>`,
                 ).join("");
                 const badge = n.unrecognized
-                    ? `<span class="nikke-badge" title="Not in database — burst, element and weapon are unknown. Edit in the Roster to fill them in.">not in DB</span>`
+                    ? `<span class="nikke-badge" title="Not in database — burst, element and weapon are unknown. These fill in automatically once the database is updated.">not in DB</span>`
                     : "";
                 // Burst icon (I / II / III / All) alongside the element icon.
                 const bd = burstDisplay(n);

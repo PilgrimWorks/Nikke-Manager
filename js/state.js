@@ -20,4 +20,7 @@ let state = {
     selTeamRaid: null,
     teamRaidView: "teams",
     teamRaidGap: null,
+    // Custom line priorities for Nikkes not currently owned, keyed by name.
+    // Restored automatically if the Nikke is re-acquired.
+    savedPriorities: {},
 };

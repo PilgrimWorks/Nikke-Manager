@@ -18,7 +18,6 @@ function switchTab(tab, event) {
     url.searchParams.set("tab", tab);
     history.replaceState(null, "", url);
     if (tab === "overview") renderOverview();
-    else if (tab === "roster") renderRoster();
     else if (tab === "gear") renderGear();
     else if (tab === "teams") renderTeams();
     else if (tab === "weights") renderWeights();
@@ -252,7 +251,6 @@ function goToGearSlot(nikkeId, slot) {
 
 function render() {
     renderOverview();
-    renderRoster();
     renderGear();
     renderTeams();
     renderWeights();
